@@ -1,5 +1,6 @@
 package botmate;
 
+import common.State;
 import problem.Box;
 import problem.RobotConfig;
 import java.util.List;
@@ -15,16 +16,15 @@ public class BotMateState {
 
     /**
      * Create an problem state from an RobotConfig and list of moving objects
-     * specified.
      * @param robotConfig the robot configuration
      * @param movingBoxes a list of moving boxes
      * @param movingObstacles a list of moving obstacles
      */
     public BotMateState(RobotConfig robotConfig , List<Box> movingBoxes, List<Box> movingObstacles) {
         this.robotConfig = new RobotConfig(robotConfig.getPos(), robotConfig.getOrientation());
-        //TODO: Deep Copy of moving boxes;
+        //todo: Deep Copy of moving boxes;
         this.movingBoxes = null;
-        //TODO: Deep Copy of moving obstacle;
+        //todo: Deep Copy of moving obstacle;
         this.movingObstacles = null;
     }
 
@@ -36,5 +36,12 @@ public class BotMateState {
 
     /** Returns a list of moving obstacles **/
     public List<Box> getMovingObstacles() { return movingObstacles; }
+
+    public boolean isConnectedWith(BotMateState nextState) {
+        //todo: check if the robot and moving object can move from this state to the next state
+        return false;
+    }
+
+
 
 }
