@@ -16,6 +16,7 @@ public interface State {
      * @return list of successor states
      */
     List<StateCostPair> getSuccessors();
+    List<StateCostPair> getSuccessors(State goal);
 
     /**
      * Return true if this state is the same as state s
@@ -29,4 +30,6 @@ public interface State {
      * @return string representation of this state
      */
     String outputString();
+
+    Double heuristic(State s);
 }

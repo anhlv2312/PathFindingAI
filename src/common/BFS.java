@@ -15,6 +15,7 @@ public class BFS implements SearchAgent {
     private Queue<SearchTreeNode> container;
     private HashSet<String> visited;
     private int totNodes = 0;
+    private int temp = 0;
 
     /**
      * Create a BFS search agent instance.
@@ -38,7 +39,7 @@ public class BFS implements SearchAgent {
         while(container.size() > 0) {
             // select a search tree node from the container
             SearchTreeNode currentNode = container.remove();
-            totNodes--;
+            temp--;
             State currentState = currentNode.stateCostPair.state;
 
             // mark this state as visited
@@ -67,7 +68,10 @@ public class BFS implements SearchAgent {
             for(StateCostPair s : successors) {
                 if(!visited.contains(s.state.outputString())) {
                     container.add(new SearchTreeNode(currentNode, s));
-                    totNodes++;
+                    temp++;
+                    if (temp > totNodes) {
+                        totNodes = temp;
+                    }
                 }
             }
         }

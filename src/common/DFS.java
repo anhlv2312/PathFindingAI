@@ -16,6 +16,7 @@ public class DFS implements SearchAgent {
     private Stack<SearchTreeNode> container;
     private HashSet<String> visited;
     private int totNodes;
+    private int temp = 0;
     private int maxDepth = 100000000;
 
     /**
@@ -33,7 +34,7 @@ public class DFS implements SearchAgent {
         while(container.size() > 0) {
             // select a tree node from the container
             SearchTreeNode currentNode = container.pop();
-            totNodes--;
+            temp--;
             State currentState = currentNode.stateCostPair.state;
 
             // mark this state as visited
@@ -67,7 +68,10 @@ public class DFS implements SearchAgent {
                 if(!visited.contains(s.state.outputString())) {
 
                     container.add(new SearchTreeNode(currentNode, s));
-                    totNodes++;
+                    temp++;
+                    if (temp > totNodes) {
+                        totNodes = temp;
+                    }
                 }
             }
         }

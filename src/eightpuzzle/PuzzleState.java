@@ -108,7 +108,6 @@ public class PuzzleState implements common.State {
      */
     public List<StateCostPair> getSuccessors() {
         List<StateCostPair> successors = new ArrayList<StateCostPair>(4);
-
         if((indexOfBlank % 3) != 0) {
             // blank is not in left column - left move is valid
             successors.add(new StateCostPair(swapPositions(indexOfBlank - 1), 1));
@@ -127,6 +126,36 @@ public class PuzzleState implements common.State {
         if((indexOfBlank / 3) != 2) {
             // blank is not in bottom row - down move is valid
             successors.add(new StateCostPair(swapPositions(indexOfBlank + 3), 1));
+        }
+
+        return successors;
+    }
+
+    /**
+     * Return a list of all states reachable from this state. Each successor
+     * has a cost of 1 (indicating it is reached in 1 move) plus a heuristic to the goal.
+     * @return list of successors
+     */
+    public List<StateCostPair> getSuccessors(State goal) {
+        List<StateCostPair> successors = new ArrayList<StateCostPair>(4);
+        if((indexOfBlank % 3) != 0) {
+            // blank is not in left column - left move is valid
+            successors.add(new StateCostPair(swapPositions(indexOfBlank - 1), 1 + this.heuristic(goal) ));
+        }
+
+        if((indexOfBlank % 3) != 2) {
+            // blank is not in right column - right move is valid
+            successors.add(new StateCostPair(swapPositions(indexOfBlank + 1), 1 + this.heuristic(goal)));
+        }
+
+        if((indexOfBlank / 3) != 0) {
+            // blank is not in top row - up move is valid
+            successors.add(new StateCostPair(swapPositions(indexOfBlank - 3), 1 + this.heuristic(goal)));
+        }
+
+        if((indexOfBlank / 3) != 2) {
+            // blank is not in bottom row - down move is valid
+            successors.add(new StateCostPair(swapPositions(indexOfBlank + 3), 1 + this.heuristic(goal)));
         }
 
         return successors;
@@ -183,5 +212,27 @@ public class PuzzleState implements common.State {
             }
         }
         return total % 2;
+    }
+
+    /**
+     * An estimation of cost from current state to s. The number of different cells divide by 2 which is admissible.
+     * @param s
+     * @return a double number
+     */
+    @Override
+    public Double heuristic(State s) {
+        PuzzleState p;
+        if (s instanceof PuzzleState) {
+            p = (PuzzleState) s;
+        } else {
+            return 0.0;
+        }
+        Double total = 0.0;
+        for (int i = 0; i<9; i++) {
+            if (this.numbers.get(i) != p.numbers.get(i)) {
+                total = total + 0.5;
+            }
+        }
+        return total;
     }
 }

@@ -18,11 +18,13 @@ public class PuzzleSolver {
      * Main method - solve the 8 puzzle problems from tutorial 2 using BFS and
      * DFS.
      *
+     * UCS is also performed on the 1st puzzle to show the equivalence of UCS
+     * and BFS when all edge costs are equal.
      * @param args not used
      */
     public static void main(String args[]) {
 
-        boolean showSteps = false;
+        boolean showSteps = true;
         boolean showNumberOfSteps = true;
         boolean showElapsedTime = true;
         boolean showTotNodes = true;
@@ -31,26 +33,34 @@ public class PuzzleSolver {
         System.out.println("\n### Puzzle 1 ###");
         System.out.println("# BFS:");
         solveEightPuzzle("BFS", "1348627_5", "1238_4765", showSteps, showNumberOfSteps, showElapsedTime, showTotNodes);
-        System.out.println("# DFS:");
-        solveEightPuzzle("DFS", "1348627_5", "1238_4765", showSteps, showNumberOfSteps, showElapsedTime, showTotNodes);
+//        System.out.println("# DFS:");
+//        solveEightPuzzle("DFS", "1348627_5", "1238_4765", showSteps, showNumberOfSteps, showElapsedTime, showTotNodes);
+        System.out.println("# Astar:");
+        solveEightPuzzle("Astar", "1348627_5", "1238_4765", showSteps, showNumberOfSteps, showElapsedTime, showTotNodes);
+//        System.out.println("# UCS:");
+//        solveEightPuzzle("UCS", "1348627_5", "1238_4765", showSteps, showNumberOfSteps, showElapsedTime, showTotNodes);
 
         System.out.println("\n### Puzzle 2 ###");
         System.out.println("# BFS:");
         solveEightPuzzle("BFS", "281_43765", "1238_4765", showSteps, showNumberOfSteps, showElapsedTime, showTotNodes);
-        System.out.println("# DFS:");
-        solveEightPuzzle("DFS", "281_43765", "1238_4765", showSteps, showNumberOfSteps, showElapsedTime, showTotNodes);
+//        System.out.println("# DFS:");
+//        solveEightPuzzle("DFS", "281_43765", "1238_4765", showSteps, showNumberOfSteps, showElapsedTime, showTotNodes);
+        System.out.println("# Astar:");
+        solveEightPuzzle("Astar", "281_43765", "1238_4765", showSteps, showNumberOfSteps, showElapsedTime, showTotNodes);
 
         System.out.println("\n### Puzzle 3 ###");
         System.out.println("# BFS:");
         solveEightPuzzle("BFS", "281463_75", "1238_4765", showSteps, showNumberOfSteps, showElapsedTime, showTotNodes);
-        System.out.println("# DFS:");
-        solveEightPuzzle("DFS", "281463_75", "1238_4765", showSteps, showNumberOfSteps, showElapsedTime, showTotNodes);
+//        System.out.println("# DFS:");
+//        solveEightPuzzle("DFS", "281463_75", "1238_4765", showSteps, showNumberOfSteps, showElapsedTime, showTotNodes);
+        System.out.println("# Astar:");
+        solveEightPuzzle("Astar", "281463_75", "1238_4765", showSteps, showNumberOfSteps, showElapsedTime, showTotNodes);
 
     }
 
     /**
      * Solve the given 8 puzzle using the given search strategy.
-     * @param searchType search strategy to use - BFS or DFS
+     * @param searchType search strategy to use - BFS, DFS or UCS
      * @param initStr initial 8 puzzle state
      * @param goalStr goal 8 puzzle state
      * @param showSteps set true to display the list of intermediate states
@@ -64,7 +74,12 @@ public class PuzzleSolver {
             agent = new BFS();
         } else if(searchType.equals("DFS")) {
             agent = new DFS();
-        } else {
+        } else if(searchType.equals("UCS")) {
+            agent = new UCS();
+        } else if(searchType.equals("Astar")) {
+            agent = new Astar();
+        }
+        else {
             throw new IllegalArgumentException("Invalid search type.");
         }
 
