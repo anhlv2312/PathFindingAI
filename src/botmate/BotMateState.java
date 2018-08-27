@@ -81,7 +81,9 @@ public class BotMateState implements State {
         return movingObstacles;
     }
 
-    public boolean isConnectedWith(Point2D newposition) {
+    public boolean isConnectedWith(BotMateState nextState) {
+
+
         //todo: check if the robot and moving object can move from this state to the next state
 
         // draw boundary of the current moving objects (this.active and nextState.active)
@@ -159,6 +161,14 @@ public class BotMateState implements State {
         newRobotPosition.getPos().setLocation(newPosition);
         return new BotMateState(newRobotPosition, this.movingBoxes, this.movingObstacles);
     }
+
+    public BotMateState moveBoxToPosition(int boxIndex, Point2D position) {
+        BotMateState newState = new BotMateState(this);
+        Box box = newState.getMovingBoxes().get(boxIndex);
+        box.getPos().setLocation(position.getX() + box.getWidth()/2, position.getY() + box.getWidth()/2);
+        return newState;
+    }
+
 
     @Override
     public List<StateCostPair> getSuccessors() {

@@ -40,9 +40,7 @@ public class BotMateSolver {
 
         BotMateState initialState = new BotMateState(ps.getInitialRobotConfig(), ps.getMovingBoxes(), ps.getMovingObstacles());
 
-        BotMateState goalState = new BotMateState(initialState);
-        moveBoxToEndPoint(goalState.getMovingBoxes().get(0), ps.getMovingBoxEndPositions().get(0));
-
+        BotMateState goalState = initialState.moveBoxToPosition(0, ps.getMovingBoxEndPositions().get(0));
 
         System.out.println(initialState.equals(goalState));
         System.out.println(goalState.outputString());
@@ -78,7 +76,4 @@ public class BotMateSolver {
         return steps;
     }
 
-    private static void moveBoxToEndPoint(Box box, Point2D endPos) {
-        box.pos = new Point2D.Double(endPos.getX() + box.getWidth()/2, endPos.getY() + box.getWidth()/2);
-    }
 }
