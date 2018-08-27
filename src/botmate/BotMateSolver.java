@@ -63,6 +63,13 @@ public class BotMateSolver {
         return steps;
     }
 
+    private static List<BotMateState> PRMForRobot(BotMateState state, int numberOfSample) {
+        for (int i = 0; i < numberOfSample; i++) {
+//            Point2D point = Math.random();
+        }
+        return steps;
+    }
+
     private static boolean isConnected(BotMateState state1, BotMateState state2) {
         return (!checkMovingBoxCollide(state1, state2) && !checkRobotCollide(state1, state2));
         //Todo: check moving obstacle as well
@@ -124,28 +131,23 @@ public class BotMateSolver {
         RobotConfig r1 = state1.getRobotConfig();
         RobotConfig r2 = state2.getRobotConfig();
 
-        // Declare coordinate variables
-        double r1x1, r1x2, r1y1, r1y2;
-        double r2x1, r2x2, r2y1, r2y2;
+        Point2D r1p1,r1p2;
+        Point2D r2p1,r2p2;
 
-        // Get coordinate from robots
-        r1x1 = r1.getX1(width);
-        r1x2 = r1.getX2(width);
-        r1y1 = r1.getY1(width);
-        r1y2 = r1.getY2(width);
-        r2x1 = r2.getX1(width);
-        r2x2 = r2.getX2(width);
-        r2y1 = r2.getY1(width);
-        r2y2 = r2.getY2(width);
+        r1p1 = tester.getPoint1(r1);
+        r1p2 = tester.getPoint2(r1);
+        r2p1 = tester.getPoint1(r2);
+        r2p2 = tester.getPoint2(r2);
+
 
         // Initial a list of line
         List<Line2D> lines = new ArrayList<>();
 
         // Draw lines between points the current and next robot,
-        lines.add(new Line2D.Double(r1x1, r1y1, r2x1, r2y1));
-        lines.add(new Line2D.Double(r1x1, r1y1, r2x2, r2y2));
-        lines.add(new Line2D.Double(r1x2, r1y2, r2x1, r2y1));
-        lines.add(new Line2D.Double(r1x2, r1y2, r2x2, r2y2));
+        lines.add(new Line2D.Double(r1p1, r2p1));
+        lines.add(new Line2D.Double(r1p1, r2p2));
+        lines.add(new Line2D.Double(r1p2, r2p1));
+        lines.add(new Line2D.Double(r1p2, r2p2));
 
         // Check collision between every line and obstacle
         for (Line2D line: lines) {
