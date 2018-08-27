@@ -24,9 +24,9 @@ public class BotMateSolver {
         }
 
         for (Box currentBox: ps.getMovingBoxes()) {
-
-            BotMateState initial = new BotMateState(ps.getInitialRobotConfig(), currentBox, ps.getMovingBoxes(), ps.getMovingObstacles());
-            BotMateState goal = new BotMateState(ps.getInitialRobotConfig(), currentBox, ps.getMovingBoxes(), ps.getMovingObstacles());
+//
+//            BotMateState initial = new BotMateState(ps.getInitialRobotConfig(), currentBox, ps.getMovingBoxes(), ps.getMovingObstacles());
+//            BotMateState goal = new BotMateState(ps.getInitialRobotConfig(), currentBox, ps.getMovingBoxes(), ps.getMovingObstacles());
         }
 
         BotMateState initial = new BotMateState(ps.getInitialRobotConfig(), ps.getMovingBoxes(), ps.getMovingObstacles());

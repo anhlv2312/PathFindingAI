@@ -24,7 +24,6 @@ public class BotMateState implements State {
     private List<Box> movingObstacles;
     private List<Point2D> listPosition;
     private Box currentBox;
-    private BotMateUtility botMateUtility;
 
     /**
      * Create an problem state from an RobotConfig and list of moving objects
@@ -89,7 +88,7 @@ public class BotMateState implements State {
 
         for (Point2D sample : this.listPosition) {
             if (isConnectedWith(sample)) {
-                successors.add(new StateCostPair(moveToNewPosition(sample), botMateUtility.calculateDistance(this.robotConfig.getPos(), sample) + heuristic(goal)));
+                successors.add(new StateCostPair(moveToNewPosition(sample), BotMateUtility.calculateDistance(this.robotConfig.getPos(), sample) + heuristic(goal)));
             }
         }
 
@@ -116,7 +115,7 @@ public class BotMateState implements State {
      * @return a double number
      */
     public Double heuristic(BotMateState s) {
-        return botMateUtility.calculateDistance(this.currentBox.pos, s.currentBox.pos);
+        return BotMateUtility.calculateDistance(this.currentBox.pos, s.currentBox.pos);
         //todo: use manhatan distance to calculate the distance currentBox of its goal
     }
 
