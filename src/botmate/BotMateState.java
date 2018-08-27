@@ -7,6 +7,7 @@ import problem.MovingBox;
 import problem.MovingObstacle;
 import problem.RobotConfig;
 
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,6 +85,7 @@ public class BotMateState implements State {
     public boolean isConnectedWith(BotMateState nextState) {
 
 
+
         //todo: check if the robot and moving object can move from this state to the next state
 
         // draw boundary of the current moving objects (this.active and nextState.active)
@@ -156,7 +158,7 @@ public class BotMateState implements State {
      * @param position which is connected with the robot currentposition
      * @return BotMateState
      */
-    private BotMateState moveRobot(Point2D position, double orientation) {
+    public BotMateState moveRobot(Point2D position, double orientation) {
         RobotConfig robotConfig = new RobotConfig(position, orientation);
         return new BotMateState(robotConfig, this.movingBoxes, this.movingObstacles);
     }
