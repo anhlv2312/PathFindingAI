@@ -3,6 +3,8 @@ package botmate;
 import common.State;
 import common.StateCostPair;
 import problem.Box;
+import problem.MovingBox;
+import problem.MovingObstacle;
 import problem.RobotConfig;
 
 import java.awt.geom.Point2D;
@@ -22,8 +24,6 @@ public class BotMateState implements State {
      */
     private List<Box> movingBoxes;
     private List<Box> movingObstacles;
-    private List<Point2D> listPosition;
-    private Box currentBox;
 
     /**
      * Create an problem state from an RobotConfig and list of moving objects
@@ -33,11 +33,18 @@ public class BotMateState implements State {
      * @param movingObstacles a list of moving obstacles
      */
     public BotMateState(RobotConfig robotConfig, List<Box> movingBoxes, List<Box> movingObstacles) {
+        this.movingBoxes = new ArrayList<>();
+        this.movingObstacles = new ArrayList<>();
+
         this.robotConfig = new RobotConfig(robotConfig.getPos(), robotConfig.getOrientation());
         //todo: Deep Copy of moving boxes;
-        this.movingBoxes = null;
+        for (Box movingBox: movingBoxes) {
+            this.movingBoxes.add(new MovingBox(movingBox.getPos(), movingBox.getWidth()));
+        }
         //todo: Deep Copy of moving obstacle;
-        this.movingObstacles = null;
+        for (Box movingObstacle: movingObstacles) {
+            this.movingBoxes.add(new MovingObstacle(movingObstacle.getPos(), movingObstacle.getWidth()));
+        }
     }
 
     /**
@@ -81,17 +88,19 @@ public class BotMateState implements State {
     public List<StateCostPair> getSuccessors(State goal) {
         List<StateCostPair> successors = new ArrayList<StateCostPair>();
 
+
+
         // First get some of the samples (which are close to the current state)
 
         // Try to connect them
         // if is connecteed, calculate cost and heuristic to the goal using manhatan and add to succssors
         // then return successor
 
-        for (Point2D sample : this.listPosition) {
-            if (isConnectedWith(sample)) {
-                successors.add(new StateCostPair(moveToNewPosition(sample), BotMateUtility.calculateDistance(this.robotConfig.getPos(), sample) + heuristic(goal)));
-            }
-        }
+//        for (Point2D sample : this.) {
+//            if (isConnectedWith(sample)) {
+//                successors.add(new StateCostPair(moveToNewPosition(sample), BotMateUtility.calculateDistance(this.robotConfig.getPos(), sample) + heuristic(goal)));
+//            }
+//        }
 
         return successors;
     }
@@ -119,7 +128,7 @@ public class BotMateState implements State {
     public Double heuristic(State s) {
         if (s instanceof BotMateState){
             BotMateState state = (BotMateState) s;
-            return BotMateUtility.calculateDistance(this.currentBox.pos, state.currentBox.pos);
+            return BotMateUtility.calculateDistance(this.getMovingBoxes().get(0).pos, state.getMovingBoxes().get(0).pos);
         } else {
             return 0.0;
         }
@@ -150,7 +159,7 @@ public class BotMateState implements State {
 
     @Override
     public String outputString() {
-        return null;
+
     }
 
 }
