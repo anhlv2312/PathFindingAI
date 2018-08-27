@@ -156,10 +156,9 @@ public class BotMateState implements State {
      * @param position which is connected with the robot currentposition
      * @return BotMateState
      */
-    private BotMateState moveRobotToPosition(Point2D position) {
-        BotMateState newState = new BotMateState(this);
-        newState.getRobotConfig().getPos().setLocation(position);
-        return newState;
+    private BotMateState moveRobot(Point2D position, double orientation) {
+        RobotConfig robotConfig = new RobotConfig(position, orientation);
+        return new BotMateState(robotConfig, this.movingBoxes, this.movingObstacles);
     }
 
     public BotMateState moveBoxToPosition(int boxIndex, Point2D position) {
