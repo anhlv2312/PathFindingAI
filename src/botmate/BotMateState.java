@@ -161,8 +161,9 @@ public class BotMateState implements State {
             return false;
         }
 
+        // Only compare movingBoxes
         for (int i = 0; i < state.movingBoxes.size(); i++) {
-            if (!state.movingBoxes.get(i).equals(this.movingBoxes.get(i))) {
+            if (!state.movingBoxes.get(i).getPos().equals(this.movingBoxes.get(i).getPos())) {
                 return false;
             }
         }
