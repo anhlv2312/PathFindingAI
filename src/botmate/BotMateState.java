@@ -77,6 +77,7 @@ public class BotMateState implements State {
      *
      * @return list of successors
      */
+    @Override
     public List<StateCostPair> getSuccessors(State goal) {
         List<StateCostPair> successors = new ArrayList<StateCostPair>();
 
@@ -96,7 +97,7 @@ public class BotMateState implements State {
     }
 
     /**
-     * Check if this puzzle state is equivalent to state s
+     * Check if this state is equivalent to state s
      *
      * @param s state to check equality with
      * @return true if all tiles are in the same position
@@ -114,21 +115,26 @@ public class BotMateState implements State {
      * @param s
      * @return a double number
      */
-    public Double heuristic(BotMateState s) {
-        return BotMateUtility.calculateDistance(this.currentBox.pos, s.currentBox.pos);
+    @Override
+    public Double heuristic(State s) {
+        if (s instanceof BotMateState){
+            BotMateState state = (BotMateState) s;
+            return BotMateUtility.calculateDistance(this.currentBox.pos, state.currentBox.pos);
+        } else {
+            return 0.0;
+        }
         //todo: use manhatan distance to calculate the distance currentBox of its goal
     }
 
-
     /**
-     * Clone the BotMatestate and move the bot to new position
+     * Clone the BotMateState and move the bot to new position
      *
-     * @param newposition which is connected with the robot currentposition
+     * @param newPosition which is connected with the robot currentposition
      * @return BotMateState
      */
-    private BotMateState moveToNewPosition(Point2D newposition) {
+    private BotMateState moveToNewPosition(Point2D newPosition) {
         RobotConfig newRobotPosition = this.robotConfig;
-        newRobotPosition.getPos().setLocation(newposition);
+        newRobotPosition.getPos().setLocation(newPosition);
         return new BotMateState(newRobotPosition, this.movingBoxes, this.movingObstacles);
     }
 
@@ -147,8 +153,4 @@ public class BotMateState implements State {
         return null;
     }
 
-    @Override
-    public Double heuristic(State s) {
-        return null;
-    }
 }

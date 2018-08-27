@@ -3,6 +3,7 @@ package botmate;
 import common.SearchAgent;
 import problem.ProblemSpec;
 import problem.Box;
+import problem.RobotConfig;
 
 
 import java.io.IOException;
@@ -24,9 +25,10 @@ public class BotMateSolver {
         }
 
         for (Box currentBox: ps.getMovingBoxes()) {
-//
-//            BotMateState initial = new BotMateState(ps.getInitialRobotConfig(), currentBox, ps.getMovingBoxes(), ps.getMovingObstacles());
-//            BotMateState goal = new BotMateState(ps.getInitialRobotConfig(), currentBox, ps.getMovingBoxes(), ps.getMovingObstacles());
+
+            BotMateState initial = new BotMateState(ps.getInitialRobotConfig(), ps.getMovingBoxes(), ps.getMovingObstacles());
+            BotMateState goal = new BotMateState(ps.getInitialRobotConfig(), ps.getMovingBoxes(), ps.getMovingObstacles());
+
         }
 
         BotMateState initial = new BotMateState(ps.getInitialRobotConfig(), ps.getMovingBoxes(), ps.getMovingObstacles());
@@ -34,4 +36,16 @@ public class BotMateSolver {
         BotMateState goal = null;
 
     }
+
+    private static void moveRobotToBox(RobotConfig robot, Box target) {
+
+    }
+
+    private static void moveBoxToGoal(RobotConfig robot, Box target) {
+
+    }
+
+
+
+
 }
