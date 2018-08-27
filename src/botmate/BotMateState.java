@@ -154,12 +154,43 @@ public class BotMateState implements State {
 
     @Override
     public boolean equals(State s) {
-        return false;
+        BotMateState state;
+        if (s instanceof BotMateState){
+            state = (BotMateState) s;
+        } else {
+            return false;
+        }
+
+        for (int i = 0; i < state.movingBoxes.size(); i++) {
+            if (!state.movingBoxes.get(i).equals(this.movingBoxes.get(i))) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     @Override
     public String outputString() {
+        StringBuilder output = new StringBuilder();
 
+        output.append(this.robotConfig.getPos().getX()).append(" ");
+        output.append(this.robotConfig.getPos().getY()).append(" ");
+        output.append(this.robotConfig.getOrientation()).append(" ");
+
+        for (Box box: this.movingBoxes) {
+            // This is the position of the bottom left conner
+            output.append(box.getPos().getX()).append(" ");
+            output.append(box.getPos().getY()).append(" ");
+        }
+
+        for (Box box: this.movingObstacles) {
+            // This is the position of the bottom left conner
+            output.append(box.getPos().getX()).append(" ");
+            output.append(box.getPos().getY()).append(" ");
+        }
+
+        return output.toString();
     }
 
 }
