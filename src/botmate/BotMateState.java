@@ -47,6 +47,19 @@ public class BotMateState implements State {
         }
     }
 
+    public BotMateState(BotMateState previousState) {
+        this.movingBoxes = new ArrayList<>();
+        this.movingObstacles = new ArrayList<>();
+
+        this.robotConfig = new RobotConfig(previousState.robotConfig.getPos(), previousState.robotConfig.getOrientation());
+        for (Box movingBox: previousState.getMovingBoxes()) {
+            this.movingBoxes.add(new MovingBox(movingBox.getPos(), movingBox.getWidth()));
+        }
+        for (Box movingObstacle: previousState.getMovingObstacles()) {
+            this.movingBoxes.add(new MovingObstacle(movingObstacle.getPos(), movingObstacle.getWidth()));
+        }
+    }
+
     /**
      * Returns the initial robot config
      **/
