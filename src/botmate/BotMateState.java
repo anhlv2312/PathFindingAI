@@ -211,14 +211,14 @@ public class BotMateState implements State {
 
         for (Box box: this.movingBoxes) {
             // This is the position of the bottom left conner
-            output.append(box.getPos().getX()).append(" ");
-            output.append(box.getPos().getY()).append(" ");
+            output.append(box.getPos().getX() + box.getWidth()/2).append(" ");
+            output.append(box.getPos().getY() + box.getWidth()/2).append(" ");
         }
 
         for (Box box: this.movingObstacles) {
             // This is the position of the bottom left conner
-            output.append(box.getPos().getX()).append(" ");
-            output.append(box.getPos().getY()).append(" ");
+            output.append(box.getPos().getX() + box.getWidth()/2).append(" ");
+            output.append(box.getPos().getY() + box.getWidth()/2).append(" ");
         }
 
         return output.toString();
