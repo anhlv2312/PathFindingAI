@@ -1,6 +1,9 @@
 package botmate;
 
 
+import common.BFS;
+import common.SearchAgent;
+import common.StateCostPair;
 import problem.*;
 import tester.Tester;
 
@@ -17,7 +20,7 @@ public class BotMateSolver {
     static ProblemSpec ps;
     static Tester tester;
 
-    static List<BotMateState> steps;
+    static List<StateCostPair> PathToGoals = new ArrayList<>();
 
     /**
      * Main method - solve the problem
@@ -36,20 +39,35 @@ public class BotMateSolver {
             System.out.println("IO Exception occurred");
         }
 
-
         tester = new Tester(ps);
 
         BotMateState initialState = new BotMateState(ps.getInitialRobotConfig(), ps.getMovingBoxes(), ps.getMovingObstacles());
+        BotMateState goalState = initialState.moveRobot(new Point2D.Double(0.8, 0.2), Math.PI * 0.5);
 
-//        BotMateState goalState = initialState.moveBoxToPosition(0, new Point2D.Double(0.2,0.1));
-//        BotMateState goalState = initialState.moveBoxToPosition(0, ps.getMovingBoxEndPositions().get(0));
+        if (tester.isCoupled(initialState.getRobotConfig(), ps.getMovingBoxes().get(0)) == -1 ) {
 
-        BotMateState goalState = initialState.moveRobot(new Point2D.Double(0.2, 0.1), 1.0);
+            List<BotMateState> possibleState = new ArrayList<>();
+            possibleState.add(initialState);
+            possibleState.addAll(PRMForRobot(initialState,100));
+            possibleState.add(goalState);
+            for (BotMateState state: possibleState) {
+                for (BotMateState nextState: possibleState) {
+                    if (isConnected(state, nextState)) {
+                        double distance = state.getRobotConfig().getPos().distance(nextState.getRobotConfig().getPos());
+                        state.addSuccessor(new StateCostPair(nextState, distance));
+                    }
+                }
+            }
 
-//        System.out.println(tester.isCoupled(initialState.getRobotConfig(), initialState.getMovingBoxes().get(0)));
-//        System.out.println(robotLine(initialState.getRobotConfig()).intersects(initialState.getMovingBoxes().get(0).getRect()));
+        }
 
-        System.out.println(isConnected(initialState, goalState));
+        SearchAgent agent = new BFS();
+        PathToGoals.addAll(agent.search(initialState, goalState));
+        for (StateCostPair scp: PathToGoals) {
+            System.out.println(((BotMateState)scp.state).getRobotConfig().getPos());
+        }
+//
+
 
     }
 
@@ -64,8 +82,21 @@ public class BotMateSolver {
     }
 
     private static List<BotMateState> PRMForRobot(BotMateState state, int numberOfSample) {
+        double[] orientations = new double[] {0.0, 0.25, 0.5, 0.75};
+        List<BotMateState> steps = new ArrayList<>();
+        BotMateState step;
         for (int i = 0; i < numberOfSample; i++) {
-//            Point2D point = Math.random();
+            Point2D point = new Point2D.Double(Math.random(), Math.random());
+
+            for (double o: orientations) {
+                step = state.moveRobot(point, Math.PI * o);
+                if (!checkRobotCollide(state, step)) {
+                    steps.add(step);
+//                    System.out.println(point);
+                    break;
+                }
+            }
+
         }
         return steps;
     }

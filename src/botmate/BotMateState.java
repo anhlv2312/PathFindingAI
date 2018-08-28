@@ -25,6 +25,7 @@ public class BotMateState implements State {
      */
     private List<Box> movingBoxes;
     private List<Box> movingObstacles;
+    private List<StateCostPair> successors;
 
     /**
      * Create an problem state from an RobotConfig and list of moving objects
@@ -36,6 +37,7 @@ public class BotMateState implements State {
     public BotMateState(RobotConfig robotConfig, List<Box> movingBoxes, List<Box> movingObstacles) {
         this.movingBoxes = new ArrayList<>();
         this.movingObstacles = new ArrayList<>();
+        this.successors = new ArrayList<>();
 
         this.robotConfig = new RobotConfig(robotConfig.getPos(), robotConfig.getOrientation());
         //todo: Deep Copy of moving boxes;
@@ -119,6 +121,10 @@ public class BotMateState implements State {
 //            }
 //        }
 
+//        for (BotMateState state: childState) {
+//            successors.add(new StateCostPair(state, BotMateUtility.calculateDistance(state.getRobotConfig()
+//        }
+
         return successors;
     }
 
@@ -136,7 +142,7 @@ public class BotMateState implements State {
 
 
     /**
-     * An estimation of cost from current state to s. The number of different cells divide by 2 which is admissible.
+     * An estimation of cost from current state to s.
      *
      * @param s
      * @return a double number
@@ -170,12 +176,6 @@ public class BotMateState implements State {
         return newState;
     }
 
-
-    @Override
-    public List<StateCostPair> getSuccessors() {
-        return null;
-    }
-
     @Override
     public boolean equals(State s) {
         BotMateState state;
@@ -191,6 +191,12 @@ public class BotMateState implements State {
                 return false;
             }
         }
+
+
+        if (!state.getRobotConfig().getPos().equals(this.getRobotConfig().getPos())) {
+            return false;
+        }
+
 
         return true;
     }
@@ -216,6 +222,15 @@ public class BotMateState implements State {
         }
 
         return output.toString();
+    }
+
+    public void addSuccessor(StateCostPair stateCostPair) {
+        successors.add(stateCostPair);
+    }
+
+    @Override
+    public List<StateCostPair> getSuccessors() {
+        return successors;
     }
 
 }
