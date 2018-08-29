@@ -5,6 +5,7 @@ import common.*;
 import problem.*;
 import tester.Tester;
 
+import java.awt.*;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -27,49 +28,52 @@ public class BotMateSolver {
      */
     public static void main(String args[]) {
 
-        ps = new ProblemSpec();
-
         try {
-            ps.loadProblem("bot.input1.txt");
+            ps = new ProblemSpec();
+            ps.loadProblem("input3.txt");
+            tester = new Tester(ps);
         } catch (IOException e) {
             System.out.println("IO Exception occurred");
         }
-
-        tester = new Tester(ps);
 
         BotMateState currentState = new BotMateState(ps.getInitialRobotConfig(), ps.getMovingBoxes(), ps.getMovingObstacles());
 
         // loop all the box
         for (int boxIndex = 0; boxIndex < ps.getMovingBoxes().size(); boxIndex++) {
 
-            // if it is not in the goal moved it
+            Box currentBox = currentState.getMovingBoxes().get(boxIndex);
+            Point2D currentGoal = ps.getMovingBoxEndPositions().get(boxIndex);
 
-            if (!isBoxInGoal(boxIndex)) {
+            // if currentBox not its goal then dot it
+            if (currentBox.getPos().distance(currentGoal) < tester.MAX_ERROR) {
 
+                // if the robot is not coupled with the robot, move to robot to the box
                 if (tester.isCoupled(currentState.getRobotConfig(), ps.getMovingBoxes().get(boxIndex)) == -1 ) {
-                    currentState = moveRobotToBox(boxIndex, currentState, goalState));
+                    currentState = moveRobotToBox(boxIndex, currentState);
                 }
                 currentState = moveBoxToGoal(boxIndex, currentState);
             }
-
-
         }
+
+
 
     }
 
     private static BotMateState moveRobotToBox(int boxIndex, BotMateState initialState) {
 
         BotMateState goalState = initialState.moveRobot(new Point2D.Double(0.75, 0.8), Math.PI * 0.5);
-        List<BotMateState> possibleState = new ArrayList<>();
+        List<BotMateState> possibleStates = new ArrayList<>();
 
-        possibleState.add(initialState);
-        possibleState.addAll(PRMForRobot(initialState, 500));
-        possibleState.add(goalState);
+        possibleStates.add(initialState);
+        possibleStates.addAll(PRMForRobot(initialState, 500));
+        possibleStates.add(goalState);
 
-        for (BotMateState state : possibleState) {
-            for (BotMateState nextState : possibleState) {
+        for (BotMateState state : possibleStates) {
+            for (BotMateState nextState : possibleStates) {
 
-                if (isConnected(state, nextState)) {
+                // if the moving robot is not collide with other box
+                if (!checkRobotCollide(state, nextState)) {
+                    // Add the next state to the successor
                     state.addSuccessor(new StateCostPair(nextState, 1));
                 }
 
@@ -91,7 +95,8 @@ public class BotMateSolver {
         }
     }
 
-    private static BotMateState moveBoxToGoal(int boxIndex, BotMateState initialState, BotMateState goalState) {
+    private static BotMateState moveBoxToGoal(int boxIndex, BotMateState initialState) {
+        BotMateState goalState = initialState.moveRobot(new Point2D.Double(0.75, 0.8), Math.PI * 0.5);
         return null;
 
     }
@@ -122,18 +127,6 @@ public class BotMateSolver {
             }
 
         return steps;
-    }
-
-    private static boolean isConnected(BotMateState state1, BotMateState state2) {
-
-        if (checkMovingBoxCollide(state1, state2)) {
-            return false;
-        }
-
-        if (checkRobotCollide(state1, state2)) {
-            return false;
-        }
-        return true;
     }
 
     // Check if the moving box collide with other obstacle when moving from state 1 to state 2
@@ -261,8 +254,6 @@ public class BotMateSolver {
                 return true;
             }
         }
-
-
         return false;
     }
 
@@ -289,4 +280,7 @@ public class BotMateSolver {
         return result;
     }
 
+    private static void print(Object o) {
+        System.out.println(o);
+    }
 }
