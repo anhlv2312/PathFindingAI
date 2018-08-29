@@ -58,7 +58,6 @@ public class BotMateSolver {
                     println("not coupled " + boxIndex);
                     currentState = moveRobotToBox(boxIndex, currentState);
                 }
-                println(currentState.getRobotConfig().getPos());
 //                println("move box to goal " + boxIndex);
 //                currentState = moveBoxToGoal(boxIndex, currentState);
             }
@@ -75,8 +74,9 @@ public class BotMateSolver {
 
     private static BotMateState moveRobotToBox(int boxIndex, BotMateState initialState) {
 
-        Point2D target = initialState.getMovingBoxes().get(boxIndex).getPos();
-        BotMateState goalState = initialState.moveRobot(target, Math.PI * 0.5);
+        Box box = initialState.getMovingBoxes().get(boxIndex);
+        Point2D target = new Point2D.Double(box.getPos().getX() + box.getWidth()/2, box.getPos().getY() - tester.MAX_ERROR) ;
+        BotMateState goalState = initialState.moveRobot(target, 0.0);
 
         List<BotMateState> possibleStates = new ArrayList<>();
 
@@ -89,7 +89,7 @@ public class BotMateSolver {
         for (BotMateState state : possibleStates) {
             for (BotMateState nextState : possibleStates) {
                 // if the moving robot is not collide with other box
-                if (!checkRobotCollide(boxIndex, state, nextState)) {
+                if (!checkRobotCollide(state, nextState)) {
                     // Add the next state to the successor
                     state.addSuccessor(new StateCostPair(nextState, 1));
                 }
@@ -98,7 +98,7 @@ public class BotMateSolver {
         }
 
 
-        SearchAgent agent = new BFS();
+        SearchAgent agent = new UCS();
 
         println("Searching");
         List<StateCostPair> solution = agent.search(initialState, goalState);
@@ -191,7 +191,7 @@ public class BotMateSolver {
     }
 
 
-    private static boolean checkRobotCollide(int boxIndex, BotMateState state1, BotMateState state2) {
+    private static boolean checkRobotCollide(BotMateState state1, BotMateState state2) {
 
         // Get robot config
         RobotConfig r1 = state1.getRobotConfig();
@@ -217,24 +217,21 @@ public class BotMateSolver {
 
         // Check collision between every line and obstacle
         for (Line2D line: lines) {
-            for (int i = 0; i < state2.getMovingBoxes().size(); i++ ) {
-                if (i == boxIndex) {
-                    continue;
-                }
-                Box box = state2.getMovingBoxes().get(i);
-                if (line.intersects(tester.grow(box.getRect(), tester.MAX_BASE_STEP))) {
+
+            for (Box box: state2.getMovingBoxes()) {
+                if (line.intersects(box.getRect())) {
                     return true;
                 }
             }
 
             for (Box box: state2.getMovingObstacles()) {
-                if (line.intersects(tester.grow(box.getRect(), tester.MAX_BASE_STEP))) {
+                if (line.intersects(box.getRect())) {
                     return true;
                 }
             }
 
             for (StaticObstacle obstacle: ps.getStaticObstacles()) {
-                if (line.intersects(tester.grow(obstacle.getRect(),tester.MAX_BASE_STEP))) {
+                if (line.intersects(obstacle.getRect())) {
                     return true;
                 }
             }
