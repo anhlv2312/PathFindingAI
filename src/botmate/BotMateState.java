@@ -151,11 +151,10 @@ public class BotMateState implements State {
     public Double heuristic(State s) {
         if (s instanceof BotMateState){
             BotMateState state = (BotMateState) s;
-            return BotMateUtility.calculateDistance(this.getMovingBoxes().get(0).pos, state.getMovingBoxes().get(0).pos);
+            return BotMateSolver.calculateDistance(this.getMovingBoxes().get(0).pos, state.getMovingBoxes().get(0).pos);
         } else {
             return 0.0;
         }
-        //todo: use manhatan distance to calculate the distance currentBox of its goal
     }
 
     /**
