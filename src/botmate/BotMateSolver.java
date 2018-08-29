@@ -5,7 +5,6 @@ import common.*;
 import problem.*;
 import tester.Tester;
 
-import java.awt.*;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -15,6 +14,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class BotMateSolver {
+
+
+    public static final int ROBOT_PRM_SAMPLES = 1500;
+
 
     static ProblemSpec ps;
     static Tester tester;
@@ -30,47 +33,61 @@ public class BotMateSolver {
 
         try {
             ps = new ProblemSpec();
-            ps.loadProblem("input3.txt");
+            ps.loadProblem("bot.input1.txt");
             tester = new Tester(ps);
         } catch (IOException e) {
             System.out.println("IO Exception occurred");
         }
 
         BotMateState currentState = new BotMateState(ps.getInitialRobotConfig(), ps.getMovingBoxes(), ps.getMovingObstacles());
-
+        solution.add(currentState);
         // loop all the box
-        for (int boxIndex = 0; boxIndex < ps.getMovingBoxes().size(); boxIndex++) {
+        for (int boxIndex = 0; boxIndex < 1; boxIndex++) {
+            //boxIndex < ps.getMovingBoxes().size(); boxIndex++) {
 
             Box currentBox = currentState.getMovingBoxes().get(boxIndex);
+            println("check box " + currentBox);
+
             Point2D currentGoal = ps.getMovingBoxEndPositions().get(boxIndex);
 
             // if currentBox not its goal then dot it
-            if (currentBox.getPos().distance(currentGoal) < tester.MAX_ERROR) {
+            if (currentBox.getPos().distance(currentGoal) > tester.MAX_ERROR) {
 
+                println("not in goal " + boxIndex);
                 // if the robot is not coupled with the robot, move to robot to the box
                 if (tester.isCoupled(currentState.getRobotConfig(), ps.getMovingBoxes().get(boxIndex)) == -1 ) {
+                    println("not coupled " + boxIndex);
                     currentState = moveRobotToBox(boxIndex, currentState);
                 }
-                currentState = moveBoxToGoal(boxIndex, currentState);
+                println("move box to goal " + boxIndex);
+//                currentState = moveBoxToGoal(boxIndex, currentState);
             }
         }
 
-
+        for (BotMateState state : solution) {
+            println(state.outputString());
+//            for (String string: generateSteps(currentState, state)) {
+//                println(string);
+//            }
+        }
 
     }
 
     private static BotMateState moveRobotToBox(int boxIndex, BotMateState initialState) {
 
-        BotMateState goalState = initialState.moveRobot(new Point2D.Double(0.75, 0.8), Math.PI * 0.5);
+
+        BotMateState goalState = initialState.moveRobot(initialState.getRobotConfig().getPos(), Math.PI * 0.5);
+
         List<BotMateState> possibleStates = new ArrayList<>();
 
         possibleStates.add(initialState);
-        possibleStates.addAll(PRMForRobot(initialState, 500));
+        possibleStates.addAll(PRMForRobot(initialState, ROBOT_PRM_SAMPLES));
         possibleStates.add(goalState);
+
+        println("sampleling" + possibleStates.size());
 
         for (BotMateState state : possibleStates) {
             for (BotMateState nextState : possibleStates) {
-
                 // if the moving robot is not collide with other box
                 if (!checkRobotCollide(state, nextState)) {
                     // Add the next state to the successor
@@ -80,24 +97,25 @@ public class BotMateSolver {
             }
         }
 
+
         SearchAgent agent = new UCS();
 
         List<StateCostPair> subSolution = agent.search(initialState, goalState);
-        BotMateState currentState = initialState;
 
-        if (solution == null) {
-            return null;
-        } else {
+        if (solution != null) {
+            println("No solution");
             for (StateCostPair scp : subSolution) {
                 solution.add((BotMateState) scp.state);
             }
             return goalState;
+        } else {
+            return initialState;
         }
     }
 
     private static BotMateState moveBoxToGoal(int boxIndex, BotMateState initialState) {
-        BotMateState goalState = initialState.moveRobot(new Point2D.Double(0.75, 0.8), Math.PI * 0.5);
-        return null;
+        BotMateState goalState = initialState;
+        return initialState;
 
     }
 
@@ -116,10 +134,9 @@ public class BotMateSolver {
         BotMateState step;
         for (int i = 0; i < numberOfSample; i++) {
             Point2D point = new Point2D.Double(Math.random(), Math.random());
-
                 for (double o : orientations) {
                     step = state.moveRobot(point, Math.PI * o);
-                    if (!hasCollide(step)) {
+                    if (checkRobotPosition(step)) {
                         steps.add(step);
                         break;
                     }
@@ -200,19 +217,19 @@ public class BotMateSolver {
         // Check collision between every line and obstacle
         for (Line2D line: lines) {
             for (Box box: state2.getMovingBoxes()) {
-                if (line.intersects(tester.grow(box.getRect(), 0.01))) {
+                if (line.intersects(tester.grow(box.getRect(), tester.MAX_BASE_STEP))) {
                     return true;
                 }
             }
 
             for (Box box: state2.getMovingObstacles()) {
-                if (line.intersects(tester.grow(box.getRect(), 0.01))) {
+                if (line.intersects(tester.grow(box.getRect(), tester.MAX_BASE_STEP))) {
                     return true;
                 }
             }
 
             for (StaticObstacle obstacle: ps.getStaticObstacles()) {
-                if (line.intersects(tester.grow(obstacle.getRect(),0.01))) {
+                if (line.intersects(tester.grow(obstacle.getRect(),tester.MAX_BASE_STEP))) {
                     return true;
                 }
             }
@@ -223,38 +240,42 @@ public class BotMateSolver {
     }
 
 
-    private static boolean hasCollide(BotMateState state) {
+    private static boolean checkRobotPosition(BotMateState state) {
 
         // Get robot config
         RobotConfig robot = state.getRobotConfig();
 
         // Draw lines between points the current and next robot,
-        Line2D line = new Line2D.Double(tester.getPoint1(robot), tester.getPoint2(robot));
+        Line2D robotLine = new Line2D.Double(tester.getPoint1(robot), tester.getPoint2(robot));
+
+        // Check collision with boundary
+        double e = tester.MAX_ERROR;
+        if (robotLine.intersectsLine(new Line2D.Double(-e,-e,-e,1+e))) { return true; }
+        if (robotLine.intersectsLine(new Line2D.Double(-e,1+e,1+e,1+e))) { return true; }
+        if (robotLine.intersectsLine(new Line2D.Double(-e,1+e,1+e,-e))) { return true; }
+        if (robotLine.intersectsLine(new Line2D.Double(1+e,-e,-e,-e))) { return true; }
+
 
         // Check collision between every line and obstacle
-        if (line.intersectsLine(new Line2D.Double(0,0,0,1))) { return true; }
-        if (line.intersectsLine(new Line2D.Double(0,1,1,1))) { return true; }
-        if (line.intersectsLine(new Line2D.Double(1,1,1,0))) { return true; }
-        if (line.intersectsLine(new Line2D.Double(1,0,0,0))) { return true; }
-
         for (Box box: state.getMovingBoxes()) {
-            if (line.intersects(box.getRect())) {
-                return true;
+            if (robotLine.intersects(box.getRect())) {
+                return false;
             }
         }
 
         for (Box box: state.getMovingObstacles()) {
-            if (line.intersects(box.getRect())) {
-                return true;
+            if (robotLine.intersects(box.getRect())) {
+                return false;
             }
         }
 
         for (StaticObstacle obstacle: ps.getStaticObstacles()) {
-            if (line.intersects(obstacle.getRect())) {
-                return true;
+            if (robotLine.intersects(obstacle.getRect())) {
+                return false;
             }
         }
-        return false;
+
+        return true;
     }
 
     private static List<String> generateSteps(BotMateState state1, BotMateState state2) {
@@ -281,6 +302,10 @@ public class BotMateSolver {
     }
 
     private static void print(Object o) {
-        System.out.println(o);
+        System.out.print(o);
+    }
+    private static void println(Object o) {
+        System.out.print(o);
+        System.out.print("\n");
     }
 }
