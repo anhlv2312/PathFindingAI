@@ -187,7 +187,12 @@ public class ProblemSpec {
 	 *             specifications.
 	 */
     public void loadSolution(String filename) throws IOException {
+
+		movingBoxPath.clear();
+		robotPath.clear();
+		movingObstaclePath.clear();
         solutionLoaded = false;
+
         if (!problemLoaded) {
             System.out.println("Problem not loaded, exiting!");
             System.exit(4);
@@ -204,6 +209,8 @@ public class ProblemSpec {
             s = new Scanner(line);
             int p = s.nextInt();
             s.close();
+
+
 
             for (int i = 0; i < p; i++) {
                 line = input.readLine();

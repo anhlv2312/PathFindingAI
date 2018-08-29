@@ -5,9 +5,12 @@ import common.*;
 import problem.*;
 import tester.Tester;
 
+import javax.sound.sampled.Line;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -16,7 +19,10 @@ import java.util.List;
 public class BotMateSolver {
 
 
-    public static final int ROBOT_PRM_SAMPLES = 500;
+    public static final int ROBOT_PRM_SAMPLES = 100;
+
+    public static List<Line2D> boundaryLines = new ArrayList<>();
+
 
 
     static ProblemSpec ps;
@@ -31,16 +37,25 @@ public class BotMateSolver {
      */
     public static void main(String args[]) {
 
+        double e = tester.MAX_BASE_STEP;
+        boundaryLines.add(new Line2D.Double(-e,-e,-e,1+e));
+        boundaryLines.add(new Line2D.Double(-e,1+e,1+e,1+e));
+        boundaryLines.add(new Line2D.Double(1+e,1+e,1+e,-e));
+        boundaryLines.add(new Line2D.Double(1+e,-e,-e,-e));
+
         try {
             ps = new ProblemSpec();
             ps.loadProblem("bot.input1.txt");
             tester = new Tester(ps);
-        } catch (IOException e) {
+        } catch (IOException ex) {
             System.out.println("IO Exception occurred");
         }
 
+
         BotMateState currentState = new BotMateState(ps.getInitialRobotConfig(), ps.getMovingBoxes(), ps.getMovingObstacles());
         solutionStates.add(currentState);
+
+
         // loop all the box
         for (int boxIndex = 0; boxIndex < ps.getMovingBoxes().size(); boxIndex++) {
 
@@ -58,24 +73,61 @@ public class BotMateSolver {
                     println("not coupled " + boxIndex);
                     currentState = moveRobotToBox(boxIndex, currentState);
                 }
-//                println("move box to goal " + boxIndex);
-//                currentState = moveBoxToGoal(boxIndex, currentState);
+                println("move box to goal " + boxIndex);
+                currentState = moveBoxToGoal(boxIndex, currentState);
             }
         }
 
+        List<String> output = new LinkedList<>();
+        currentState = solutionStates.get(0);
         for (BotMateState state : solutionStates) {
-            println(state.outputString());
+//            output.add(state.outputString());
+            for (String string: generateSteps(currentState, state)) {
+                output.add(string);
+            }
+            currentState = state;
+        }
+
+        try {
+            FileWriter fw = new FileWriter("bot.output.txt");
+            BufferedWriter bw = new BufferedWriter(fw);
+
+            println(output.size());
+            bw.write(Integer.toString(output.size()));
+            bw.write("\n");
+            bw.flush();
+            for (String string : output) {
+                bw.write(string);
+                bw.write("\n");
+
 //            for (String string: generateSteps(currentState, state)) {
 //                println(string);
 //            }
+            }
+            bw.close();
+
+        } catch (IOException ex) {
+            System.out.println("IO Exception occurred");
         }
+
+
+
 
     }
 
     private static BotMateState moveRobotToBox(int boxIndex, BotMateState initialState) {
 
         Box box = initialState.getMovingBoxes().get(boxIndex);
-        Point2D target = new Point2D.Double(box.getPos().getX() + box.getWidth()/2, box.getPos().getY() - tester.MAX_ERROR) ;
+        Point2D target;
+        target = new Point2D.Double(box.getPos().getX() + box.getWidth()/2, box.getPos().getY() - tester.MAX_ERROR);
+
+        target = new Point2D.Double(box.getPos().getX() + box.getWidth()/2, box.getPos().getY() - tester.MAX_ERROR);
+
+        target = new Point2D.Double(box.getPos().getX() + box.getWidth()/2, box.getPos().getY() - tester.MAX_ERROR);
+
+        target = new Point2D.Double(box.getPos().getX() + box.getWidth()/2, box.getPos().getY() - tester.MAX_ERROR);
+
+
         BotMateState goalState = initialState.moveRobot(target, 0.0);
 
         List<BotMateState> possibleStates = new ArrayList<>();
@@ -115,8 +167,9 @@ public class BotMateSolver {
     }
 
     private static BotMateState moveBoxToGoal(int boxIndex, BotMateState initialState) {
-        BotMateState goalState = initialState;
-        return initialState;
+        BotMateState goalState = initialState.moveRobot(ps.getMovingBoxEndPositions().get(boxIndex), 0.0);
+        solutionStates.add(goalState);
+        return goalState;
 
     }
 
@@ -200,6 +253,7 @@ public class BotMateSolver {
         Point2D r1p1,r1p2;
         Point2D r2p1,r2p2;
 
+
         r1p1 = tester.getPoint1(r1);
         r1p2 = tester.getPoint2(r1);
         r2p1 = tester.getPoint1(r2);
@@ -209,6 +263,8 @@ public class BotMateSolver {
         // Initial a list of line
         List<Line2D> lines = new ArrayList<>();
 
+
+
         // Draw lines between points the current and next robot,
         lines.add(new Line2D.Double(r1p1, r2p1));
         lines.add(new Line2D.Double(r1p1, r2p2));
@@ -217,6 +273,12 @@ public class BotMateSolver {
 
         // Check collision between every line and obstacle
         for (Line2D line: lines) {
+
+            // Check collision with boundary
+            if (isCollideWithBoundary(line)) {
+                return true;
+            }
+
 
             for (Box box: state2.getMovingBoxes()) {
                 if (line.intersects(box.getRect())) {
@@ -251,12 +313,9 @@ public class BotMateSolver {
         Line2D robotLine = new Line2D.Double(tester.getPoint1(robot), tester.getPoint2(robot));
 
         // Check collision with boundary
-        double e = tester.MAX_ERROR;
-        if (robotLine.intersectsLine(new Line2D.Double(-e,-e,-e,1+e))) { return true; }
-        if (robotLine.intersectsLine(new Line2D.Double(-e,1+e,1+e,1+e))) { return true; }
-        if (robotLine.intersectsLine(new Line2D.Double(-e,1+e,1+e,-e))) { return true; }
-        if (robotLine.intersectsLine(new Line2D.Double(1+e,-e,-e,-e))) { return true; }
-
+        if (isCollideWithBoundary(robotLine)) {
+            return false;
+        }
 
         // Check collision between every line and obstacle
         for (Box box: state.getMovingBoxes()) {
@@ -315,4 +374,18 @@ public class BotMateSolver {
         return (Math.abs(initial.getX() - goal.getX()) + Math.abs(initial.getY() - goal.getY()));
     }
 
+    private static boolean isCollideWithBoundary(Line2D line) {
+        for (Line2D boundaryLine : boundaryLines) {
+            if (line.intersectsLine(boundaryLine)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+//    private static List<Point2D> getCenterPointOfEdges(Box box) {
+//
+//
+//    }
 }
