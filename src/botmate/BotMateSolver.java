@@ -5,21 +5,18 @@ import common.*;
 import problem.*;
 import tester.Tester;
 
-import javax.sound.sampled.Line;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class BotMateSolver {
 
 
-    public static final int ROBOT_PRM_SAMPLES = 100;
+    public static final int ROBOT_PRM_SAMPLES = 200;
 
     public static List<Line2D> boundaryLines = new ArrayList<>();
 
@@ -59,29 +56,32 @@ public class BotMateSolver {
         // loop all the box
         for (int boxIndex = 0; boxIndex < ps.getMovingBoxes().size(); boxIndex++) {
 
+            println("Moving Box:  " + boxIndex);
             Box currentBox = currentState.getMovingBoxes().get(boxIndex);
-            println("check box " + currentBox);
 
             Point2D currentGoal = ps.getMovingBoxEndPositions().get(boxIndex);
 
             // if currentBox not its goal then dot it
             if (currentBox.getPos().distance(currentGoal) > tester.MAX_ERROR) {
 
-                println("not in goal " + boxIndex);
+                println("\tNot in goal");
                 // if the robot is not coupled with the robot, move to robot to the box
                 if (tester.isCoupled(currentState.getRobotConfig(), ps.getMovingBoxes().get(boxIndex)) == -1 ) {
-                    println("not coupled " + boxIndex);
+                    println("\tNot coupled");
                     currentState = moveRobotToBox(boxIndex, currentState);
                 }
-                println("move box to goal " + boxIndex);
+                println("\tMove to goal...");
                 currentState = moveBoxToGoal(boxIndex, currentState);
             }
         }
 
         List<String> output = new LinkedList<>();
         currentState = solutionStates.get(0);
+        println("Solution: ");
         for (BotMateState state : solutionStates) {
-//            output.add(state.outputString());
+
+            println("\t" + state.outputString());
+
             for (String string: generateSteps(currentState, state)) {
                 output.add(string);
             }
@@ -92,7 +92,7 @@ public class BotMateSolver {
             FileWriter fw = new FileWriter("bot.output.txt");
             BufferedWriter bw = new BufferedWriter(fw);
 
-            println(output.size());
+            println("Number of steps: " + output.size());
             bw.write(Integer.toString(output.size()));
             bw.write("\n");
             bw.flush();
@@ -103,6 +103,7 @@ public class BotMateSolver {
 //            for (String string: generateSteps(currentState, state)) {
 //                println(string);
 //            }
+
             }
             bw.close();
 
@@ -118,47 +119,48 @@ public class BotMateSolver {
     private static BotMateState moveRobotToBox(int boxIndex, BotMateState initialState) {
 
         Box box = initialState.getMovingBoxes().get(boxIndex);
-        Point2D target;
+        PriorityQueue<RobotConfig> targets = getRobotTargets(initialState.getRobotConfig(), box);
 
-        target = new Point2D.Double(box.getPos().getX() + box.getWidth()/2, box.getPos().getY() - tester.MAX_ERROR);
+        RobotConfig target;
+        while (!targets.isEmpty()) {
+            target = targets.poll();
 
+            BotMateState goalState = initialState.moveRobot(target.getPos(), target.getOrientation());
 
-        BotMateState goalState = initialState.moveRobot(target, 0.0);
+            List<BotMateState> possibleStates = new ArrayList<>();
 
-        List<BotMateState> possibleStates = new ArrayList<>();
+            possibleStates.add(initialState);
+            possibleStates.addAll(PRMForRobot(initialState, ROBOT_PRM_SAMPLES));
+            possibleStates.add(goalState);
 
-        possibleStates.add(initialState);
-        possibleStates.addAll(PRMForRobot(initialState, ROBOT_PRM_SAMPLES));
-        possibleStates.add(goalState);
+            println("\tNumber of sample: " + possibleStates.size());
 
-        println("sampleling " + possibleStates.size());
+            for (BotMateState state : possibleStates) {
+                for (BotMateState nextState : possibleStates) {
+                    // if the moving robot is not collide with other box
+                    if (!checkRobotCollide(state, nextState)) {
+                        // Add the next state to the successor
+                        state.addSuccessor(new StateCostPair(nextState, 1));
+                    }
 
-        for (BotMateState state : possibleStates) {
-            for (BotMateState nextState : possibleStates) {
-                // if the moving robot is not collide with other box
-                if (!checkRobotCollide(state, nextState)) {
-                    // Add the next state to the successor
-                    state.addSuccessor(new StateCostPair(nextState, 1));
                 }
+            }
 
+
+            SearchAgent agent = new BFS();
+
+            println("\tFind Solution...");
+            List<StateCostPair> solution = agent.search(initialState, goalState);
+
+            if (solution != null) {
+                for (StateCostPair scp : solution) {
+                    solutionStates.add((BotMateState) scp.state);
+                }
+                return goalState;
             }
         }
 
-
-        SearchAgent agent = new UCS();
-
-        println("Searching");
-        List<StateCostPair> solution = agent.search(initialState, goalState);
-
-        if (solution != null) {
-            for (StateCostPair scp : solution) {
-                solutionStates.add((BotMateState) scp.state);
-            }
-            return goalState;
-        } else {
-            println("No Solution");
-            return initialState;
-        }
+        return initialState;
     }
 
     private static BotMateState moveBoxToGoal(int boxIndex, BotMateState initialState) {
@@ -384,8 +386,32 @@ public class BotMateSolver {
         return points;
     }
 
-//    private static List<Point2D> getCenterPointOfEdges(Box box) {
-//
-//
-//    }
+    private static PriorityQueue<RobotConfig> getRobotTargets(RobotConfig robot, Box box) {
+
+        PriorityQueue<RobotConfig> targets = new PriorityQueue<>(new Comparator<RobotConfig>() {
+            @Override
+            public int compare(RobotConfig o1, RobotConfig o2) {
+                if (o1.getPos().distance(robot.getPos()) - o2.getPos().distance(robot.getPos()) > 0) {
+                    return 1;
+                } else if (o1.getPos().distance(robot.getPos()) - o2.getPos().distance(robot.getPos()) < 0) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            }
+        });
+
+
+        Double w = box.getWidth();
+        double bottomLeftX = box.getPos().getX();
+        double bottomLeftY = box.getPos().getY();
+
+        targets.add(new RobotConfig(new Point2D.Double(bottomLeftX + w/2, bottomLeftY - tester.MAX_ERROR), 0.0));
+        targets.add(new RobotConfig(new Point2D.Double(bottomLeftX - tester.MAX_ERROR, bottomLeftY + w/2), Math.PI * 0.5));
+        targets.add(new RobotConfig(new Point2D.Double(bottomLeftX + w/2, bottomLeftY + w + tester.MAX_ERROR), 0.0));
+        targets.add(new RobotConfig(new Point2D.Double(bottomLeftX + w + tester.MAX_ERROR, bottomLeftY + w/2), Math.PI * 0.5));
+        return targets;
+    }
+
+
 }
