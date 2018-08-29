@@ -16,7 +16,7 @@ import java.util.*;
 public class BotMateSolver {
 
 
-    public static final int ROBOT_PRM_SAMPLES = 200;
+    public static final int ROBOT_PRM_SAMPLES = 50;
 
     public static List<Line2D> boundaryLines = new ArrayList<>();
 
@@ -51,7 +51,6 @@ public class BotMateSolver {
 
         BotMateState currentState = new BotMateState(ps.getInitialRobotConfig(), ps.getMovingBoxes(), ps.getMovingObstacles());
         solutionStates.add(currentState);
-
 
         // loop all the box
         for (int boxIndex = 0; boxIndex < ps.getMovingBoxes().size(); boxIndex++) {
@@ -140,14 +139,15 @@ public class BotMateSolver {
                     // if the moving robot is not collide with other box
                     if (!checkRobotCollide(state, nextState)) {
                         // Add the next state to the successor
-                        state.addSuccessor(new StateCostPair(nextState, 1));
+                        double distance = state.getRobotConfig().getPos().distance(nextState.getRobotConfig().getPos());
+                        state.addSuccessor(new StateCostPair(nextState, 1 + distance));
                     }
 
                 }
             }
 
 
-            SearchAgent agent = new BFS();
+            SearchAgent agent = new UCS();
 
             println("\tFind Solution...");
             List<StateCostPair> solution = agent.search(initialState, goalState);
@@ -181,18 +181,28 @@ public class BotMateSolver {
 
     private static List<BotMateState> PRMForRobot(BotMateState state, int numberOfSample) {
         double[] orientations = new double[] {0.0, 0.25, 0.5, 0.75};
+
+        List<Point2D> points = new LinkedList<>();
+
+        // Add random point
+        for (int i = 0; i < numberOfSample; i++) {
+            points.add(new Point2D.Double(Math.random(), Math.random());
+        }
+
+        // Check each point if it is valid or not
         List<BotMateState> steps = new ArrayList<>();
         BotMateState step;
-        for (int i = 0; i < numberOfSample; i++) {
-            Point2D point = new Point2D.Double(Math.random(), Math.random());
-                for (double o : orientations) {
-                    step = state.moveRobot(point, Math.PI * o);
-                    if (checkRobotPosition(step)) {
-                        steps.add(step);
-                        break;
-                    }
+        for (Point2D point: points) {
+            for (double o : orientations) {
+                step = state.moveRobot(point, Math.PI * o);
+                if (checkRobotPosition(step)) {
+                    steps.add(step);
+                    break;
                 }
             }
+        }
+
+
 
         return steps;
     }
@@ -413,5 +423,9 @@ public class BotMateSolver {
         return targets;
     }
 
+    // Find middle points of any two objects (including Moving Boxes and Static Obstacle)
+    private static List<Point2D> getMiddlePointBetweenObjects(BotMateState state) {
+        return null;
+    }
 
 }
