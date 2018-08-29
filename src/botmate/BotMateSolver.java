@@ -119,11 +119,6 @@ public class BotMateSolver {
 
         Box box = initialState.getMovingBoxes().get(boxIndex);
         Point2D target;
-        target = new Point2D.Double(box.getPos().getX() + box.getWidth()/2, box.getPos().getY() - tester.MAX_ERROR);
-
-        target = new Point2D.Double(box.getPos().getX() + box.getWidth()/2, box.getPos().getY() - tester.MAX_ERROR);
-
-        target = new Point2D.Double(box.getPos().getX() + box.getWidth()/2, box.getPos().getY() - tester.MAX_ERROR);
 
         target = new Point2D.Double(box.getPos().getX() + box.getWidth()/2, box.getPos().getY() - tester.MAX_ERROR);
 
@@ -246,33 +241,25 @@ public class BotMateSolver {
 
     private static boolean checkRobotCollide(BotMateState state1, BotMateState state2) {
 
+        List<Line2D> robotLines = new ArrayList<>();
+
         // Get robot config
         RobotConfig r1 = state1.getRobotConfig();
         RobotConfig r2 = state2.getRobotConfig();
 
-        Point2D r1p1,r1p2;
-        Point2D r2p1,r2p2;
+        Line2D robotLine1 = new Line2D.Double(tester.getPoint1(r1), tester.getPoint2(r1));
+        Line2D robotLine2 = new Line2D.Double(tester.getPoint1(r2), tester.getPoint2(r2));
+        List<Point2D> robotBound1 = getVertices(robotLine1.getBounds2D());
+        List<Point2D> robotBound2 = getVertices(robotLine2.getBounds2D());
 
+        robotLines.add(new Line2D.Double(r1.getPos(), r2.getPos()));
 
-        r1p1 = tester.getPoint1(r1);
-        r1p2 = tester.getPoint2(r1);
-        r2p1 = tester.getPoint1(r2);
-        r2p2 = tester.getPoint2(r2);
-
-
-        // Initial a list of line
-        List<Line2D> lines = new ArrayList<>();
-
-
-
-        // Draw lines between points the current and next robot,
-        lines.add(new Line2D.Double(r1p1, r2p1));
-        lines.add(new Line2D.Double(r1p1, r2p2));
-        lines.add(new Line2D.Double(r1p2, r2p1));
-        lines.add(new Line2D.Double(r1p2, r2p2));
+        for (int i =0; i< robotBound1.size(); i ++) {
+            robotLines.add(new Line2D.Double(robotBound1.get(i), robotBound2.get(i)));
+        }
 
         // Check collision between every line and obstacle
-        for (Line2D line: lines) {
+        for (Line2D line: robotLines) {
 
             // Check collision with boundary
             if (isCollideWithBoundary(line)) {
@@ -383,6 +370,19 @@ public class BotMateSolver {
         return false;
     }
 
+
+    private static List<Point2D> getVertices(Rectangle2D rect) {
+        List<Point2D> points = new ArrayList<>();
+        Double w = rect.getWidth();
+        Double h = rect.getHeight();
+        double bottomLeftX = rect.getX();
+        double bottomLeftY = rect.getY();
+        points.add(new Point2D.Double(bottomLeftX, bottomLeftY));
+        points.add(new Point2D.Double(bottomLeftX, bottomLeftY + h));
+        points.add(new Point2D.Double(bottomLeftX + w, bottomLeftY + h));
+        points.add(new Point2D.Double(bottomLeftX + w, bottomLeftY));
+        return points;
+    }
 
 //    private static List<Point2D> getCenterPointOfEdges(Box box) {
 //
