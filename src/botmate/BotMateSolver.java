@@ -165,7 +165,7 @@ public class BotMateSolver {
 
         BotMateState goalState = initialState.moveBoxToPosition(boxIndex, newPoint);
         possibleStates.add(initialState);
-        possibleStates.addAll(PRMForBox(boxIndex, initialState, 5));
+        possibleStates.addAll(PRMForBox(boxIndex, initialState, 100));
         possibleStates.add(goalState);
 
 
@@ -184,12 +184,17 @@ public class BotMateSolver {
             }
         }
 
-        println(possibleStates);
+        System.out.println("possible state");
+        System.out.println(possibleStates.size());
+        for (BotMateState state:possibleStates)
+        {
+            println(state.outputString());
+        }
+
         SearchAgent agent = new UCS();
 
         println("\tFind Solution...");
-        println(initialState);
-        println(goalState);
+
         List<StateCostPair> solution = agent.search(initialState, goalState);
 
         if (solution != null) {
@@ -204,10 +209,9 @@ public class BotMateSolver {
 
     private static List<BotMateState> PRMForBox(int boxIndex, BotMateState state, int numberOfSample) {
         List<Point2D> points = new LinkedList<>();
-        Random random = new Random(numberOfSample);
         // Add random point
         for (int i = 0; i < numberOfSample; i++) {
-            points.add(new Point2D.Double(random.nextDouble(), random.nextDouble()));
+            points.add(new Point2D.Double(Math.random(), Math.random()));
         }
 
 
@@ -392,23 +396,14 @@ public class BotMateSolver {
     private static boolean checkBoxPosition(int boxIndex, BotMateState state) {
 
         // Get the boundary and add padding (w/2)
-        Rectangle2D boundary = tester.grow(state.getMovingBoxes().get(boxIndex).getRect(), state.getMovingBoxes().get(boxIndex).getWidth() / 2);
+         Rectangle2D boundary = tester.grow(state.getMovingBoxes().get(boxIndex).getRect(), state.getMovingBoxes().get(boxIndex).getWidth() / 2);
         //Rectangle2D boundary = state.getMovingBoxes().get(boxIndex).getRect();
 
 
-        //check collision between rectangle with border
-        double e = tester.MAX_ERROR;
-        if (boundary.intersectsLine(new Line2D.Double(-e, -e, -e, 1 + e))) {
-            return false;
-        }
-        if (boundary.intersectsLine(new Line2D.Double(-e, 1 + e, 1 + e, 1 + e))) {
-            return false;
-        }
-        if (boundary.intersectsLine(new Line2D.Double(-e, 1 + e, 1 + e, -e))) {
-            return false;
-        }
-        if (boundary.intersectsLine(new Line2D.Double(1 + e, -e, -e, -e))) {
-            return false;
+        for (Line2D boundaryLine : boundaryLines) {
+            if (boundaryLine.intersects(boundary)) {
+                return false;
+            }
         }
 
         for (Box box : state.getMovingObstacles()) {
