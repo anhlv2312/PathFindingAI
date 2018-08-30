@@ -21,7 +21,6 @@ public class BotMateSolver {
     public static List<Line2D> boundaryLines = new ArrayList<>();
 
 
-
     static ProblemSpec ps;
     static Tester tester;
 
@@ -35,10 +34,10 @@ public class BotMateSolver {
     public static void main(String args[]) {
 
         double e = tester.MAX_BASE_STEP;
-        boundaryLines.add(new Line2D.Double(-e,-e,-e,1+e));
-        boundaryLines.add(new Line2D.Double(-e,1+e,1+e,1+e));
-        boundaryLines.add(new Line2D.Double(1+e,1+e,1+e,-e));
-        boundaryLines.add(new Line2D.Double(1+e,-e,-e,-e));
+        boundaryLines.add(new Line2D.Double(-e, -e, -e, 1 + e));
+        boundaryLines.add(new Line2D.Double(-e, 1 + e, 1 + e, 1 + e));
+        boundaryLines.add(new Line2D.Double(1 + e, 1 + e, 1 + e, -e));
+        boundaryLines.add(new Line2D.Double(1 + e, -e, -e, -e));
 
         try {
             ps = new ProblemSpec();
@@ -70,7 +69,7 @@ public class BotMateSolver {
                     currentState = moveRobotToBox(boxIndex, currentState);
                 }
                 println("\tMove to goal...");
-                //currentState = moveBoxToGoal(boxIndex, currentState, currentGoal);
+                currentState = moveBoxToGoal(boxIndex, currentState, currentGoal);
             }
         }
 
@@ -81,7 +80,7 @@ public class BotMateSolver {
 
             println("\t" + state.outputString());
 
-            for (String string: generateSteps(currentState, state)) {
+            for (String string : generateSteps(currentState, state)) {
                 output.add(string);
             }
             currentState = state;
@@ -109,8 +108,6 @@ public class BotMateSolver {
         } catch (IOException ex) {
             System.out.println("IO Exception occurred");
         }
-
-
 
 
     }
@@ -168,7 +165,7 @@ public class BotMateSolver {
 
         BotMateState goalState = initialState.moveBoxToPosition(boxIndex, newPoint);
         possibleStates.add(initialState);
-        possibleStates.addAll(PRMForBox(boxIndex, initialState, 10));
+        possibleStates.addAll(PRMForBox(boxIndex, initialState, 5));
         possibleStates.add(goalState);
 
 
@@ -177,7 +174,8 @@ public class BotMateSolver {
         for (BotMateState state : possibleStates) {
             for (BotMateState nextState : possibleStates) {
                 // if the moving robot is not collide with other box
-                if (!checkMovingBoxCollide(boxIndex, state, nextState)) {
+                int check = checkMovingBoxCollide(boxIndex, state, nextState);
+                if (check == 2) {
                     // Add the next state to the successor
                     double distance = state.getMovingBoxes().get(boxIndex).getPos().distance(nextState.getMovingBoxes().get(boxIndex).getPos());
                     state.addSuccessor(new StateCostPair(nextState, 1 + distance));
@@ -206,7 +204,7 @@ public class BotMateSolver {
 
     private static List<BotMateState> PRMForBox(int boxIndex, BotMateState state, int numberOfSample) {
         List<Point2D> points = new LinkedList<>();
-            Random random = new Random(numberOfSample);
+        Random random = new Random(numberOfSample);
         // Add random point
         for (int i = 0; i < numberOfSample; i++) {
             points.add(new Point2D.Double(random.nextDouble(), random.nextDouble()));
@@ -228,7 +226,7 @@ public class BotMateSolver {
     }
 
     private static List<BotMateState> PRMForRobot(BotMateState state, int numberOfSample) {
-        double[] orientations = new double[] {0.0, 0.25, 0.5, 0.75};
+        double[] orientations = new double[]{0.0, 0.25, 0.5, 0.75};
 
         List<Point2D> points = new LinkedList<>();
 
@@ -240,7 +238,7 @@ public class BotMateSolver {
         // Check each point if it is valid or not
         List<BotMateState> steps = new ArrayList<>();
         BotMateState step;
-        for (Point2D point: points) {
+        for (Point2D point : points) {
             for (double o : orientations) {
                 step = state.moveRobot(point, Math.PI * o);
                 if (checkRobotPosition(step)) {
@@ -255,7 +253,7 @@ public class BotMateSolver {
     }
 
     // Check if the moving box collide with other obstacle when moving from state 1 to state 2
-    private static boolean checkMovingBoxCollide(int boxIndex, BotMateState state1, BotMateState state2) {
+    private static int checkMovingBoxCollide(int boxIndex, BotMateState state1, BotMateState state2) {
         Line2D line;
 
         // For any moving box,
@@ -263,38 +261,42 @@ public class BotMateSolver {
         Box box2 = state2.getMovingBoxes().get(boxIndex);
 
         // if the box is not moved
-        if (!box1.getPos().equals(box2.getPos())) {
-
+        if (box1.getPos().equals(box2.getPos())) {
+            return 0;
+        } else {
             // Draw a line between two center point
             line = new Line2D.Double(box1.getPos(), box2.getPos());
 
             // Get the boundary and add padding (w/2)
-            Rectangle2D boundary = tester.grow(line.getBounds2D(), (ps.getRobotWidth() / 2) + (tester.MAX_ERROR * 2));
+            Rectangle2D boundary = tester.grow(line.getBounds2D(), (ps.getRobotWidth() / 2));
+            println(boundary);
 
             // Check intersect with other moving box
             for (int j = 0; j < state1.getMovingBoxes().size(); j++) {
-                Box box = state2.getMovingBoxes().get(j);
-                if (boundary.intersects(box.getRect())) {
-                    return true;
+                if (boxIndex != j) {
+                    Box box = state2.getMovingBoxes().get(j);
+                    if (boundary.intersects(box.getRect())) {
+                        return 1;
+                    }
                 }
-
             }
 
             // Check intersect with other moving obstacle box
             for (Box box : state2.getMovingObstacles()) {
                 if (boundary.intersects(box.getRect())) {
-                    return true;
+                    return 1;
                 }
             }
 
             // Check intersect with static obstacles
             for (StaticObstacle obstacle : ps.getStaticObstacles()) {
                 if (boundary.intersects(obstacle.getRect())) {
-                    return true;
+                    return 1;
                 }
             }
+
+            return 2;
         }
-        return false;
     }
 
 
