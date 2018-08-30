@@ -169,10 +169,19 @@ public class BotMateState implements State {
     }
 
     public BotMateState moveBoxToPosition(int boxIndex, Point2D position) {
-        BotMateState newState = new BotMateState(this);
-        Box box = newState.getMovingBoxes().get(boxIndex);
-        box.getPos().setLocation(position.getX() + box.getWidth()/2, position.getY() + box.getWidth()/2);
-        return newState;
+        MovingBox newMovingbox = new MovingBox(position, this.getMovingBoxes().get(boxIndex).getWidth());
+
+        List<Box> newMovingBoxList = new ArrayList<>();
+
+        //todo: Deep Copy of moving boxes;
+        for (int counterBox = 0; counterBox < this.getMovingBoxes().size(); counterBox++) {
+            if (counterBox == boxIndex) {
+                newMovingBoxList.add(newMovingbox);
+            } else {
+                newMovingBoxList.add(this.getMovingBoxes().get(counterBox));
+            }
+        }
+        return new BotMateState(this.robotConfig, newMovingBoxList, this.movingObstacles);
     }
 
     @Override
