@@ -26,7 +26,7 @@ public class BotMateState implements State {
     private int movingBoxIndex;
     private List<Box> movingBoxes;
     private List<Box> movingObstacles;
-    private List<StaticObstacle> staticObstacles;
+    private tester.Tester tester;
 
     /**
      * Create an problem state from an RobotConfig and list of moving objects
@@ -35,7 +35,7 @@ public class BotMateState implements State {
      * @param movingBoxes     a list of moving boxes
      * @param movingObstacles a list of moving obstacles
      */
-    public BotMateState(int movingBoxIndex, RobotConfig robotConfig, List<Box> movingBoxes, List<Box> movingObstacles, List<StaticObstacle> staticObstacles) {
+    public BotMateState(int movingBoxIndex, RobotConfig robotConfig, List<Box> movingBoxes, List<Box> movingObstacles, tester.Tester tester) {
 
         this.movingBoxIndex = movingBoxIndex;
         this.movingBoxes = new ArrayList<>();
@@ -51,7 +51,7 @@ public class BotMateState implements State {
             this.movingBoxes.add(new MovingObstacle(box.getPos(), box.getWidth()));
         }
 
-        this.staticObstacles = staticObstacles;
+        this.tester = tester;
     }
 
     public Box getMovingBox() {
@@ -86,54 +86,6 @@ public class BotMateState implements State {
      **/
     public List<Box> getMovingObstacles() {
         return movingObstacles;
-    }
-
-    public boolean isConnectedWith(BotMateState nextState) {
-
-        Box box1 = this.getMovingBox();
-        Box box2 = nextState.getMovingBox();
-
-        Point2D center1 = new Point2D.Double(box1.getPos().getX() + box1.getWidth()/2, box1.getPos().getY() + box1.getWidth()/2);
-        Point2D center2 = new Point2D.Double(box2.getPos().getX() + box2.getWidth()/2, box2.getPos().getY() + box2.getWidth()/2);
-
-        Line2D line = new Line2D.Double(center1, center2);
-
-        Rectangle2D boundary = line.getBounds2D();
-
-        boundary =  new Rectangle2D.Double(boundary.getX() - BotMateSolver.MAX_BASE_STEP, boundary.getY() - BotMateSolver.MAX_BASE_STEP,
-                boundary.getWidth() + 2 * BotMateSolver.MAX_BASE_STEP, boundary.getHeight() + 2 * BotMateSolver.MAX_BASE_STEP);
-
-
-        // Check intersect with other moving box
-        for (Box box: this.getMovingBoxes()) {
-            if (box != this.getMovingBox() && boundary.intersects(box.getRect())) {
-                return false;
-            }
-
-        }
-
-        // Check intersect with other moving obstacle box
-        for (Box box : this.getMovingObstacles()) {
-            if (boundary.intersects(box.getRect())) {
-                return false;
-            }
-        }
-
-        // Check intersect with static obstacles
-        for (StaticObstacle obstacle : staticObstacles) {
-            if (boundary.intersects(obstacle.getRect())) {
-                return false;
-            } else {
-
-            }
-        }
-        //todo: check if the robot and moving object can move from this state to the next state
-
-        // draw boundary of the current moving objects (this.active and nextState.active)
-        // draw a rectangle that cover both of them,
-        // check collision with any other obstacle
-
-        return true;
     }
 
     /**
@@ -206,7 +158,6 @@ public class BotMateState implements State {
     @Override
     public List<StateCostPair> getSuccessors(State goal) {
 
-
         List<StateCostPair> successors = new ArrayList<>();
 
         List<Point2D> positions = new ArrayList<>();
@@ -214,7 +165,7 @@ public class BotMateState implements State {
         Box movingBox = this.getMovingBox();
         double width = movingBox.getWidth();
 
-        double[] delta = new double[]{width};
+        double[] delta = new double[]{width * 0.5, width};
 
         for (double d: delta) {
             positions.add(new Point2D.Double(movingBox.getPos().getX() + d, movingBox.getPos().getY()));
@@ -227,7 +178,10 @@ public class BotMateState implements State {
 
         for (Point2D position: positions) {
             newState = moveMovingBox(position);
-            if (isConnectedWith(newState)){
+            List<Box> movingObjects = new ArrayList<>();
+            movingObjects.addAll(newState.getMovingBoxes());
+            movingObjects.addAll(newState.getMovingObstacles());
+            if (tester.hasCollision(this.getRobotConfig(), movingObjects)){
                 successors.add(new StateCostPair(newState, this.heuristic(goal)));
             }
 
@@ -263,7 +217,7 @@ public class BotMateState implements State {
 
         newMovingBox.getPos().setLocation(position);
 
-        return new BotMateState(movingBoxIndex, newRobotConfig, newMovingBoxes, newMovingObstacles, staticObstacles);
+        return new BotMateState(movingBoxIndex, newRobotConfig, newMovingBoxes, newMovingObstacles, tester);
 
     }
 

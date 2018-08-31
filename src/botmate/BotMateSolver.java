@@ -50,7 +50,7 @@ public class BotMateSolver {
                 ps.getInitialRobotConfig(),
                 ps.getMovingBoxes(),
                 ps.getMovingObstacles(),
-                ps.getStaticObstacles());
+                tester);
 
         currentState = initialState;
 
