@@ -91,8 +91,7 @@ public class BotMateState implements State {
         if (goalState instanceof BotMateState){
             BotMateState goal = (BotMateState) goalState;
             return (Math.abs(this.getMovingBox().getPos().getX() - goal.getMovingBox().getPos().getX()) +
-                    Math.abs(this.getMovingBox().getPos().getY() - goal.getMovingBox().getPos().getY())) +
-                    this.robotConfig.getPos().distance(goal.getRobotConfig().getPos()) ;
+                    Math.abs(this.getMovingBox().getPos().getY() - goal.getMovingBox().getPos().getY()));
         } else {
             return 0.0;
         }

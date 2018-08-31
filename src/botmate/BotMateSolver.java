@@ -33,6 +33,7 @@ public class BotMateSolver {
         BotMateState initialState, currentState, goalState;
         Point2D movingBoxGoal;
         List<StateCostPair> solution = new LinkedList<>();
+        List<BotMateState> moveStates = new LinkedList<>();
         SearchAgent agent = new Astar();
 
         initialState = new BotMateState(0,
@@ -48,23 +49,11 @@ public class BotMateSolver {
 
             currentState.setMovingBoxIndex(i);
             solution.add(new StateCostPair(currentState,0));
-
-
-
-            if (tester.isCoupled(currentState.getRobotConfig(), ps.getMovingBoxes().get(i)) < 0) {
-                goalState = currentState.moveRobotToMovingBox(1);;
-                solution.addAll(moveRobotToBox(currentState, goalState));
-                currentState = goalState;
-
-                goalState = currentState.moveRobotToMovingBox(2);;
-                solution.addAll(moveRobotToBox(currentState, goalState));
-                currentState = goalState;
-            }
-
             movingBoxGoal = ps.getMovingBoxEndPositions().get(i);
             goalState = currentState.moveMovingBox(movingBoxGoal);
             solution.addAll(agent.search(currentState, goalState));
             currentState = goalState;
+
         }
 
 
@@ -72,14 +61,25 @@ public class BotMateSolver {
 
         currentState = initialState;
         BotMateState state;
+        int direction;
+
         for (StateCostPair stateCostPair: solution) {
 
             state = (BotMateState)stateCostPair.state;
-            System.out.println(state.outputString());
-//            output.add(state.outputString());
-            output.addAll(generateMoves(currentState, state));
-            currentState = state;
+            direction = getDirection(currentState, state);
+            moveStates.add(currentState.moveRobotToMovingBox(direction));
+            currentState = state.moveRobotToMovingBox(direction);
+            moveStates.add(currentState);
 
+        }
+
+        moveStates.add(currentState);
+
+        currentState = initialState;
+        for (BotMateState s: moveStates) {
+            System.out.println(s.outputString());
+            output.addAll(generateMoves(currentState, s));
+            currentState = s;
         }
 
         try {
@@ -105,31 +105,11 @@ public class BotMateSolver {
 
     private static List<String> generateMoves(BotMateState state1, BotMateState state2) {
 
-
-//        List<String> result = new LinkedList<>();
-//
-//        if (state1.getMovingBoxIndex () != state2.getMovingBoxIndex ()) {
-//            return result;
-//        }
-//
-//        BotMateState temp = state1;
-//
-//        Box movingBox1 = state1.getMovingBox();
-//        Box movingBox2 = state2.getMovingBox();
-//
-//        Double numberOfSteps = Math.ceil(movingBox1.getPos().distance(movingBox2.getPos()) / 0.001);
-//
-//        double deltaX = (movingBox2.getPos().getX() - movingBox1.getPos().getX()) / numberOfSteps;
-//        double deltaY = (movingBox2.getPos().getY() - movingBox1.getPos().getY()) / numberOfSteps;
-//        for (int i = 0; i < numberOfSteps; i++) {
-//            Point2D position = new Point2D.Double(temp.getMovingBox().getPos().getX() + deltaX, temp.getMovingBox().getPos().getY() + deltaY);
-//            temp = temp.moveMovingBox(position);
-//            result.add(temp.outputString());
-//        }
-
         List<String> result = new LinkedList<>();
         result.add(state1.outputString());
         BotMateState temp = state1;
+
+        Point2D rp, bp;
         RobotConfig r1 = state1.getRobotConfig();
         RobotConfig r2 = state2.getRobotConfig();
         Double numberOfSteps = Math.ceil(r1.getPos().distance(r2.getPos()) / 0.001);
@@ -140,10 +120,17 @@ public class BotMateSolver {
 
         for (int i = 0; i < numberOfSteps; i++) {
             RobotConfig r3 = temp.getRobotConfig();
-            Point2D newPosition = new Point2D.Double(r3.getPos().getX() + deltaX, r3.getPos().getY() + deltaY);
-            temp = temp.moveRobot(newPosition, r3.getOrientation() + deltaO);
+            rp = new Point2D.Double(r3.getPos().getX() + deltaX, r3.getPos().getY() + deltaY);
+            temp = temp.moveRobot(rp, r3.getOrientation() + deltaO);
+            Box b1 = temp.getMovingBox();
+            if (b1.getRect().contains(rp) && deltaO == 0 && state1.getMovingBoxIndex() == state2.getMovingBoxIndex()) {
+                bp = new Point2D.Double(b1.getPos().getX() + deltaX, b1.getPos().getY() + deltaY);
+                temp = temp.moveMovingBox(bp);
+            }
             result.add(temp.outputString());
         }
+
+
 
         return result;
 
@@ -347,4 +334,56 @@ public class BotMateSolver {
 
         return points;
     }
+
+    public static List<StateCostPair> convertBoxMovement(BotMateState state1, BotMateState state2) {
+
+        System.out.println("convert from " + state1);
+        List<StateCostPair> steps = new ArrayList<>();
+
+        Box box1 = state1.getMovingBox();
+        Box box2 = state2.getMovingBox();
+
+//        if (tester.isCoupled(state1.getRobotConfig(), box1) < 1) {
+//            if (box2.getPos().getX() > box1.getPos().getX()) {
+//                steps.addAll(moveRobotToBox(state1, state1.moveRobotToMovingBox(2)));
+//            } else if (box2.getPos().getX() < box1.getPos().getX()) {
+//                steps.addAll(moveRobotToBox(state1, state1.moveRobotToMovingBox(4)));
+//            } else if (box2.getPos().getY() > box1.getPos().getY()) {
+//                steps.addAll(moveRobotToBox(state1, state1.moveRobotToMovingBox(1)));
+//            } else if (box2.getPos().getY() < box1.getPos().getY()) {
+//                steps.addAll(moveRobotToBox(state1, state1.moveRobotToMovingBox(3)));
+//            }
+//        } else {
+//            if (box2.getPos().getX() > box1.getPos().getX()) {
+//                steps.addAll(moveRobotToBox(state1, state1.moveRobotToMovingBox(2)));
+//            } else if (box2.getPos().getX() < box1.getPos().getX()) {
+//                steps.addAll(moveRobotToBox(state1, state1.moveRobotToMovingBox(4)));
+//            } else if (box2.getPos().getY() > box1.getPos().getY()) {
+//                steps.addAll(moveRobotToBox(state1, state1.moveRobotToMovingBox(1)));
+//            } else if (box2.getPos().getY() < box1.getPos().getY()) {
+//                steps.addAll(moveRobotToBox(state1, state1.moveRobotToMovingBox(3)));
+//            }
+//        }
+
+
+        return steps;
+    }
+
+    public static int getDirection(BotMateState state1, BotMateState state2) {
+
+        Box box1 = state1.getMovingBox();
+        Box box2 = state2.getMovingBox();
+
+        if (box2.getPos().getX() > box1.getPos().getX()) {
+            return 2;
+        } else if (box2.getPos().getX() < box1.getPos().getX()) {
+            return 4;
+        } else if (box2.getPos().getY() > box1.getPos().getY()) {
+            return 1;
+        } else if (box2.getPos().getY() < box1.getPos().getY()) {
+            return 3;
+        }
+        return 0;
+    }
+
 }
