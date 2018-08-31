@@ -1,6 +1,7 @@
 package botmate;
 
 
+import com.sun.javafx.scene.paint.GradientUtils;
 import common.*;
 import problem.*;
 import tester.Tester;
@@ -16,7 +17,10 @@ import java.util.*;
 public class BotMateSolver {
 
 
-    public static final int ROBOT_PRM_SAMPLES = 200;
+    public static final int ROBOT_RANDOM_SAMPLES = 50;
+
+    public static final int BOX_RANDOM_SAMPLES = 200;
+
 
     public static List<Line2D> boundaryLines = new ArrayList<>();
 
@@ -32,8 +36,6 @@ public class BotMateSolver {
      * @param args the list of argument
      */
     public static void main(String args[]) {
-
-
 
 
         double e = tester.MAX_BASE_STEP;
@@ -53,6 +55,8 @@ public class BotMateSolver {
 
         BotMateState currentState = new BotMateState(ps.getInitialRobotConfig(), ps.getMovingBoxes(), ps.getMovingObstacles());
         solutionStates.add(currentState);
+
+
 
         // loop all the box
         for (int boxIndex = 0; boxIndex < ps.getMovingBoxes().size(); boxIndex++) {
@@ -125,7 +129,7 @@ public class BotMateSolver {
             List<BotMateState> possibleStates = new ArrayList<>();
 
             possibleStates.add(initialState);
-            possibleStates.addAll(PRMForRobot(initialState, ROBOT_PRM_SAMPLES));
+            possibleStates.addAll(PRMForRobot(initialState, ROBOT_RANDOM_SAMPLES));
             possibleStates.add(goalState);
 
             println("\tNumber of sample: " + possibleStates.size());
@@ -167,9 +171,9 @@ public class BotMateSolver {
     private static BotMateState moveBoxToGoal(int boxIndex, BotMateState initialState, Point2D newPoint) {
         List<BotMateState> possibleStates = new ArrayList<>();
 
-        BotMateState goalState = initialState.moveBoxToPosition(boxIndex, newPoint);
+        BotMateState goalState = moveBoxToPosition(boxIndex, initialState, newPoint);
         possibleStates.add(initialState);
-        possibleStates.addAll(PRMForBox(boxIndex, initialState, ROBOT_PRM_SAMPLES));
+        possibleStates.addAll(PRMForBox(boxIndex, initialState, BOX_RANDOM_SAMPLES));
         possibleStates.add(goalState);
 
         println("\tNumber of sample: " + possibleStates.size());
@@ -228,10 +232,10 @@ public class BotMateSolver {
         Point2D point2 = new Point2D.Double(x2,y1);
 
         if (!checkMovingBoxPathCollide(boxIndex, state1, state2, point1)) {
-            return state1.moveBoxToPosition(boxIndex, point1);
+            return moveBoxToPosition(boxIndex, state1, point1);
         }
         if (!checkMovingBoxPathCollide(boxIndex, state1, state2, point2)) {
-            return state1.moveBoxToPosition(boxIndex, point2);
+            return moveBoxToPosition(boxIndex, state1, point2);
         }
         return state2;
 
@@ -239,18 +243,39 @@ public class BotMateSolver {
 
     private static List<BotMateState> PRMForBox(int boxIndex, BotMateState state, int numberOfSample) {
         List<Point2D> points = new LinkedList<>();
-        // Add random point
+//         Add random point
+
         for (int i = 0; i < numberOfSample; i++) {
             points.add(new Point2D.Double(Math.random(), Math.random()));
         }
 
+        points.addAll(getPointAroundObjects(state, state.getMovingBoxes().get(boxIndex).getWidth() + tester.MAX_BASE_STEP));
+
+        // Get point around goal:
+
+        double width = state.getMovingBoxes().get(boxIndex).getWidth();
+        Point2D goal = ps.getMovingBoxEndPositions().get(boxIndex);
+        points.add(new Point2D.Double(goal.getX() + width, goal.getY() + width));
+        points.add(new Point2D.Double(goal.getX() + width, goal.getY() - width));
+        points.add(new Point2D.Double(goal.getX() - width, goal.getY() + width));
+        points.add(new Point2D.Double(goal.getX() - width, goal.getY() - width));
+
+//        points.add(new Point2D.Double(goal.getX() + 0.5 * width, goal.getY() + 0.5 * width));
+//        points.add(new Point2D.Double(goal.getX() + 0.5 * width, goal.getY() - 0.5 * width));
+//        points.add(new Point2D.Double(goal.getX() - 0.5 * width, goal.getY() + 0.5 * width));
+//        points.add(new Point2D.Double(goal.getX() - 0.5 * width, goal.getY() - 0.5 * width));
+
+        points.add(new Point2D.Double(goal.getX() + 1.5 * width, goal.getY() + 1.5 * width));
+        points.add(new Point2D.Double(goal.getX() + 1.5 * width, goal.getY() - 1.5 * width));
+        points.add(new Point2D.Double(goal.getX() - 1.5 * width, goal.getY() + 1.5 * width));
+        points.add(new Point2D.Double(goal.getX() - 1.5 * width, goal.getY() - 1.5 * width));
 
         // Check each point if it is valid or not
         List<BotMateState> steps = new ArrayList<>();
         BotMateState step;
         for (Point2D point : points) {
 
-            step = state.moveBoxToPosition(boxIndex, point);
+            step = moveBoxToPosition(boxIndex, state, point);
             if (checkBoxPosition(boxIndex, step)) {
                 steps.add(step);
             }
@@ -269,7 +294,8 @@ public class BotMateSolver {
             points.add(new Point2D.Double(Math.random(), Math.random()));
         }
 
-        points.addAll(createBiasSample(state,0, 8).keySet());
+        points.addAll(getPointAroundObjects(state, tester.MAX_BASE_STEP));
+
 
         // Check each point if it is valid or not
         List<BotMateState> steps = new ArrayList<>();
@@ -291,7 +317,6 @@ public class BotMateSolver {
     // Check if the moving box collide with other obstacle when moving from state 1 to state 2
     private static boolean checkMovingBoxCollide(int boxIndex, BotMateState state1, BotMateState state2) {
 
-
         // For any moving box,
         Box box1 = state1.getMovingBoxes().get(boxIndex);
         Box box2 = state2.getMovingBoxes().get(boxIndex);
@@ -299,19 +324,16 @@ public class BotMateSolver {
 
         double x1, y1, x2, y2;
 
-        x1 = box1.getPos().getX();
-        y1 = box1.getPos().getY();
-        x2 = box2.getPos().getX();
-        y2 = box2.getPos().getY();
+        x1 = box1.getPos().getX() + box1.getWidth()/2;
+        y1 = box1.getPos().getY() + box1.getWidth()/2;
+        x2 = box2.getPos().getX() + box1.getWidth()/2;
+        y2 = box2.getPos().getY() + box1.getWidth()/2;
 
         Point2D point1 = new Point2D.Double(x1,y2);
         Point2D point2 = new Point2D.Double(x2,y1);
 
         return checkMovingBoxPathCollide(boxIndex, state1, state2, point1) ||
                 checkMovingBoxPathCollide(boxIndex, state1, state2, point2);
-
-
-
     }
 
     private static boolean checkMovingBoxPathCollide(int boxIndex, BotMateState state1, BotMateState state2, Point2D point) {
@@ -320,11 +342,18 @@ public class BotMateSolver {
         Box box1 = state1.getMovingBoxes().get(boxIndex);
         Box box2 = state2.getMovingBoxes().get(boxIndex);
 
-        Line2D line11 = new Line2D.Double(box1.getPos(), point);
-        Line2D line12 = new Line2D.Double(point, box2.getPos());
+        Point2D center1 = new Point2D.Double(box1.getPos().getX() + box1.getWidth()/2, box1.getPos().getY() + box1.getWidth()/2);
+        Point2D center2 = new Point2D.Double(box2.getPos().getX() + box2.getWidth()/2, box2.getPos().getY() + box2.getWidth()/2);
+
+        Line2D line11 = new Line2D.Double(center1, point);
+        Line2D line12 = new Line2D.Double(point, center2);
 
         Rectangle2D boundary1 = tester.grow(line11.getBounds2D(), ps.getRobotWidth()/2 + tester.MAX_BASE_STEP);
         Rectangle2D boundary2 = tester.grow(line12.getBounds2D(), ps.getRobotWidth()/2 + tester.MAX_BASE_STEP);
+
+        if (isCollideWithBoundary(boundary1) || isCollideWithBoundary(boundary2)) {
+            return true;
+        }
 
         // Check intersect with other moving box
         for (int i = 0; i<state1.getMovingBoxes().size(); i++) {
@@ -347,6 +376,8 @@ public class BotMateSolver {
         for (StaticObstacle obstacle : ps.getStaticObstacles()) {
             if (boundary1.intersects(obstacle.getRect()) || boundary2.intersects(obstacle.getRect())) {
                 return true;
+            } else {
+
             }
         }
 
@@ -573,28 +604,14 @@ public class BotMateSolver {
         return targets;
     }
 
-    // Find middle points of any two objects (including Moving Boxes and Static Obstacle)
-    private static List<Point2D> getMiddlePointBetweenObjects(BotMateState state) {
-        return null;
-    }
 
+    public static List<Point2D> getPointAroundObjects(BotMateState state, double delta){
+        //this function creates samples around vertices of each object, and calculate the heuristics for each point.
 
-
-    public static HashMap<Point2D,Double> createBiasSample(BotMateState state,int currentBoxIndex, int samplesPerVertices){
-        //this function creates samples around verices of each object, and calculate the heuristics for each point.
-
-        Box curBox= state.getMovingBoxes().get(currentBoxIndex);
-        HashMap<Point2D,Double>AllPositions= new HashMap<>();
-        HashMap<Point2D,Double>AllowedPositions= new HashMap<>();
-        double rbtWidth=ps.getRobotWidth();
-        //double gridRowCnt=1.0/rbtWidth;
-        //double gridColCnt=1.0/rbtWidth;
-
-        Point2D goalPos=ps.getMovingBoxEndPositions().get(currentBoxIndex);
+        List<Point2D> points = new ArrayList<>();
 
         List<Rectangle2D> obstacleList =new ArrayList<>();
         for (StaticObstacle so: ps.getStaticObstacles()){
-            // Tester test=new Tester(ps);
             obstacleList.add(so.getRect());
         }
         for(Box b:state.getMovingBoxes()){
@@ -604,53 +621,22 @@ public class BotMateSolver {
             obstacleList.add(b.getRect());
         }
 
-        //System.out.println("Object list size including moving object : "+obstacleList.size());
-
-
-        //re move temporary
-//        obstacleList.remove(curBox.getRect());
-        System.out.println("Object list size is : "+obstacleList.size());
-        // now to we have a list of all obstacles Rectangle2D
-
         //create samples around each obstacles
 
-        Random rd=new Random();
-        Point2D[] vertices={};
-        for (Rectangle2D rec: obstacleList){
-            sampleOneRect(rec,0.01,AllPositions,goalPos,5);
+        for (Rectangle2D rect: obstacleList){
+            Rectangle2D grownRec = tester.grow(rect, delta);
+
+            points.addAll(getPointsAroundRectangle(grownRec));
         }
-//        System.out.printf("Total Samples generated: %d\n",AllPositions.size());
-//        for (Point2D pd: AllPositions.keySet()){
-//            System.out.println(pd.getX()+ ","+ pd.getY());
-//        }
 
-        //remove hashmap entries that may intersect with obstacles
-        /*Iterator<HashMap.Entry<Point2D,Double>> iter=AllPositions.entrySet().iterator();
-        while(iter.hasNext()){
-            HashMap.Entry<Point2D,Double> entry=iter.next();
-            //Box entryVirtualBox= new Box(entry.getKey().getX(),entry.getKey().getY(),rbtWidth/2,rbtWidth/2);
-            Rectangle2D entryRect=new Rectangle();
-
-           // entryRect.setRect(entry.getKey().getX(),entry.getKey().getY(),rbtWidth/2,rbtWidth/2);
-            //System.out.println(entryRect.getX()+ ","+entryRect.getY());
-*//*           for (Rectangle2D o:obstacleList){
-
-               if ( entryRect.intersects(o)){
-                   System.out.println(entryRect.getX()+","+entryRect.getY()+","+entryRect.getWidth());
-                   iter.remove();
-               }*//*
-           }
-        }*/
-
-
-        //System.out.println(AllPositions.size());
-        return AllPositions;
+        return points;
     }
 
-    public static HashMap<Point2D,Double> sampleOneRect(Rectangle2D rec, double radius, HashMap<Point2D, Double> pointDict, Point2D currentGoalPos, int samplesPerVertices){
+    public static List<Point2D> getPointsAroundRectangle(Rectangle2D rect) {
         //sample 8 points(4 vertices and 4 at the middle of vertices) around the object
-        double agentWidth=ps.getRobotWidth();
-        Rectangle2D grownRec = tester.grow(rec,agentWidth/2+tester.MAX_ERROR);
+
+        List<Point2D> pointList = new ArrayList<>();
+
         Point2D topLeft= new Point2D.Double();
         Point2D topRight=new Point2D.Double();
         Point2D bottomLeft=new Point2D.Double();
@@ -661,16 +647,15 @@ public class BotMateSolver {
         Point2D midRight=new Point2D.Double();
 
         //get 9 points acounrd object
-        topLeft.setLocation(grownRec.getMaxX(),grownRec.getMinY());
-        topRight.setLocation(grownRec.getMaxX(),grownRec.getMaxY());
-        bottomLeft.setLocation(grownRec.getMinX(),grownRec.getMinY());
-        BottomRight.setLocation(grownRec.getMinX(),grownRec.getMaxY());
-        midUp.setLocation((grownRec.getMaxX()+grownRec.getMinX())/2,grownRec.getMaxY());
-        midDown.setLocation((grownRec.getMaxX()+grownRec.getMinX())/2,grownRec.getMinY());
-        midLeft.setLocation(grownRec.getMinX(),(grownRec.getMinY()+grownRec.getMaxY())/2);
-        midRight.setLocation(grownRec.getMaxX(),(grownRec.getMinY()+grownRec.getMaxY())/2);
+        topLeft.setLocation(rect.getMaxX(),rect.getMinY());
+        topRight.setLocation(rect.getMaxX(),rect.getMaxY());
+        bottomLeft.setLocation(rect.getMinX(),rect.getMinY());
+        BottomRight.setLocation(rect.getMinX(),rect.getMaxY());
+        midUp.setLocation((rect.getMaxX()+rect.getMinX())/2,rect.getMaxY());
+        midDown.setLocation((rect.getMaxX()+rect.getMinX())/2,rect.getMinY());
+        midLeft.setLocation(rect.getMinX(),(rect.getMinY()+rect.getMaxY())/2);
+        midRight.setLocation(rect.getMaxX(),(rect.getMinY()+rect.getMaxY())/2);
 
-        List<Point2D> pointList = new ArrayList<>();
         pointList.add(topLeft);
         pointList.add(topRight);
         pointList.add(bottomLeft);
@@ -680,38 +665,24 @@ public class BotMateSolver {
         pointList.add(midLeft);
         pointList.add(midRight);
 
-        double x,y;
-        for (Point2D p:pointList){
-            //add vertice point itself into dictionary
-            if(!pointDict.containsKey(p)){
-                pointDict.put(p,calHeuristics(p,currentGoalPos));
+        return pointList;
+
+    }
+
+
+    public static BotMateState moveBoxToPosition(int boxIndex, BotMateState state, Point2D position) {
+        MovingBox newMovingbox = new MovingBox(position, state.getMovingBoxes().get(boxIndex).getWidth());
+
+        List<Box> newMovingBoxList = new ArrayList<>();
+
+        //todo: Deep Copy of moving boxes;
+        for (int counterBox = 0; counterBox <  state.getMovingBoxes().size(); counterBox++) {
+            if (counterBox == boxIndex) {
+                newMovingBoxList.add(newMovingbox);
+            } else {
+                newMovingBoxList.add( state.getMovingBoxes().get(counterBox));
             }
-            //add nearby random sample points of vertices into dictionary
-/*            for (int i=0;i<samplesPerVertices;i++){
-                x=p.getX()+biasRandom(-radius,radius,1);
-                y=p.getY()+biasRandom(-radius,radius,1);
-                Point2D newPoint=new Point2D.Double();
-                newPoint.setLocation(x,y);
-                if (!pointDict.containsKey(newPoint)){
-                    pointDict.put(newPoint,calHeuristics(newPoint,currentGoalPos));
-                }
-            }*/
         }
-        return pointDict;
-
+        return new BotMateState(state.getRobotConfig(), newMovingBoxList, state.getMovingObstacles());
     }
-    public static double calHeuristics(Point2D pointCoordinate, Point2D goalCoordinate){
-        //return manhatton distance of a position from goal
-        return Math.abs(pointCoordinate.getX()-goalCoordinate.getX())+Math.abs(pointCoordinate.getY()-goalCoordinate.getY());
-    }
-
-    public static double biasRandom(double low, double high, double bias){
-
-        //low =0, high=0.01, bias=2 is a set of acceptable parameters, bias between 0 to 1 will make values biased towards upper limit
-        Random r= new Random();
-        double d= r.nextDouble();
-        d=Math.pow(d,bias);
-        return low+(high-low)*d;
-    }
-
 }
