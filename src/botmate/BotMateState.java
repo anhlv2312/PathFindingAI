@@ -7,26 +7,18 @@ import problem.*;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 
 public class BotMateState implements State {
 
-    /**
-     * The robot configuration
-     */
-    private RobotConfig robotConfig;
-
-    /**
-     * A list of moving boxes and obstacles
-     */
-
     private int movingBoxIndex;
+    private RobotConfig robotConfig;
     private List<Box> movingBoxes;
     private List<Box> movingObstacles;
     private tester.Tester tester;
+
+    private List<StateCostPair> successors = new ArrayList<>();
 
     /**
      * Create an problem state from an RobotConfig and list of moving objects
@@ -99,7 +91,8 @@ public class BotMateState implements State {
         if (goalState instanceof BotMateState){
             BotMateState goal = (BotMateState) goalState;
             return (Math.abs(this.getMovingBox().getPos().getX() - goal.getMovingBox().getPos().getX()) +
-                    Math.abs(this.getMovingBox().getPos().getY() - goal.getMovingBox().getPos().getY()));
+                    Math.abs(this.getMovingBox().getPos().getY() - goal.getMovingBox().getPos().getY())) +
+                    this.robotConfig.getPos().distance(goal.getRobotConfig().getPos()) ;
         } else {
             return 0.0;
         }
@@ -114,10 +107,15 @@ public class BotMateState implements State {
             return false;
         }
 
-        if (this.getMovingBox().getPos().distance(state.getMovingBox().getPos()) < BotMateSolver.MAX_BASE_STEP) {
-            return true;
+        if (this.getMovingBox().getPos().distance(state.getMovingBox().getPos()) > tester.MAX_ERROR) {
+            return false;
         }
-        return false;
+
+        if (this.getRobotConfig().getPos().distance(state.getRobotConfig().getPos()) > tester.MAX_ERROR) {
+            return false;
+        }
+
+        return true;
 
     }
 
@@ -144,11 +142,16 @@ public class BotMateState implements State {
         return output.toString();
     }
 
-    @Override
-    public List<StateCostPair> getSuccessors() {
-        return null;
+
+
+    public void addSuccessor(StateCostPair stateCostPair) {
+        successors.add(stateCostPair);
     }
 
+    @Override
+    public List<StateCostPair> getSuccessors() {
+        return successors;
+    }
 
     /**
      * Return a list of all states reachable from this state.
@@ -165,7 +168,7 @@ public class BotMateState implements State {
         Box movingBox = this.getMovingBox();
         double width = movingBox.getWidth();
 
-        double[] delta = new double[]{width * 0.5, width};
+        double[] delta = new double[]{width};
 
         for (double d: delta) {
             positions.add(new Point2D.Double(movingBox.getPos().getX() + d, movingBox.getPos().getY()));
@@ -219,6 +222,51 @@ public class BotMateState implements State {
 
         return new BotMateState(movingBoxIndex, newRobotConfig, newMovingBoxes, newMovingObstacles, tester);
 
+    }
+
+
+    public BotMateState moveRobot(Point2D position, double orientation) {
+        RobotConfig newRobotConfig = new RobotConfig(position, orientation);
+        return new BotMateState(movingBoxIndex, newRobotConfig, this.movingBoxes, this.movingObstacles, tester);
+    }
+
+    /**
+     *          1 if robot on bottom of box
+     *          2 if robot on left of box
+     *          3 if robot on top of box
+     *          4 if robot on right of box
+     */
+    public BotMateState moveRobotToMovingBox(int edge) {
+
+        Double w = this.getMovingBox().getWidth();
+        double bottomLeftX = this.getMovingBox().getPos().getX();
+        double bottomLeftY = this.getMovingBox().getPos().getY();
+
+        Point2D position;
+        double orientation;
+        switch (edge) {
+            case 1:
+                position = new Point2D.Double(bottomLeftX + w / 2, bottomLeftY - tester.MAX_ERROR);
+                orientation = 0.0;
+                break;
+            case 2:
+                position = new Point2D.Double(bottomLeftX - tester.MAX_ERROR, bottomLeftY + w / 2);
+                orientation = Math.PI * 0.5;
+                break;
+            case 3:
+                position = new Point2D.Double(bottomLeftX + w / 2, bottomLeftY + w + tester.MAX_ERROR);
+                orientation = 0.0;
+                break;
+            case 4:
+                position = new Point2D.Double(bottomLeftX + w + tester.MAX_ERROR, bottomLeftY + w / 2);
+                orientation = Math.PI * 0.5;
+                break;
+            default:
+                position = this.robotConfig.getPos();
+                orientation = this.robotConfig.getOrientation();
+        }
+
+        return this.moveRobot(position, orientation);
     }
 
 }
