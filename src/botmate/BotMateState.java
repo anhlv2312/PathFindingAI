@@ -2,14 +2,13 @@ package botmate;
 
 import common.State;
 import common.StateCostPair;
-import problem.Box;
-import problem.MovingBox;
-import problem.MovingObstacle;
-import problem.RobotConfig;
+import problem.*;
 
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -23,9 +22,11 @@ public class BotMateState implements State {
     /**
      * A list of moving boxes and obstacles
      */
+
+    private int movingBoxIndex;
     private List<Box> movingBoxes;
     private List<Box> movingObstacles;
-    private List<StateCostPair> successors;
+    private List<StaticObstacle> staticObstacles;
 
     /**
      * Create an problem state from an RobotConfig and list of moving objects
@@ -34,33 +35,36 @@ public class BotMateState implements State {
      * @param movingBoxes     a list of moving boxes
      * @param movingObstacles a list of moving obstacles
      */
-    public BotMateState(RobotConfig robotConfig, List<Box> movingBoxes, List<Box> movingObstacles) {
+    public BotMateState(int movingBoxIndex, RobotConfig robotConfig, List<Box> movingBoxes, List<Box> movingObstacles, List<StaticObstacle> staticObstacles) {
+
+        this.movingBoxIndex = movingBoxIndex;
         this.movingBoxes = new ArrayList<>();
         this.movingObstacles = new ArrayList<>();
-        this.successors = new ArrayList<>();
 
         this.robotConfig = new RobotConfig(robotConfig.getPos(), robotConfig.getOrientation());
-        //todo: Deep Copy of moving boxes;
-        for (Box movingBox: movingBoxes) {
-            this.movingBoxes.add(new MovingBox(movingBox.getPos(), movingBox.getWidth()));
+        //Deep Copy of moving boxes;
+        for (Box box: movingBoxes) {
+            this.movingBoxes.add(new MovingBox(box.getPos(), box.getWidth()));
         }
-        //todo: Deep Copy of moving obstacle;
-        for (Box movingObstacle: movingObstacles) {
-            this.movingBoxes.add(new MovingObstacle(movingObstacle.getPos(), movingObstacle.getWidth()));
+        //Deep Copy of moving obstacle;
+        for (Box box: movingObstacles) {
+            this.movingBoxes.add(new MovingObstacle(box.getPos(), box.getWidth()));
         }
+
+        this.staticObstacles = staticObstacles;
     }
 
-    public BotMateState(BotMateState previousState) {
-        this.movingBoxes = new ArrayList<>();
-        this.movingObstacles = new ArrayList<>();
+    public Box getMovingBox() {
+        return this.getMovingBoxes().get(movingBoxIndex);
+    }
 
-        this.robotConfig = new RobotConfig(previousState.robotConfig.getPos(), previousState.robotConfig.getOrientation());
-        for (Box movingBox: previousState.getMovingBoxes()) {
-            this.movingBoxes.add(new MovingBox(movingBox.getPos(), movingBox.getWidth()));
-        }
-        for (Box movingObstacle: previousState.getMovingObstacles()) {
-            this.movingBoxes.add(new MovingObstacle(movingObstacle.getPos(), movingObstacle.getWidth()));
-        }
+
+    public int getMovingBoxIndex() {
+        return movingBoxIndex;
+    }
+
+    public void setMovingBoxIndex(int movingBoxIndex) {
+        this.movingBoxIndex = movingBoxIndex;
     }
 
     /**
@@ -86,86 +90,67 @@ public class BotMateState implements State {
 
     public boolean isConnectedWith(BotMateState nextState) {
 
+        Box box1 = this.getMovingBox();
+        Box box2 = nextState.getMovingBox();
+
+        Point2D center1 = new Point2D.Double(box1.getPos().getX() + box1.getWidth()/2, box1.getPos().getY() + box1.getWidth()/2);
+        Point2D center2 = new Point2D.Double(box2.getPos().getX() + box2.getWidth()/2, box2.getPos().getY() + box2.getWidth()/2);
+
+        Line2D line = new Line2D.Double(center1, center2);
+
+        Rectangle2D boundary = line.getBounds2D();
+
+        boundary =  new Rectangle2D.Double(boundary.getX() - BotMateSolver.MAX_BASE_STEP, boundary.getY() - BotMateSolver.MAX_BASE_STEP,
+                boundary.getWidth() + 2 * BotMateSolver.MAX_BASE_STEP, boundary.getHeight() + 2 * BotMateSolver.MAX_BASE_STEP);
 
 
+        // Check intersect with other moving box
+        for (Box box: this.getMovingBoxes()) {
+            if (box != this.getMovingBox() && boundary.intersects(box.getRect())) {
+                return false;
+            }
+
+        }
+
+        // Check intersect with other moving obstacle box
+        for (Box box : this.getMovingObstacles()) {
+            if (boundary.intersects(box.getRect())) {
+                return false;
+            }
+        }
+
+        // Check intersect with static obstacles
+        for (StaticObstacle obstacle : staticObstacles) {
+            if (boundary.intersects(obstacle.getRect())) {
+                return false;
+            } else {
+
+            }
+        }
         //todo: check if the robot and moving object can move from this state to the next state
 
         // draw boundary of the current moving objects (this.active and nextState.active)
         // draw a rectangle that cover both of them,
         // check collision with any other obstacle
 
-        return false;
+        return true;
     }
-
-
-    /**
-     * Return a list of all states reachable from this state.
-     *
-     * @return list of successors
-     */
-    @Override
-    public List<StateCostPair> getSuccessors(State goal) {
-        List<StateCostPair> successors = new ArrayList<StateCostPair>();
-
-
-
-        // First get some of the samples (which are close to the current state)
-
-        // Try to connect them
-        // if is connecteed, calculate cost and heuristic to the goal using manhatan and add to succssors
-        // then return successor
-
-//        for (Point2D sample : this.) {
-//            if (isConnectedWith(sample)) {
-//                successors.add(new StateCostPair(moveToNewPosition(sample), BotMateUtility.calculateDistance(this.robotConfig.getPos(), sample) + heuristic(goal)));
-//            }
-//        }
-
-//        for (BotMateState state: childState) {
-//            successors.add(new StateCostPair(state, BotMateUtility.calculateDistance(state.getRobotConfig()
-//        }
-
-        return successors;
-    }
-
-    /**
-     * Check if this state is equivalent to state s
-     *
-     * @param s state to check equality with
-     * @return true if all tiles are in the same position
-     */
-    private boolean isDone(BotMateState s) {
-
-        return this.heuristic(s) <= 0.0000001;
-
-    }
-
 
     /**
      * An estimation of cost from current state to s.
      *
-     * @param s
+     * @param goalState
      * @return a double number
      */
     @Override
-    public Double heuristic(State s) {
-        if (s instanceof BotMateState){
-            BotMateState state = (BotMateState) s;
-            return BotMateSolver.calculateDistance(this.getMovingBoxes().get(0).pos, state.getMovingBoxes().get(0).pos);
+    public Double heuristic(State goalState) {
+        if (goalState instanceof BotMateState){
+            BotMateState goal = (BotMateState) goalState;
+            return (Math.abs(this.getMovingBox().getPos().getX() - goal.getMovingBox().getPos().getX()) +
+                    Math.abs(this.getMovingBox().getPos().getY() - goal.getMovingBox().getPos().getY()));
         } else {
             return 0.0;
         }
-    }
-
-    /**
-     * Clone the BotMateState and move the bot to new position
-     *
-     * @param position which is connected with the robot currentposition
-     * @return BotMateState
-     */
-    public BotMateState moveRobot(Point2D position, double orientation) {
-        RobotConfig robotConfig = new RobotConfig(position, orientation);
-        return new BotMateState(robotConfig, this.movingBoxes, this.movingObstacles);
     }
 
     @Override
@@ -177,20 +162,11 @@ public class BotMateState implements State {
             return false;
         }
 
-        // Only compare movingBoxes
-        for (int i = 0; i < state.movingBoxes.size(); i++) {
-            if (!state.movingBoxes.get(i).getPos().equals(this.movingBoxes.get(i).getPos())) {
-                return false;
-            }
+        if (this.getMovingBox().getPos().distance(state.getMovingBox().getPos()) < BotMateSolver.MAX_BASE_STEP) {
+            return true;
         }
+        return false;
 
-
-        if (!state.getRobotConfig().getPos().equals(this.getRobotConfig().getPos())) {
-            return false;
-        }
-
-
-        return true;
     }
 
     @Override
@@ -216,13 +192,79 @@ public class BotMateState implements State {
         return output.toString();
     }
 
-    public void addSuccessor(StateCostPair stateCostPair) {
-        successors.add(stateCostPair);
-    }
-
     @Override
     public List<StateCostPair> getSuccessors() {
+        return null;
+    }
+
+
+    /**
+     * Return a list of all states reachable from this state.
+     *
+     * @return list of successors
+     */
+    @Override
+    public List<StateCostPair> getSuccessors(State goal) {
+
+
+        List<StateCostPair> successors = new ArrayList<>();
+
+        List<Point2D> positions = new ArrayList<>();
+
+        Box movingBox = this.getMovingBox();
+        double width = movingBox.getWidth();
+
+        double[] delta = new double[]{width};
+
+        for (double d: delta) {
+            positions.add(new Point2D.Double(movingBox.getPos().getX() + d, movingBox.getPos().getY()));
+            positions.add(new Point2D.Double(movingBox.getPos().getX() - d, movingBox.getPos().getY()));
+            positions.add(new Point2D.Double(movingBox.getPos().getX(), movingBox.getPos().getY() + d));
+            positions.add(new Point2D.Double(movingBox.getPos().getX(), movingBox.getPos().getY() - d));
+        }
+
+        BotMateState newState;
+
+        for (Point2D position: positions) {
+            newState = moveMovingBox(position);
+            if (isConnectedWith(newState)){
+                successors.add(new StateCostPair(newState, this.heuristic(goal)));
+            }
+
+        }
         return successors;
+    }
+
+
+    public BotMateState moveMovingBox(Point2D position) {
+
+        Box movingBox = this.getMovingBox();
+        Box newMovingBox = movingBox;
+        List<Box> newMovingBoxes = new ArrayList<>();
+        List<Box> newMovingObstacles = new ArrayList<>();
+
+        RobotConfig newRobotConfig = new RobotConfig(this.robotConfig.getPos(), this.robotConfig.getOrientation());
+
+        for (Box box: this.getMovingBoxes()) {
+            MovingBox newBox = new MovingBox(box.getPos(), box.getWidth());
+            newMovingBoxes.add(newBox);
+            if (System.identityHashCode(box) == System.identityHashCode(movingBox) ) {
+                newMovingBox = newBox;
+            }
+        }
+        for (Box box: this.getMovingObstacles()) {
+            MovingObstacle newBox = new MovingObstacle(box.getPos(), box.getWidth());
+            newMovingObstacles.add(newBox);
+            if (box == movingBox) {
+                newMovingBox = newBox;
+
+            }
+        }
+
+        newMovingBox.getPos().setLocation(position);
+
+        return new BotMateState(movingBoxIndex, newRobotConfig, newMovingBoxes, newMovingObstacles, staticObstacles);
+
     }
 
 }
