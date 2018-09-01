@@ -135,6 +135,7 @@ public class BotMateSolver {
 
                 // Stick the robot to boxes
                 currentState = currentState.moveRobotToMovingBox(currentDirection);
+                nextState = nextState.moveRobotToMovingBox(currentDirection);
 
                 // if the direction changed, slide the robot to the position
                 if (currentDirection != previousDirection) {
@@ -142,13 +143,15 @@ public class BotMateSolver {
                 }
 
                 moveStates.add(currentState);
+                moveStates.add(nextState);
                 previousDirection = currentDirection;
+                currentState = nextState;
 
             }
 
-            // Add the last state to the list
-            currentState = (BotMateState)solution.get(solution.size()-1).state;
-            moveStates.add(currentState.moveRobotToMovingBox(previousDirection));
+//            // Add the last state to the list
+//            currentState = (BotMateState)solution.get(solution.size()-1).state;
+//            moveStates.add(currentState.moveRobotToMovingBox(previousDirection));
 
             // Detach the robot
             currentState = currentState.moveRobotOut(previousDirection);
