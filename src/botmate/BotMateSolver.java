@@ -301,7 +301,7 @@ public class BotMateSolver {
                 if (!checkRobotCollide(state, nextState)) {
                     // Add the next state to the successor
                     double distance = state.getRobotConfig().getPos().distance(nextState.getRobotConfig().getPos());
-                    if (distance > tester.MAX_ERROR && distance < 0.5) {
+                    if (distance > tester.MAX_ERROR && distance <= 2 * ps.getRobotWidth()) {
                         state.addSuccessor(new StateCostPair(nextState, distance));
                     }
                 }
@@ -435,7 +435,6 @@ public class BotMateSolver {
 
         for (Rectangle2D rect : obstacleList) {
             Rectangle2D grownRec = tester.grow(rect, delta);
-
             points.addAll(getPointsAroundRectangle(grownRec));
         }
 
