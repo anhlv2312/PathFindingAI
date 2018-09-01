@@ -141,8 +141,6 @@ public class BotMateState implements State {
         return output.toString();
     }
 
-
-
     public void addSuccessor(StateCostPair stateCostPair) {
         successors.add(stateCostPair);
     }
@@ -167,7 +165,7 @@ public class BotMateState implements State {
         Box movingBox = this.getMovingBox();
         double width = movingBox.getWidth();
 
-        double[] delta = new double[]{width};
+        double[] delta = new double[]{width/2};
 
         for (double d: delta) {
             positions.add(new Point2D.Double(movingBox.getPos().getX() + d, movingBox.getPos().getY()));
@@ -245,20 +243,20 @@ public class BotMateState implements State {
         double orientation;
         switch (edge) {
             case 1:
-                position = new Point2D.Double(bottomLeftX + w / 2, bottomLeftY - tester.MAX_ERROR);
+                position = new Point2D.Double(bottomLeftX + w / 2, bottomLeftY);
                 orientation = 0.0;
                 break;
             case 2:
-                position = new Point2D.Double(bottomLeftX - tester.MAX_ERROR, bottomLeftY + w / 2);
-                orientation = Math.PI * 0.5;
+                position = new Point2D.Double(bottomLeftX, bottomLeftY + w / 2);
+                orientation = Math.PI/2;
                 break;
             case 3:
-                position = new Point2D.Double(bottomLeftX + w / 2, bottomLeftY + w + tester.MAX_ERROR);
+                position = new Point2D.Double(bottomLeftX + w / 2, bottomLeftY + w);
                 orientation = 0.0;
                 break;
             case 4:
-                position = new Point2D.Double(bottomLeftX + w + tester.MAX_ERROR, bottomLeftY + w / 2);
-                orientation = Math.PI * 0.5;
+                position = new Point2D.Double(bottomLeftX + w, bottomLeftY + w / 2);
+                orientation = Math.PI/2;
                 break;
             default:
                 position = this.robotConfig.getPos();
