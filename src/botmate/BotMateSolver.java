@@ -80,6 +80,7 @@ public class BotMateSolver {
             goalState = currentState.moveMovingBox(movingBoxGoal);
 
             // Search for solution
+            System.out.println("Find solution to move box: " + i);
             solution.addAll(boxAgent.search(currentState, goalState));
 
             // Update current State
@@ -271,7 +272,7 @@ public class BotMateSolver {
                 }
             }
         }
-
+        System.out.println("Sample for robot: " + steps.size());
         return steps;
     }
 
@@ -283,7 +284,6 @@ public class BotMateSolver {
                 getRobotTargets(initialState.getRobotConfig(), initialState.getMovingBox()).get(direction - 1),
                 initialState.getMovingBoxes(), initialState.getMovingObstacles(), tester);
 
-        System.out.println("moveRobotToBox");
         List<StateCostPair> solution;
         List<BotMateState> possibleStates = new ArrayList<>();
 
@@ -307,10 +307,10 @@ public class BotMateSolver {
         }
 
 
-        System.out.println("Search");
+        System.out.println("Find solution robot to get to box: " + initialState.getMovingBoxIndex());
         solution = robotAgent.search(initialState, goalState);
         if (solution == null) {
-            System.out.println("No Solution for robot");
+            System.out.println("No Solution");
         }
         return solution;
     }
