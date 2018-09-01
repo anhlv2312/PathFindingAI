@@ -165,7 +165,7 @@ public class BotMateState implements State {
         Box movingBox = this.getMovingBox();
         double width = movingBox.getWidth();
 
-        double[] delta = new double[]{width/2};
+        double[] delta = new double[]{width};
 
         for (double d: delta) {
             positions.add(new Point2D.Double(movingBox.getPos().getX() + d, movingBox.getPos().getY()));
@@ -256,6 +256,39 @@ public class BotMateState implements State {
                 break;
             case 4:
                 position = new Point2D.Double(bottomLeftX + w, bottomLeftY + w / 2);
+                orientation = Math.PI/2;
+                break;
+            default:
+                position = this.robotConfig.getPos();
+                orientation = this.robotConfig.getOrientation();
+        }
+
+        return this.moveRobot(position, orientation);
+    }
+
+    public BotMateState moveRobotOut(int edge) {
+
+        Double w = this.getMovingBox().getWidth();
+        double bottomLeftX = this.getMovingBox().getPos().getX();
+        double bottomLeftY = this.getMovingBox().getPos().getY();
+
+        Point2D position;
+        double orientation;
+        switch (edge) {
+            case 1:
+                position = new Point2D.Double(bottomLeftX + w / 2, bottomLeftY - w);
+                orientation = 0.0;
+                break;
+            case 2:
+                position = new Point2D.Double(bottomLeftX - w, bottomLeftY + w / 2);
+                orientation = Math.PI/2;
+                break;
+            case 3:
+                position = new Point2D.Double(bottomLeftX + w / 2, bottomLeftY + w + w);
+                orientation = 0.0;
+                break;
+            case 4:
+                position = new Point2D.Double(bottomLeftX + w + w, bottomLeftY + w / 2);
                 orientation = Math.PI/2;
                 break;
             default:
