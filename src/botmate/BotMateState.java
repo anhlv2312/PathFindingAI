@@ -242,6 +242,8 @@ public class BotMateState implements State {
         Point2D position = new Point2D.Double(currentX + deltaX, currentY + deltaY);
         double orientation = this.getRobotConfig().getOrientation() + deltaO;
 
+        orientation = tester.normaliseAngle(orientation);
+
         RobotConfig newRobotConfig = new RobotConfig(position, orientation);
         return new BotMateState(movingBoxIndex, newRobotConfig, movingBoxes, movingObstacles, tester);
     }

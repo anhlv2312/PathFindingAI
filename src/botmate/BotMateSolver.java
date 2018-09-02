@@ -143,7 +143,7 @@ public class BotMateSolver {
         currentState = initialState;
         for (BotMateState s : moveStates) {
             output.add(s.outputString());
-//            output.addAll(generateMoves(currentState, s));
+            output.addAll(generateMoves(currentState, s));
             currentState = s;
         }
 
@@ -405,13 +405,13 @@ public class BotMateSolver {
         if (currentEdge == 2) {
             steps.add(currentState.moveRobot(0, 0, 0));
             steps.add(currentState.moveRobot(-s, 0, 0));
-            steps.add(currentState.moveRobot(-s, 0, x));
+            steps.add(currentState.moveRobot(-s, 0, -x));
             if (nextEdge == 1) {
-                steps.add(currentState.moveRobot(-s, -s, x));
-                steps.add(currentState.moveRobot(s, -s, x));
+                steps.add(currentState.moveRobot(-s, -s, -x));
+                steps.add(currentState.moveRobot(s, -s, -x));
             } else if (nextEdge == 3) {
-                steps.add(currentState.moveRobot(-s, s, x));
-                steps.add(currentState.moveRobot(s, s, x));
+                steps.add(currentState.moveRobot(-s, s, -x));
+                steps.add(currentState.moveRobot(s, s, -x));
             }
         }
         if (currentEdge == 3) {
@@ -430,19 +430,69 @@ public class BotMateSolver {
         if (currentEdge == 4) {
             steps.add(currentState.moveRobot(0, 0, 0));
             steps.add(currentState.moveRobot(s, 0, 0));
-            steps.add(currentState.moveRobot(s, 0, x));
+            steps.add(currentState.moveRobot(s, 0, -x));
             if (nextEdge == 1) {
-                steps.add(currentState.moveRobot(s, -s, x));
-                steps.add(currentState.moveRobot(-s, -s, x));
+                steps.add(currentState.moveRobot(s, -s, -x));
+                steps.add(currentState.moveRobot(-s, -s, -x));
             } else if (nextEdge == 3) {
-                steps.add(currentState.moveRobot(s, s, x));
-                steps.add(currentState.moveRobot(-s, s, x));
+                steps.add(currentState.moveRobot(s, s, -x));
+                steps.add(currentState.moveRobot(-s, s, -x));
             }
 
         }
         return steps;
     }
 
+    private static List<String> generateMoves(BotMateState state1, BotMateState state2) {
 
+        List<String> result = new LinkedList<>();
+        result.add(state1.outputString());
+        BotMateState tempState = state1;
+
+        Point2D robotPosition, boxPosition;
+
+        // Get two robot config
+        RobotConfig r1 = state1.getRobotConfig();
+        RobotConfig r2 = state2.getRobotConfig();
+
+        // Calculate the number of steps
+        Double numberOfSteps = Math.ceil(r1.getPos().distance(r2.getPos()) / tester.MAX_BASE_STEP);
+
+        // Calculate the delta values
+        double deltaX = (r2.getPos().getX() - r1.getPos().getX()) / numberOfSteps;
+        double deltaY = (r2.getPos().getY() - r1.getPos().getY()) / numberOfSteps;
+        double deltaO = (tester.normaliseAngle(r2.getOrientation()) - tester.normaliseAngle(r1.getOrientation())) / numberOfSteps;
+
+        // For each steps
+        for (int i = 0; i < numberOfSteps; i++) {
+
+
+            tempState = tempState.moveRobot(deltaX, deltaY, deltaO);
+
+            Box box = tempState.getMovingBox();
+
+            int coupled = tester.isCoupled(state1.getRobotConfig(), state1.getMovingBox());
+
+            // only move the box if moving box of two state are the same
+            if (state1.getMovingBoxIndex() == state2.getMovingBoxIndex()) {
+
+                // if the box move horizontally
+                if ((deltaX > 0 && coupled == 2) || (deltaX < 0 && coupled == 4)) {
+                    boxPosition = new Point2D.Double(box.getPos().getX() + deltaX, box.getPos().getY());
+                    tempState = tempState.moveMovingBox(boxPosition);
+                }
+
+                // if the box move vertically
+                if ((deltaY > 0 && coupled == 1) || (deltaY < 0 && coupled == 3)) {
+                    boxPosition = new Point2D.Double(box.getPos().getX(), box.getPos().getY() + deltaY);
+                    tempState = tempState.moveMovingBox(boxPosition);
+                }
+            }
+
+            result.add(tempState.outputString());
+        }
+
+        return result;
+    }
 
 }
