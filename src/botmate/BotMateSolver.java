@@ -60,50 +60,78 @@ public class BotMateSolver {
                 tester);
 
         currentState = initialState;
-
-        // For each moving box in the list
+        currentState = currentState.moveRobotToMovingBox(1);
         for (int i = 0; i < ps.getMovingBoxes().size(); i++) {
+
             // Initialize a solution list for it
             List<StateCostPair> solution = new LinkedList<>();
-            solution.add(new StateCostPair(currentState, 0));
+
             // Set the movingBoxIndex so we know what box we are moving
             currentState.setMovingBoxIndex(i);
 
+            // Add the start State (the cost is not important)
+            solution.add(new StateCostPair(currentState, 0));
 
-            System.out.println("Find solution to move robot " + i);
+            // Get the goal position of the box
+            movingBoxGoal = ps.getMovingBoxEndPositions().get(i);
 
-            goalState = currentState.moveRobotToMovingBox(2);
-            goalState = goalState.moveRobotOut();
+            // Set the goal state by moving the box to the goal
+            goalState = currentState.moveMovingBox(movingBoxGoal);
+
+            // Search for solution
+            System.out.println("Find solution to move box: " + i);
             solution.addAll(boxAgent.search(currentState, goalState));
 
+            // Update current State
             currentState = goalState;
 
-
+            // Add solution to the list
             solutions.add(solution);
 
         }
 
+        // Reset Current State
+        currentState = initialState;
+
+        // Count the index of moving box
+        int count = 0;
+
         // For each solution set for each box
         for (List<StateCostPair> solution : solutions) {
 
-//            List<StateCostPair> robotSteps;
-//            currentState = (BotMateState)solution.get(0).state;
-//            nextState = (BotMateState)solution.get(1).state;
-//            robotSteps = moveRobotToBox(currentState, nextState);
-//
-//            // Add the robot steps to the master list
-//            for (StateCostPair robotStep : robotSteps) {
-//                moveStates.add((BotMateState) robotStep.state);
-//            }
-//
-//            moveStates.add(nextState);
 
             // For each state in the solution
             for (int i = 0; i < solution.size() - 1; i++) {
-                moveStates.add((BotMateState)solution.get(i).state);
+
+                // Get two continuous steps,
+                currentState = (BotMateState) solution.get(i).state;
+                nextState = (BotMateState) solution.get(i + 1).state;
+
+//                // Determine the next direction
+//                currentDirection = getDirection(currentState, nextState);
+//
+//                // Stick the robot to boxes
+//                currentState = currentState.moveRobotToMovingBox(currentDirection);
+//                nextState = nextState.moveRobotToMovingBox(currentDirection);
+
+                // if the direction changed, slide the robot to the position
+
+//                moveStates.addAll(slideRobot(currentState, nextState));
+
+
+                moveStates.add(currentState);
+                moveStates.add(nextState);
+                currentState = nextState;
 
             }
-            moveStates.add(currentState);
+
+//            // Add the last state to the list
+//            currentState = (BotMateState)solution.get(solution.size()-1).state;
+//            moveStates.add(currentState.moveRobotToMovingBox(previousDirection));
+
+            // Detach the robot
+            currentState = currentState.moveRobotOut();
+            count++;
         }
 
 
@@ -135,66 +163,6 @@ public class BotMateSolver {
         } catch (IOException ex) {
             System.out.println("IO Exception occurred");
         }
-
-    }
-
-    // Generate move between state (base on the movement of the robot)
-    private static List<String> generateMoves(BotMateState state1, BotMateState state2) {
-
-        List<String> result = new LinkedList<>();
-        result.add(state1.outputString());
-
-
-        BotMateState tempState = state1;
-//
-//        Point2D robotPosition, boxPosition;
-//
-//        // Get two robot config
-//        RobotConfig r1 = state1.getRobotConfig();
-//        RobotConfig r2 = state2.getRobotConfig();
-//
-//        // Calculate the number of steps
-//        Double numberOfSteps = Math.ceil(r1.getPos().distance(r2.getPos()) / tester.MAX_BASE_STEP);
-//
-//        // Calculate the delta values
-//        double deltaX = (r2.getPos().getX() - r1.getPos().getX()) / numberOfSteps;
-//        double deltaY = (r2.getPos().getY() - r1.getPos().getY()) / numberOfSteps;
-//        double deltaO = (r2.getOrientation() - r1.getOrientation()) / numberOfSteps;
-//
-//        // For each steps
-//        for (int i = 0; i < numberOfSteps; i++) {
-//
-//
-//            RobotConfig r3 = tempState.getRobotConfig();
-//
-//            robotPosition = new Point2D.Double(r3.getPos().getX() + deltaX, r3.getPos().getY() + deltaY);
-//
-//            tempState = tempState.moveRobot(robotPosition, r3.getOrientation() + deltaO);
-//
-//            Box box = tempState.getMovingBox();
-//
-//            int coupled = tester.isCoupled(state1.getRobotConfig(), state1.getMovingBox());
-//
-//            // only move the box if moving box of two state are the same
-//            if (state1.getMovingBoxIndex() == state2.getMovingBoxIndex()) {
-//
-//                // if the box move horizontally
-//                if ((deltaX > 0 && coupled == 2) || (deltaX < 0 && coupled == 4)) {
-//                    boxPosition = new Point2D.Double(box.getPos().getX() + deltaX, box.getPos().getY());
-//                    tempState = tempState.moveMovingBox(boxPosition);
-//                }
-//
-//                // if the box move vertically
-//                if ((deltaY > 0 && coupled == 1) || (deltaY < 0 && coupled == 3)) {
-//                    boxPosition = new Point2D.Double(box.getPos().getX(), box.getPos().getY() + deltaY);
-//                    tempState = tempState.moveMovingBox(boxPosition);
-//                }
-//            }
-//
-//            result.add(tempState.outputString());
-//        }
-//
-        return result;
     }
 
 
