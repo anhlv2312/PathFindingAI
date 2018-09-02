@@ -60,7 +60,7 @@ public class BotMateSolver {
                 tester);
 
         currentState = initialState;
-        currentState = currentState.moveRobotToMovingBox(1);
+
         for (int i = 0; i < ps.getMovingBoxes().size(); i++) {
 
             // Initialize a solution list for it
