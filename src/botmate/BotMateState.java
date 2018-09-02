@@ -90,8 +90,11 @@ public class BotMateState implements State {
     public Double heuristic(State goalState) {
         if (goalState instanceof BotMateState){
             BotMateState goal = (BotMateState) goalState;
-            return (Math.abs(this.getMovingBox().getPos().getX() - goal.getMovingBox().getPos().getX()) +
-                    Math.abs(this.getMovingBox().getPos().getY() - goal.getMovingBox().getPos().getY()));
+            double distance = (Math.abs(this.getMovingBox().getPos().getX() -
+                    goal.getMovingBox().getPos().getX()) +
+                    Math.abs(this.getMovingBox().getPos().getY() -
+                            goal.getMovingBox().getPos().getY()));
+            return distance;
         } else {
             return 0.0;
         }
@@ -106,15 +109,15 @@ public class BotMateState implements State {
             return false;
         }
 
-        if (this.getMovingBox().getPos().distance(state.getMovingBox().getPos()) > tester.MAX_ERROR) {
-            return false;
+        if (this.getMovingBox().getPos().distance(state.getMovingBox().getPos()) < getMovingBox().getWidth()/2 ) {
+            return true;
         }
 
-        if (this.getRobotConfig().getPos().distance(state.getRobotConfig().getPos()) > tester.MAX_ERROR) {
-            return false;
-        }
+//        if (this.getRobotConfig().getPos().distance(state.getRobotConfig().getPos()) > tester.MAX_ERROR) {
+//            return false;
+//        }
 
-        return true;
+        return false;
 
     }
 
@@ -158,33 +161,44 @@ public class BotMateState implements State {
     @Override
     public List<StateCostPair> getSuccessors(State goal) {
 
+
         List<StateCostPair> successors = new ArrayList<>();
 
-        List<Point2D> positions = new ArrayList<>();
+        Map<Integer, Point2D> positions = new HashMap<>();
 
         Box movingBox = this.getMovingBox();
-        double width = movingBox.getWidth();
 
-        double[] delta = new double[]{width};
+        double d = movingBox.getWidth();
 
-        for (double d: delta) {
-            positions.add(new Point2D.Double(movingBox.getPos().getX() + d, movingBox.getPos().getY()));
-            positions.add(new Point2D.Double(movingBox.getPos().getX() - d, movingBox.getPos().getY()));
-            positions.add(new Point2D.Double(movingBox.getPos().getX(), movingBox.getPos().getY() + d));
-            positions.add(new Point2D.Double(movingBox.getPos().getX(), movingBox.getPos().getY() - d));
-        }
+        int robotEdge = tester.isCoupled(robotConfig, movingBox) ;
 
+        positions.put(3, new Point2D.Double(movingBox.getPos().getX(), movingBox.getPos().getY() - d));
+        positions.put(4, new Point2D.Double(movingBox.getPos().getX() - d, movingBox.getPos().getY()));
+        positions.put(1, new Point2D.Double(movingBox.getPos().getX(), movingBox.getPos().getY() + d));
+        positions.put(2, new Point2D.Double(movingBox.getPos().getX() + d, movingBox.getPos().getY()));
+
+        positions.remove(robotEdge);
         BotMateState newState;
 
-        for (Point2D position: positions) {
-            newState = moveMovingBox(position);
+        System.out.println(this.outputString());
+
+        for (Map.Entry<Integer, Point2D> entry: positions.entrySet()) {
+            newState = this.moveMovingBox(entry.getValue());
+            newState = newState.moveRobotToMovingBox(entry.getKey());
+
             List<Box> movingObjects = new ArrayList<>();
             movingObjects.addAll(newState.getMovingBoxes());
             movingObjects.addAll(newState.getMovingObstacles());
-            if (tester.hasCollision(this.getRobotConfig(), movingObjects)){
-                successors.add(new StateCostPair(newState, this.heuristic(goal)));
-            }
 
+            if (tester.hasCollision(newState.getRobotConfig(), movingObjects)) {
+
+                double heuristic = newState.heuristic(goal);
+                double cost = this.getMovingBox().getPos().distance(newState.getMovingBox().getPos());
+                cost += this.getRobotConfig().getPos().distance(newState.getRobotConfig().getPos());
+                cost += Math.abs(this.robotConfig.getOrientation() - newState.getRobotConfig().getOrientation());
+                successors.add(new StateCostPair(newState, cost + heuristic));
+
+            }
         }
         return successors;
     }
@@ -222,9 +236,21 @@ public class BotMateState implements State {
     }
 
 
-    public BotMateState moveRobot(Point2D position, double orientation) {
+    public BotMateState moveRobotToPosition(Point2D position, double orientation) {
         RobotConfig newRobotConfig = new RobotConfig(position, orientation);
         return new BotMateState(movingBoxIndex, newRobotConfig, this.movingBoxes, this.movingObstacles, tester);
+    }
+
+    public BotMateState moveRobot(double deltaX, double deltaY, double deltaO) {
+        Double currentX, currentY;
+        currentX = this.getRobotConfig().getPos().getX();
+        currentY = this.getRobotConfig().getPos().getY();
+
+        Point2D position = new Point2D.Double(currentX + deltaX, currentY + deltaY);
+        double orientation = this.getRobotConfig().getOrientation() + deltaO;
+
+        RobotConfig newRobotConfig = new RobotConfig(position, orientation);
+        return new BotMateState(movingBoxIndex, newRobotConfig, movingBoxes, movingObstacles, tester);
     }
 
     /**
@@ -263,40 +289,26 @@ public class BotMateState implements State {
                 orientation = this.robotConfig.getOrientation();
         }
 
-        return this.moveRobot(position, orientation);
+        return this.moveRobotToPosition(position, orientation);
     }
 
     public BotMateState moveRobotOut(int edge) {
 
-        Double w = this.getMovingBox().getWidth();
-        double bottomLeftX = this.getMovingBox().getPos().getX();
-        double bottomLeftY = this.getMovingBox().getPos().getY();
+        Double width = this.getMovingBox().getWidth();
 
-        Point2D position;
-        double orientation;
         switch (edge) {
             case 1:
-                position = new Point2D.Double(bottomLeftX + w / 2, bottomLeftY - w);
-                orientation = 0.0;
-                break;
+                return this.moveRobot(0, -width/2, 0);
             case 2:
-                position = new Point2D.Double(bottomLeftX - w, bottomLeftY + w / 2);
-                orientation = Math.PI/2;
-                break;
+                return this.moveRobot(-width/2, 0, 0);
             case 3:
-                position = new Point2D.Double(bottomLeftX + w / 2, bottomLeftY + w + w);
-                orientation = 0.0;
-                break;
+                return this.moveRobot(0, width/2, 0);
             case 4:
-                position = new Point2D.Double(bottomLeftX + w + w, bottomLeftY + w / 2);
-                orientation = Math.PI/2;
-                break;
+                return this.moveRobot(width/2, 0, 0);
             default:
-                position = this.robotConfig.getPos();
-                orientation = this.robotConfig.getOrientation();
+                return null;
         }
 
-        return this.moveRobot(position, orientation);
     }
 
 }
