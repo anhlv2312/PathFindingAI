@@ -7,11 +7,9 @@ import common.SearchAgent;
 import common.StateCostPair;
 import problem.Box;
 import problem.ProblemSpec;
-import problem.RobotConfig;
 import problem.StaticObstacle;
 import tester.Tester;
 
-import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedWriter;
@@ -63,36 +61,24 @@ public class BotMateSolver {
 
         currentState = initialState;
 
-        System.out.println(tester.isCoupled(initialState.getRobotConfig(), initialState.getMovingBox()));
-
         // For each moving box in the list
         for (int i = 0; i < ps.getMovingBoxes().size(); i++) {
-
             // Initialize a solution list for it
             List<StateCostPair> solution = new LinkedList<>();
-
+            solution.add(new StateCostPair(currentState, 0));
             // Set the movingBoxIndex so we know what box we are moving
             currentState.setMovingBoxIndex(i);
 
-            // Add the start State (the cost is not important)
-            solution.add(new StateCostPair(currentState, 0));
 
-            // Get the goal position of the box
-            movingBoxGoal = ps.getMovingBoxEndPositions().get(i);
+            System.out.println("Find solution to move robot " + i);
 
-            // Set the goal state by moving the box to the goal
-            goalState = currentState.moveMovingBox(movingBoxGoal);
-
-            // Search for solution
-            System.out.println("Find solution to move box: " + i);
-
+            goalState = currentState.moveRobotToMovingBox(2);
+            goalState = goalState.moveRobotOut();
             solution.addAll(boxAgent.search(currentState, goalState));
-            solution.add(new StateCostPair(goalState, 0));
 
-            // Update current State
             currentState = goalState;
 
-            // Add solution to the list
+
             solutions.add(solution);
 
         }
@@ -114,16 +100,7 @@ public class BotMateSolver {
 
             // For each state in the solution
             for (int i = 0; i < solution.size() - 1; i++) {
-
-
-                // Get two continuous steps,
-                currentState = (BotMateState) solution.get(i).state;
-                System.out.println(currentState.outputString());
-                nextState = (BotMateState) solution.get(i + 1).state;
-
-                moveStates.add(currentState);
-                moveStates.addAll(slideRobot(currentState, nextState));
-                currentState = nextState;
+                moveStates.add((BotMateState)solution.get(i).state);
 
             }
             moveStates.add(currentState);
@@ -135,7 +112,8 @@ public class BotMateSolver {
 
         currentState = initialState;
         for (BotMateState s : moveStates) {
-            output.addAll(generateMoves(currentState, s));
+            output.add(s.outputString());
+//            output.addAll(generateMoves(currentState, s));
             currentState = s;
         }
 

@@ -84,16 +84,20 @@ public class BotMateState implements State {
     public Double heuristic(State goalState) {
         if (goalState instanceof BotMateState){
             BotMateState goal = (BotMateState) goalState;
-//            double distance = (Math.abs(this.getMovingBox().getPos().getX() -
-//                    goal.getMovingBox().getPos().getX()) +
-//                    Math.abs(this.getMovingBox().getPos().getY() -
-//                            goal.getMovingBox().getPos().getY()));
-//
-            double boxDistance = this.getMovingBox().getPos().distance(goal.getMovingBox().getPos());
-            double robotDistance = this.getRobotConfig().getPos().distance(goal.getRobotConfig().getPos());
-            double angle = Math.abs(this.getRobotConfig().getOrientation()-goal.getRobotConfig().getOrientation());
 
-            return boxDistance + robotDistance + angle;
+            Point2D currentBoxPos = this.getMovingBox().getPos();
+            Point2D goalBoxPos = goal.getMovingBox().getPos();
+
+            double boxDistance = (Math.abs(currentBoxPos.getX() - goalBoxPos.getX()) +
+                    Math.abs(currentBoxPos.getY() - goalBoxPos.getY()));
+
+            double robotDistance = (this.getRobotConfig().getPos().distance(goal.getRobotConfig().getPos()));
+
+//            double boxDistance = this.getMovingBox().getPos().distance(goal.getMovingBox().getPos());
+//            double robotDistance = this.getRobotConfig().getPos().distance(goal.getRobotConfig().getPos());
+//            double angle = Math.abs(this.getRobotConfig().getOrientation()-goal.getRobotConfig().getOrientation());
+
+            return robotDistance;
         } else {
             return 0.0;
         }
@@ -105,28 +109,14 @@ public class BotMateState implements State {
         if (s instanceof BotMateState){
             state = (BotMateState) s;
         } else {
+
             return false;
         }
 
-        if (tester.isCoupled(robotConfig, getMovingBox()) > 0) {
-            if (this.getMovingBox().getPos().distance(state.getMovingBox().getPos()) > tester.MAX_ERROR ) {
-                return false;
-            }
-        } else {
-            return (this.getRobotConfig().equals(state.getRobotConfig()));
+        if (this.getRobotConfig().getPos().distance(state.getRobotConfig().getPos()) > tester.MAX_ERROR) {
+            return false;
         }
 
-
-//
-//        if (this.getMovingBox().getPos().distance(this.getMovingBox().getPos()) > tester.MAX_ERROR) {
-//            return false;
-//        }
-
-//        for (int i=0; i < getMovingBoxes().size(); i++) {
-//            if (!this.getMovingBoxes().get(i).getPos().equals(state.getMovingBoxes().get(i))) {
-//                return false;
-//            }
-//        }
 
         return true;
 
@@ -182,18 +172,24 @@ public class BotMateState implements State {
         List<StateCostPair> successors = new LinkedList<>();
 
 
-        double[] angles = new double[]{0, Math.PI * 0.25, Math.PI * 0.5, Math.PI * 0.75};
+//        double[] angles = new double[]{0, Math.PI * 0.25, Math.PI * 0.5, Math.PI * 0.75};
+        double[] angles = new double[]{0};
 
-        double d = 0.01;
+        double d = getMovingBox().getWidth()/2;
 
         List<Point2D> positions = new ArrayList<>();
 
-        List<RobotConfig> configs = new ArrayList<>();
+        positions.add(new Point2D.Double(robotConfig.getPos().getX() - d, robotConfig.getPos().getY() - d));
+        positions.add(new Point2D.Double(robotConfig.getPos().getX() - d, robotConfig.getPos().getY() + d));
+        positions.add(new Point2D.Double(robotConfig.getPos().getX() + d, robotConfig.getPos().getY() + d));
+        positions.add(new Point2D.Double(robotConfig.getPos().getX() + d, robotConfig.getPos().getY() - d));
 
-        positions.add(new Point2D.Double(robotConfig.getPos().getX(), robotConfig.getPos().getY() - d));
-        positions.add(new Point2D.Double(robotConfig.getPos().getX() - d, robotConfig.getPos().getY()));
-        positions.add(new Point2D.Double(robotConfig.getPos().getX(), robotConfig.getPos().getY() + d));
-        positions.add(new Point2D.Double(robotConfig.getPos().getX() + d, robotConfig.getPos().getY()));
+
+//        positions.add(new Point2D.Double(robotConfig.getPos().getX() - d, robotConfig.getPos().getY()));
+//        positions.add(new Point2D.Double(robotConfig.getPos().getX() + d, robotConfig.getPos().getY()));
+//        positions.add(new Point2D.Double(robotConfig.getPos().getX(), robotConfig.getPos().getY() - d));
+//        positions.add(new Point2D.Double(robotConfig.getPos().getX(), robotConfig.getPos().getY() + d));
+
 
 
         BotMateState newState;
@@ -204,12 +200,15 @@ public class BotMateState implements State {
                 newState = this.moveRobotToPosition(position, angle);
 
                 List<Box> movingObjects = new ArrayList<>();
+
+
                 movingObjects.addAll(newState.getMovingBoxes());
                 movingObjects.addAll(newState.getMovingObstacles());
 
                 if (tester.hasCollision(newState.getRobotConfig(), movingObjects)) {
-                    System.out.println(newState.getRobotConfig().getPos());
-                    successors.add(new StateCostPair(newState, 1 + newState.heuristic(goal)));
+                    System.out.println(newState.outputString() + " " + newState.heuristic(goal)) ;
+                    double cost = this.getRobotConfig().getPos().distance(newState.getRobotConfig().getPos());
+                    successors.add(new StateCostPair(newState, newState.heuristic(goal)));
                 }
             }
         }
@@ -342,17 +341,17 @@ public class BotMateState implements State {
     public BotMateState moveRobotOut() {
 
         int edge = tester.isCoupled(robotConfig, getMovingBox());
-        Double width = this.getMovingBox().getWidth();
+       Double delta = this.getMovingBox().getWidth()/2;
 
         switch (edge) {
             case 1:
-                return this.moveRobot(0, -width/2, 0);
+                return this.moveRobot(0, -delta, 0);
             case 2:
-                return this.moveRobot(-width/2, 0, 0);
+                return this.moveRobot(-delta, 0, 0);
             case 3:
-                return this.moveRobot(0, width/2, 0);
+                return this.moveRobot(0, delta, 0);
             case 4:
-                return this.moveRobot(width/2, 0, 0);
+                return this.moveRobot(delta, 0, 0);
             default:
                 return null;
         }

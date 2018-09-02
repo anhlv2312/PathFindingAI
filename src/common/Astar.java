@@ -63,7 +63,6 @@ public class Astar implements SearchAgent {
             // not the goal - add all successors to container
             List<StateCostPair> successors = currentState.getSuccessors(goal);
             for (StateCostPair s : successors) {
-                System.out.println(s.state.outputString());
                 totNodes++;
                 SearchTreeNode tempNode = currentNode;
                 boolean visited = false;
