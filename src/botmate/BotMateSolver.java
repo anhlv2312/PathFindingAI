@@ -25,13 +25,16 @@ public class BotMateSolver {
 
     public static void main(String args[]) {
 
+
         try {
             ps = new ProblemSpec();
-            ps.loadProblem("bot.input1.txt");
+            ps.loadProblem(args[0]);
             robotWidth = ps.getRobotWidth();
             tester = new Tester(ps);
-        } catch (IOException ex) {
-            System.out.println("IO Exception occurred");
+        } catch (IOException e1) {
+            System.out.println("FAILED: Invalid problem file");
+            System.out.println(e1.getMessage());
+            return;
         }
 
         // State variables
@@ -125,7 +128,6 @@ public class BotMateSolver {
 
         }
 
-
         // Generate output strings
         List<String> output = new LinkedList<>();
 
@@ -138,7 +140,7 @@ public class BotMateSolver {
 
         // Write to files
         try {
-            FileWriter fw = new FileWriter("bot.output.txt");
+            FileWriter fw = new FileWriter(args[1]);
             BufferedWriter bw = new BufferedWriter(fw);
 
             System.out.println("Number of steps: " + output.size());

@@ -122,7 +122,7 @@ public class BotMateState {
                 successors.add(new BotMateNode(goal));
             }
 
-            double d = movingBox.getWidth();
+            double d = movingBox.getWidth()/2;
 
             positions.put(3, new Point2D.Double(movingBox.getPos().getX(), movingBox.getPos().getY() - d));
             positions.put(4, new Point2D.Double(movingBox.getPos().getX() - d, movingBox.getPos().getY()));
