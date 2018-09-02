@@ -112,20 +112,22 @@ public class BotMateState {
     public String outputString() {
         StringBuilder output = new StringBuilder();
 
-        output.append(this.robotConfig.getPos().getX()).append(" ");
-        output.append(this.robotConfig.getPos().getY()).append(" ");
-        output.append(this.robotConfig.getOrientation()).append(" ");
+
+
+        output.append(String.format("%.5f ", this.robotConfig.getPos().getX()));
+        output.append(String.format("%.5f ", this.robotConfig.getPos().getY()));
+        output.append(String.format("%.5f ", this.robotConfig.getOrientation()));
 
         for (Box box: this.movingBoxes) {
             // This is the position of the bottom left conner
-            output.append(box.getPos().getX() + box.getWidth()/2).append(" ");
-            output.append(box.getPos().getY() + box.getWidth()/2).append(" ");
+            output.append(String.format("%.5f ", box.getPos().getX() + box.getWidth()/2));
+            output.append(String.format("%.5f ", box.getPos().getY() + box.getWidth()/2));
         }
 
         for (Box box: this.movingObstacles) {
             // This is the position of the bottom left conner
-            output.append(box.getPos().getX() + box.getWidth()/2).append(" ");
-            output.append(box.getPos().getY() + box.getWidth()/2).append(" ");
+            output.append(String.format("%.5f ", box.getPos().getX() + box.getWidth()/2));
+            output.append(String.format("%.5f ", box.getPos().getY() + box.getWidth()/2));
         }
 
         return output.toString();
