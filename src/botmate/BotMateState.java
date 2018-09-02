@@ -104,9 +104,11 @@ public class BotMateState implements State {
             return false;
         }
 
+
         if (this.getMovingBox().getPos().distance(state.getMovingBox().getPos()) > tester.MAX_ERROR) {
             return false;
         }
+
         return true;
 
     }
@@ -155,6 +157,7 @@ public class BotMateState implements State {
 
         Map<Integer, Point2D> positions = new HashMap<>();
         Box movingBox = this.getMovingBox();
+
         double d = movingBox.getWidth();
 
         positions.put(3, new Point2D.Double(movingBox.getPos().getX(), movingBox.getPos().getY() - d));
