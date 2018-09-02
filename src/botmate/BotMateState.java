@@ -53,8 +53,8 @@ public class BotMateState implements State {
         return movingBoxIndex;
     }
 
-    public void setMovingBoxIndex(int movingBoxIndex) {
-        this.movingBoxIndex = movingBoxIndex;
+    public BotMateState changeMovingBox(int movingBoxIndex) {
+        return new BotMateState(movingBoxIndex, robotConfig, movingBoxes, movingObstacles, tester);
     }
 
     /**
@@ -104,6 +104,10 @@ public class BotMateState implements State {
             return false;
         }
 
+
+        if (this.getRobotConfig().getPos().distance(state.getRobotConfig().getPos()) > tester.MAX_ERROR) {
+            return false;
+        }
 
         if (this.getMovingBox().getPos().distance(state.getMovingBox().getPos()) > tester.MAX_ERROR) {
             return false;
@@ -157,6 +161,11 @@ public class BotMateState implements State {
 
         Map<Integer, Point2D> positions = new HashMap<>();
         Box movingBox = this.getMovingBox();
+        Box goalBox = ((BotMateState)goal).getMovingBox();
+
+        if (movingBox.getPos().distance(goalBox.getPos()) < tester.MAX_ERROR) {
+            successors.add(new StateCostPair(goal, 0));
+        }
 
         double d = movingBox.getWidth();
 
@@ -291,7 +300,7 @@ public class BotMateState implements State {
             case 4:
                 return this.moveRobot(delta, 0, 0);
             default:
-                return null;
+                return this;
         }
 
     }

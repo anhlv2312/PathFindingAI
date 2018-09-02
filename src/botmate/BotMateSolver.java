@@ -23,7 +23,7 @@ import java.util.List;
 
 public class BotMateSolver {
 
-    private static final int ROBOT_RANDOM_SAMPLES = 50;
+    private static final int ROBOT_RANDOM_SAMPLES = 0;
 
     static ProblemSpec ps;
     static Tester tester;
@@ -63,13 +63,14 @@ public class BotMateSolver {
 
         currentState = initialState;
 
+
         for (int i = 0; i < ps.getMovingBoxes().size(); i++) {
 
             // Initialize a solution list for it
             List<StateCostPair> solution = new LinkedList<>();
 
             // Set the movingBoxIndex so we know what box we are moving
-            currentState.setMovingBoxIndex(i);
+            currentState = currentState.changeMovingBox(i);
 
             // Add the start State (the cost is not important)
             solution.add(new StateCostPair(currentState, 0));
@@ -85,7 +86,8 @@ public class BotMateSolver {
             solution.addAll(boxAgent.search(currentState, goalState));
 
             // Update current State
-            StateCostPair lastState = solution.get(solution.size()-1);
+            // Add successors always add a position to the last
+            StateCostPair lastState = solution.get(solution.size()-2);
             currentState = ((BotMateState)lastState.state).moveRobotOut();
 
             solution.add(lastState);
@@ -95,17 +97,17 @@ public class BotMateSolver {
 
         }
 
-        // Reset Current State
-        currentState = initialState;
-
         // For each solution set for each box
         for (List<StateCostPair> solution : solutions) {
 
             BotMateState firstState = (BotMateState)solution.get(0).state;
             BotMateState secondState = (BotMateState)solution.get(1).state;
-            int edge = getDirection(firstState, secondState);
 
-            BotMateState robotGoal = firstState.moveRobotToMovingBox(edge);
+            int direction = getDirection(firstState, secondState);
+            BotMateState robotGoal = firstState.moveRobotToMovingBox(direction);
+
+            System.out.println("Current Moving: " + firstState.getMovingBoxIndex());
+            robotGoal = robotGoal.moveRobotOut();
 
             moveStates.add(firstState);
 
@@ -113,31 +115,25 @@ public class BotMateSolver {
 
             robotSteps = moveRobotToBox(firstState, robotGoal);
 
-            System.out.println(robotSteps.size());
             for (StateCostPair step: robotSteps) {
                 moveStates.add((BotMateState)step.state);
             }
-            moveStates.add(secondState);
+
 
             // For each state in the solution
-            for (int i = 1; i < solution.size() - 1; i++) {
+            for (int i = 1; i < solution.size() - 2; i++) {
 
                 // Get two continuous steps,
                 currentState = (BotMateState) solution.get(i).state;
                 nextState = (BotMateState) solution.get(i + 1).state;
 
-                // Determine the next direction
-                moveStates.add(currentState);
-                moveStates.addAll(slideRobot(currentState, nextState));
-
-                currentState = nextState;
+                if (i < solution.size() - 3) {
+                    moveStates.addAll(slideRobot(currentState, nextState));
+                } else {
+                    moveStates.add(currentState);
+                }
             }
 
-            // Add the last state to the list
-            moveStates.add(currentState);
-
-            // Detach the robot
-            currentState = currentState.moveRobotOut();
         }
 
 
@@ -207,14 +203,11 @@ public class BotMateSolver {
 
     private static List<StateCostPair> moveRobotToBox(BotMateState initialState, BotMateState goalState) {
 
-        BotMateState TempState = goalState.moveRobotOut();
-
         List<StateCostPair> solution;
         List<BotMateState> possibleStates = new ArrayList<>();
 
         possibleStates.add(initialState);
         possibleStates.addAll(PRMForRobot(initialState, ROBOT_RANDOM_SAMPLES));
-        possibleStates.add(TempState);
 
 
         for (BotMateState state : possibleStates) {
@@ -223,7 +216,7 @@ public class BotMateSolver {
                 if (!checkRobotCollide(state, nextState)) {
                     // Add the next state to the successor
                     double distance = state.getRobotConfig().getPos().distance(nextState.getRobotConfig().getPos());
-                    if (distance > tester.MAX_ERROR && distance <= 2 * robotWidth) {
+                    if (distance > tester.MAX_ERROR) {
                         state.addSuccessor(new StateCostPair(nextState, 0));
                     }
                 }
@@ -265,6 +258,7 @@ public class BotMateSolver {
 
             for (Box box : state2.getMovingBoxes()) {
                 if (line.intersects(box.getRect())) {
+
                     return true;
                 }
             }
@@ -378,7 +372,7 @@ public class BotMateSolver {
         } else if (box2.getPos().getY() < box1.getPos().getY()) {
             return 3;
         }
-        return 0;
+        return 1;
     }
 
     // Slide the robot to position, edgeOfState is the edge that the robot is stick to at that state
@@ -396,6 +390,7 @@ public class BotMateSolver {
         }
 
         if (currentEdge == 1) {
+            steps.add(currentState.moveRobot(0, 0, 0));
             steps.add(currentState.moveRobot(0, -s, 0));
             steps.add(currentState.moveRobot(0, -s, x));
             if (nextEdge == 2) {
@@ -408,6 +403,7 @@ public class BotMateSolver {
             }
         }
         if (currentEdge == 2) {
+            steps.add(currentState.moveRobot(0, 0, 0));
             steps.add(currentState.moveRobot(-s, 0, 0));
             steps.add(currentState.moveRobot(-s, 0, x));
             if (nextEdge == 1) {
@@ -419,6 +415,7 @@ public class BotMateSolver {
             }
         }
         if (currentEdge == 3) {
+            steps.add(currentState.moveRobot(0, 0, 0));
             steps.add(currentState.moveRobot(0, s, 0));
             steps.add(currentState.moveRobot(0, s, x));
             if (nextEdge == 2) {
@@ -431,6 +428,7 @@ public class BotMateSolver {
         }
 
         if (currentEdge == 4) {
+            steps.add(currentState.moveRobot(0, 0, 0));
             steps.add(currentState.moveRobot(s, 0, 0));
             steps.add(currentState.moveRobot(s, 0, x));
             if (nextEdge == 1) {
@@ -445,19 +443,6 @@ public class BotMateSolver {
         return steps;
     }
 
-//    private static List<RobotConfig> getRobotTargets(Box box) {
-//
-//        List<RobotConfig> targets = new ArrayList<>();
-//        Double w = box.getWidth();
-//        double bottomLeftX = box.getPos().getX();
-//        double bottomLeftY = box.getPos().getY();
-//
-//        targets.add(new RobotConfig(new Point2D.Double(bottomLeftX + w / 2, bottomLeftY - tester.MAX_ERROR), 0.0));
-//        targets.add(new RobotConfig(new Point2D.Double(bottomLeftX - tester.MAX_ERROR, bottomLeftY + w / 2), Math.PI * 0.5));
-//        targets.add(new RobotConfig(new Point2D.Double(bottomLeftX + w / 2, bottomLeftY + w + tester.MAX_ERROR), 0.0));
-//        targets.add(new RobotConfig(new Point2D.Double(bottomLeftX + w + tester.MAX_ERROR, bottomLeftY + w / 2), Math.PI * 0.5));
-//        return targets;
-//    }
 
 
 }
