@@ -15,7 +15,6 @@ public class BotMateAgent {
 
         container.add(initialNode);
 
-
         while (!container.isEmpty()) {
 
             //the node in having the lowest f_score value
@@ -47,20 +46,14 @@ public class BotMateAgent {
 
                 BotMateState child = node.state;
 
-                double temp_g_scores = currentNode.gScores + node.cost;
+                double temp_g_scores = currentNode.gScores + node.gScores;
                 double temp_f_scores = temp_g_scores + node.hScores;
 
 
-                                /*if child node has been evaluated and
-                                the newer f_score is higher, skip*/
-
-                if ((explored.contains(child)) &&
+                if ((explored.contains(child.outputString())) &&
                         (temp_f_scores >= node.fScores)) {
                     continue;
                 }
-
-                                /*else if child node is not in queue or
-                                newer f_score is lower*/
 
                 else if ((!container.contains(child)) ||
                         (temp_f_scores < node.fScores)) {

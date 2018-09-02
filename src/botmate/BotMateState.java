@@ -1,7 +1,5 @@
 package botmate;
 
-import common.State;
-import common.StateCostPair;
 import problem.*;
 
 import java.awt.geom.Point2D;
@@ -181,8 +179,8 @@ public class BotMateState {
 
             if (tester.hasCollision(newState.getRobotConfig(), movingObjects)){
 //                System.out.println(newState.outputString());
-//                newState = newState.moveRobotToMovingBox(entry.getKey());
-                successors.add(new BotMateNode(newState));
+                newState = newState.moveRobotToMovingBox(entry.getKey());
+                successors.add(new BotMateNode(newState, gScores(newState), hScores(newState, goal)));
             }
 
         }
@@ -300,9 +298,14 @@ public class BotMateState {
 
     }
 
-    public Double hScores(BotMateState goalState) {
-        return (Math.abs(this.getMovingBox().getPos().getX() - goalState.getMovingBox().getPos().getX()) +
-                Math.abs(this.getMovingBox().getPos().getY() - goalState.getMovingBox().getPos().getY()));
+    private Double gScores(BotMateState nextState) {
+        return (Math.abs(this.getMovingBox().getPos().getX() - nextState.getMovingBox().getPos().getX()) +
+                Math.abs(this.getMovingBox().getPos().getY() - nextState.getMovingBox().getPos().getY()));
+    }
+
+    private Double hScores(BotMateState nextState, BotMateState goalState) {
+        return (Math.abs(nextState.getMovingBox().getPos().getX() - goalState.getMovingBox().getPos().getX()) +
+                Math.abs(nextState.getMovingBox().getPos().getY() - goalState.getMovingBox().getPos().getY()));
     }
 
 }

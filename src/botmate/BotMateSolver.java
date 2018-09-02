@@ -1,10 +1,5 @@
 package botmate;
 
-
-import common.Astar;
-import common.BFS;
-import common.SearchAgent;
-import common.StateCostPair;
 import problem.Box;
 import problem.ProblemSpec;
 import problem.RobotConfig;
@@ -99,8 +94,8 @@ public class BotMateSolver {
         // For each solution set for each box
         for (List<BotMateState> solution : solutions) {
 
-            BotMateState firstState = (BotMateState)solution.get(0);
-            BotMateState secondState = (BotMateState)solution.get(1);
+            BotMateState firstState = solution.get(0);
+            BotMateState secondState = solution.get(1);
 
             int direction = getDirection(firstState, secondState);
             BotMateState robotGoal = firstState.moveRobotToMovingBox(direction);
@@ -110,11 +105,7 @@ public class BotMateSolver {
 
             moveStates.add(firstState);
 
-            List<StateCostPair> robotSteps;
-
-
             moveStates.addAll(moveRobotToBox(firstState, robotGoal));
-
 
             moveStates.add(firstState.moveRobotToMovingBox(direction));
 
@@ -122,8 +113,8 @@ public class BotMateSolver {
             for (int i = 1; i < solution.size() - 2; i++) {
 
                 // Get two continuous steps,
-                currentState = (BotMateState) solution.get(i);
-                nextState = (BotMateState) solution.get(i + 1);
+                currentState = solution.get(i);
+                nextState = solution.get(i + 1);
 
                 if (i < solution.size() - 3) {
                     moveStates.addAll(slideRobot(currentState, nextState));
