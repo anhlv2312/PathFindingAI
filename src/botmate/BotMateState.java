@@ -107,11 +107,6 @@ public class BotMateState implements State {
         if (this.getMovingBox().getPos().distance(state.getMovingBox().getPos()) > tester.MAX_ERROR) {
             return false;
         }
-
-        if (this.getRobotConfig().getPos().distance(state.getRobotConfig().getPos()) > tester.MAX_ERROR) {
-            return false;
-        }
-
         return true;
 
     }
@@ -173,10 +168,12 @@ public class BotMateState implements State {
 
 
             newState = this.moveMovingBox(entry.getValue());
+            newState = newState.moveRobotToMovingBox(entry.getKey());
 
             List<Box> movingObjects = new ArrayList<>();
             movingObjects.addAll(newState.getMovingBoxes());
             movingObjects.addAll(newState.getMovingObstacles());
+
             if (tester.hasCollision(newState.getRobotConfig(), movingObjects)){
 //                System.out.println(newState.outputString());
 //                newState = newState.moveRobotToMovingBox(entry.getKey());

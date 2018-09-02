@@ -83,7 +83,10 @@ public class BotMateSolver {
             solution.addAll(boxAgent.search(currentState, goalState));
 
             // Update current State
-            currentState = goalState;
+            StateCostPair lastState = solution.get(solution.size()-1);
+            currentState = ((BotMateState)lastState.state).moveRobotOut();
+
+            solution.add(lastState);
 
             // Add solution to the list
             solutions.add(solution);
@@ -93,12 +96,8 @@ public class BotMateSolver {
         // Reset Current State
         currentState = initialState;
 
-        // Count the index of moving box
-        int count = 0;
-
         // For each solution set for each box
         for (List<StateCostPair> solution : solutions) {
-
 
             // For each state in the solution
             for (int i = 0; i < solution.size() - 1; i++) {
@@ -107,31 +106,18 @@ public class BotMateSolver {
                 currentState = (BotMateState) solution.get(i).state;
                 nextState = (BotMateState) solution.get(i + 1).state;
 
-//                // Determine the next direction
-//                currentDirection = getDirection(currentState, nextState);
-//
-//                // Stick the robot to boxes
-//                currentState = currentState.moveRobotToMovingBox(currentDirection);
-//                nextState = nextState.moveRobotToMovingBox(currentDirection);
-
-                // if the direction changed, slide the robot to the position
-
-//                moveStates.addAll(slideRobot(currentState, nextState));
-
-
+                // Determine the next direction
                 moveStates.add(currentState);
-                moveStates.add(nextState);
-                currentState = nextState;
+                moveStates.addAll(slideRobot(currentState, nextState));
 
+                currentState = nextState;
             }
 
-//            // Add the last state to the list
-//            currentState = (BotMateState)solution.get(solution.size()-1).state;
-//            moveStates.add(currentState.moveRobotToMovingBox(previousDirection));
+            // Add the last state to the list
+            moveStates.add(currentState);
 
             // Detach the robot
             currentState = currentState.moveRobotOut();
-            count++;
         }
 
 
@@ -384,6 +370,10 @@ public class BotMateSolver {
 
         double s = robotWidth/2;
         double x = Math.PI/2;
+
+        if (currentEdge == nextEdge) {
+            return steps;
+        }
 
         if (currentEdge == 1) {
             steps.add(currentState.moveRobot(0, -s, 0));
