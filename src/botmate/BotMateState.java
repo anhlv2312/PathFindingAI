@@ -180,8 +180,6 @@ public class BotMateState implements State {
         positions.remove(robotEdge);
         BotMateState newState;
 
-        System.out.println(this.outputString());
-
         for (Map.Entry<Integer, Point2D> entry: positions.entrySet()) {
             newState = this.moveMovingBox(entry.getValue());
             newState = newState.moveRobotToMovingBox(entry.getKey());
@@ -292,8 +290,9 @@ public class BotMateState implements State {
         return this.moveRobotToPosition(position, orientation);
     }
 
-    public BotMateState moveRobotOut(int edge) {
+    public BotMateState moveRobotOut() {
 
+        int edge = tester.isCoupled(robotConfig, getMovingBox());
         Double width = this.getMovingBox().getWidth();
 
         switch (edge) {

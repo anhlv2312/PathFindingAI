@@ -83,8 +83,10 @@ public class BotMateSolver {
 
             // Search for solution
             System.out.println("Find solution to move box: " + i);
+
             solution.addAll(boxAgent.search(currentState, goalState));
             solution.add(new StateCostPair(goalState, 0));
+
             // Update current State
             currentState = goalState;
 
@@ -93,64 +95,36 @@ public class BotMateSolver {
 
         }
 
-        // Reset Current State
-        currentState = initialState;
-
-        // Count the index of moving box
-        int count = 0;
-
         // For each solution set for each box
         for (List<StateCostPair> solution : solutions) {
 
-            // Variable to determine the direction
-            int previousDirection, currentDirection, initialDirection;
-
-            // List of robot's step to get to the box
             List<StateCostPair> robotSteps;
-            previousDirection = 0;
-
-            // Reset the moving box index of the state;
-            currentState.setMovingBoxIndex(count);
-
-            // Determine the initial direction by the first two steps
-            initialDirection = getDirection((BotMateState) solution.get(0).state,
-                    (BotMateState) solution.get(1).state);
-
-            // Find the way for the robot to get to the box
-            robotSteps = moveRobotToBox(currentState, initialDirection);
+            currentState = (BotMateState)solution.get(0).state;
+            nextState = (BotMateState)solution.get(1).state;
+            robotSteps = moveRobotToBox(currentState, nextState);
 
             // Add the robot steps to the master list
             for (StateCostPair robotStep : robotSteps) {
                 moveStates.add((BotMateState) robotStep.state);
             }
 
+            moveStates.add(nextState);
 
             // For each state in the solution
             for (int i = 0; i < solution.size() - 1; i++) {
 
+
                 // Get two continuous steps,
                 currentState = (BotMateState) solution.get(i).state;
+                System.out.println(currentState.outputString());
                 nextState = (BotMateState) solution.get(i + 1).state;
 
                 moveStates.add(currentState);
-                // Determine the next direction
-                currentDirection = getDirection(currentState, nextState);
-
-                // if the direction changed, slide the robot to the position
-                if (currentDirection != previousDirection) {
-                    moveStates.addAll(slideRobot(currentState, previousDirection, currentDirection));
-                }
-
-                previousDirection = currentDirection;
+                moveStates.addAll(slideRobot(currentState, nextState));
                 currentState = nextState;
 
             }
-
             moveStates.add(currentState);
-
-            // Detach the robot
-            currentState = currentState.moveRobotOut(previousDirection);
-            count++;
         }
 
 
@@ -277,19 +251,16 @@ public class BotMateSolver {
     }
 
 
-    private static List<StateCostPair> moveRobotToBox(BotMateState initialState, int direction) {
+    private static List<StateCostPair> moveRobotToBox(BotMateState initialState, BotMateState goalState) {
 
-
-        BotMateState goalState = new BotMateState(initialState.getMovingBoxIndex(),
-                getRobotTargets(initialState.getMovingBox()).get(direction - 1),
-                initialState.getMovingBoxes(), initialState.getMovingObstacles(), tester);
+        BotMateState TempState = goalState.moveRobotOut();
 
         List<StateCostPair> solution;
         List<BotMateState> possibleStates = new ArrayList<>();
 
         possibleStates.add(initialState);
         possibleStates.addAll(PRMForRobot(initialState, ROBOT_RANDOM_SAMPLES));
-        possibleStates.add(goalState);
+        possibleStates.add(TempState);
 
 
         for (BotMateState state : possibleStates) {
@@ -457,56 +428,59 @@ public class BotMateSolver {
     }
 
     // Slide the robot to position, edgeOfState is the edge that the robot is stick to at that state
-    public static List<BotMateState> slideRobot(BotMateState state, int currentEdge, int nextEdge) {
+    public static List<BotMateState> slideRobot(BotMateState currentState, BotMateState nextState) {
+
+        int currentEdge = tester.isCoupled(currentState.getRobotConfig(), currentState.getMovingBox());
+        int nextEdge = tester.isCoupled(nextState.getRobotConfig(), nextState.getMovingBox());
         List<BotMateState> steps = new ArrayList<>();
 
         double s = robotWidth/2;
         double x = Math.PI/2;
 
         if (currentEdge == 1) {
-            steps.add(state.moveRobot(0, -s, 0));
-            steps.add(state.moveRobot(0, -s, x));
+            steps.add(currentState.moveRobot(0, -s, 0));
+            steps.add(currentState.moveRobot(0, -s, x));
             if (nextEdge == 2) {
-                steps.add(state.moveRobot(-s, -s, x));
-                steps.add(state.moveRobot(-s, s, x));
+                steps.add(currentState.moveRobot(-s, -s, x));
+                steps.add(currentState.moveRobot(-s, s, x));
             } else if (nextEdge == 4) {
-                steps.add(state.moveRobot(s, -s, x));
-                steps.add(state.moveRobot(s, s, x));
+                steps.add(currentState.moveRobot(s, -s, x));
+                steps.add(currentState.moveRobot(s, s, x));
 
             }
         }
         if (currentEdge == 2) {
-            steps.add(state.moveRobot(-s, 0, 0));
-            steps.add(state.moveRobot(-s, 0, x));
+            steps.add(currentState.moveRobot(-s, 0, 0));
+            steps.add(currentState.moveRobot(-s, 0, x));
             if (nextEdge == 1) {
-                steps.add(state.moveRobot(-s, -s, x));
-                steps.add(state.moveRobot(s, -s, x));
+                steps.add(currentState.moveRobot(-s, -s, x));
+                steps.add(currentState.moveRobot(s, -s, x));
             } else if (nextEdge == 3) {
-                steps.add(state.moveRobot(-s, s, x));
-                steps.add(state.moveRobot(s, s, x));
+                steps.add(currentState.moveRobot(-s, s, x));
+                steps.add(currentState.moveRobot(s, s, x));
             }
         }
         if (currentEdge == 3) {
-            steps.add(state.moveRobot(0, s, 0));
-            steps.add(state.moveRobot(0, s, x));
+            steps.add(currentState.moveRobot(0, s, 0));
+            steps.add(currentState.moveRobot(0, s, x));
             if (nextEdge == 2) {
-                steps.add(state.moveRobot(-s, s, x));
-                steps.add(state.moveRobot(-s, -s, x));
+                steps.add(currentState.moveRobot(-s, s, x));
+                steps.add(currentState.moveRobot(-s, -s, x));
             } else if (nextEdge == 4) {
-                steps.add(state.moveRobot(s, s, x));
-                steps.add(state.moveRobot(s, -s, x));
+                steps.add(currentState.moveRobot(s, s, x));
+                steps.add(currentState.moveRobot(s, -s, x));
             }
         }
 
         if (currentEdge == 4) {
-            steps.add(state.moveRobot(s, 0, 0));
-            steps.add(state.moveRobot(s, 0, x));
+            steps.add(currentState.moveRobot(s, 0, 0));
+            steps.add(currentState.moveRobot(s, 0, x));
             if (nextEdge == 1) {
-                steps.add(state.moveRobot(s, -s, x));
-                steps.add(state.moveRobot(-s, -s, x));
+                steps.add(currentState.moveRobot(s, -s, x));
+                steps.add(currentState.moveRobot(-s, -s, x));
             } else if (nextEdge == 3) {
-                steps.add(state.moveRobot(s, s, x));
-                steps.add(state.moveRobot(-s, s, x));
+                steps.add(currentState.moveRobot(s, s, x));
+                steps.add(currentState.moveRobot(-s, s, x));
             }
 
         }
