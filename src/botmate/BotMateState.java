@@ -105,51 +105,54 @@ public class BotMateState {
         PRMSamples.add(state);
     }
 
-    public List<BotMateNode> getSuccessors(BotMateState goal, boolean usePRM) {
+    public List<BotMateNode> getSuccessors() {
+        List<BotMateNode> successors = new LinkedList<>();
+        for (BotMateState state: PRMSamples) {
+            successors.add(new BotMateNode(state, 1, 0));
+        }
+        return successors;
+    }
+
+    public List<BotMateNode> getSuccessors(BotMateState goal) {
 
         List<BotMateNode> successors = new LinkedList<>();
 
-        if (usePRM) {
-            for (BotMateState state: PRMSamples) {
-                successors.add(new BotMateNode(state, 1, 0));
-            }
-        } else {
-            Map<Integer, Point2D> positions = new HashMap<>();
-            Box movingBox = this.getMovingBox();
-            Box goalBox = goal.getMovingBox();
 
-            if (movingBox.getPos().distance(goalBox.getPos()) < tester.MAX_ERROR) {
-                successors.add(new BotMateNode(goal));
-            }
+        Map<Integer, Point2D> positions = new HashMap<>();
+        Box movingBox = this.getMovingBox();
+        Box goalBox = goal.getMovingBox();
 
-            double d = movingBox.getWidth()/2;
+        if (movingBox.getPos().distance(goalBox.getPos()) < tester.MAX_ERROR) {
+            successors.add(new BotMateNode(goal));
+        }
 
-            positions.put(3, new Point2D.Double(movingBox.getPos().getX(), movingBox.getPos().getY() - d));
-            positions.put(4, new Point2D.Double(movingBox.getPos().getX() - d, movingBox.getPos().getY()));
-            positions.put(1, new Point2D.Double(movingBox.getPos().getX(), movingBox.getPos().getY() + d));
-            positions.put(2, new Point2D.Double(movingBox.getPos().getX() + d, movingBox.getPos().getY()));
+        double d = movingBox.getWidth();
 
-            BotMateState newState;
+        positions.put(3, new Point2D.Double(movingBox.getPos().getX(), movingBox.getPos().getY() - d));
+        positions.put(4, new Point2D.Double(movingBox.getPos().getX() - d, movingBox.getPos().getY()));
+        positions.put(1, new Point2D.Double(movingBox.getPos().getX(), movingBox.getPos().getY() + d));
+        positions.put(2, new Point2D.Double(movingBox.getPos().getX() + d, movingBox.getPos().getY()));
 
-            for (Map.Entry<Integer, Point2D> entry : positions.entrySet()) {
+        BotMateState newState;
+
+        for (Map.Entry<Integer, Point2D> entry : positions.entrySet()) {
 
 
-                newState = this.moveMovingBox(entry.getValue());
-                newState = newState.moveRobotToMovingBox(entry.getKey());
+            newState = this.moveMovingBox(entry.getValue());
+            newState = newState.moveRobotToMovingBox(entry.getKey());
 
-                List<Box> movingObjects = new ArrayList<>();
-                movingObjects.addAll(newState.getMovingBoxes());
-                movingObjects.addAll(newState.getMovingObstacles());
+            List<Box> movingObjects = new ArrayList<>();
+            movingObjects.addAll(newState.getMovingBoxes());
+            movingObjects.addAll(newState.getMovingObstacles());
 
-                if (tester.hasCollision(newState.getRobotConfig(), movingObjects)) {
+            if (tester.hasCollision(newState.getRobotConfig(), movingObjects)) {
 //                System.out.println(newState.outputString());
-                    newState = newState.moveRobotToMovingBox(entry.getKey());
-                    successors.add(new BotMateNode(newState, gScores(newState), hScores(newState, goal)));
-                }
-
+                newState = newState.moveRobotToMovingBox(entry.getKey());
+                successors.add(new BotMateNode(newState, gScores(newState), hScores(newState, goal)));
             }
 
         }
+
         return successors;
     }
 

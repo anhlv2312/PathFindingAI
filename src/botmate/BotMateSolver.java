@@ -78,7 +78,7 @@ public class BotMateSolver {
 
             // Search for solution
             System.out.println("Find solution to move box: " + i);
-            solution.addAll(agent.search(currentState, goalState, false));
+            solution.addAll(agent.searchMovingBoxPath(currentState, goalState));
 
             // Update current State
             // Add successors always add a position to the last
@@ -218,7 +218,7 @@ public class BotMateSolver {
 
 
         System.out.println("Find solution robot to get to box: " + initialState.getMovingBoxIndex());
-        solution.addAll(agent.search(initialState, goalState, true));
+        solution.addAll(agent.searchRobotPath(initialState, goalState));
         return solution;
     }
 
