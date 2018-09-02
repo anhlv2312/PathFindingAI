@@ -13,7 +13,7 @@ public class BotMateState {
     private List<Box> movingObstacles;
     private tester.Tester tester;
 
-    private List<BotMateNode> successors = new ArrayList<>();
+    private List<BotMateState> PRMSamples = new ArrayList<>();
 
     /**
      * Create an problem state from an RobotConfig and list of moving objects
@@ -76,43 +76,11 @@ public class BotMateState {
     }
 
     public boolean equals(BotMateState state) {
-
-
-        List<Box> thisBoxes = new ArrayList<>();
-        List<Box> goalBoxes = new ArrayList<>();
-
-        thisBoxes.addAll(this.getMovingBoxes());
-        thisBoxes.addAll(this.getMovingObstacles());
-
-        goalBoxes.addAll(state.getMovingBoxes());
-        goalBoxes.addAll(state.getMovingObstacles());
-
-        if (this.getRobotConfig().getPos().distance(state.getRobotConfig().getPos()) > tester.MAX_ERROR) {
-            return false;
-        }
-
-        if (this.getMovingBox().getPos().distance(state.getMovingBox().getPos()) > tester.MAX_ERROR) {
-            return false;
-        }
-
-        Box thisBox, goalBox;
-        for (int i=1; i< thisBoxes.size(); i++) {
-            thisBox = thisBoxes.get(i);
-            goalBox = goalBoxes.get(i);
-            if (thisBox.getPos().distance(goalBox.getPos()) > tester.MAX_ERROR) {
-                return false;
-            }
-        }
-
-
-        return true;
-
+        return this.outputString() == state.outputString();
     }
 
     public String outputString() {
         StringBuilder output = new StringBuilder();
-
-
 
         output.append(String.format("%.5f ", this.robotConfig.getPos().getX()));
         output.append(String.format("%.5f ", this.robotConfig.getPos().getY()));
@@ -133,56 +101,52 @@ public class BotMateState {
         return output.toString();
     }
 
-    public void addSuccessor(BotMateNode node) {
-        successors.add(node);
+    public void addSapmle(BotMateState state) {
+        PRMSamples.add(state);
     }
 
-
-    public List<BotMateNode> getSuccessors() {
-        return successors;
-    }
-
-    /**
-     * Return a list of all states reachable from this state.
-     *
-     * @return list of successors
-     */
-
-    public List<BotMateNode> getSuccessors(BotMateState goal) {
+    public List<BotMateNode> getSuccessors(BotMateState goal, boolean usePRM) {
 
         List<BotMateNode> successors = new LinkedList<>();
 
-        Map<Integer, Point2D> positions = new HashMap<>();
-        Box movingBox = this.getMovingBox();
-        Box goalBox = goal.getMovingBox();
+        if (usePRM) {
+            for (BotMateState state: PRMSamples) {
+                successors.add(new BotMateNode(state, 1, 0));
+            }
+        } else {
+            Map<Integer, Point2D> positions = new HashMap<>();
+            Box movingBox = this.getMovingBox();
+            Box goalBox = goal.getMovingBox();
 
-        if (movingBox.getPos().distance(goalBox.getPos()) < tester.MAX_ERROR) {
-            successors.add(new BotMateNode(goal));
-        }
+            if (movingBox.getPos().distance(goalBox.getPos()) < tester.MAX_ERROR) {
+                successors.add(new BotMateNode(goal));
+            }
 
-        double d = movingBox.getWidth();
+            double d = movingBox.getWidth();
 
-        positions.put(3, new Point2D.Double(movingBox.getPos().getX(), movingBox.getPos().getY() - d));
-        positions.put(4, new Point2D.Double(movingBox.getPos().getX() - d, movingBox.getPos().getY()));
-        positions.put(1, new Point2D.Double(movingBox.getPos().getX(), movingBox.getPos().getY() + d));
-        positions.put(2, new Point2D.Double(movingBox.getPos().getX() + d, movingBox.getPos().getY()));
+            positions.put(3, new Point2D.Double(movingBox.getPos().getX(), movingBox.getPos().getY() - d));
+            positions.put(4, new Point2D.Double(movingBox.getPos().getX() - d, movingBox.getPos().getY()));
+            positions.put(1, new Point2D.Double(movingBox.getPos().getX(), movingBox.getPos().getY() + d));
+            positions.put(2, new Point2D.Double(movingBox.getPos().getX() + d, movingBox.getPos().getY()));
 
-        BotMateState newState;
+            BotMateState newState;
 
-        for (Map.Entry<Integer, Point2D> entry : positions.entrySet()) {
+            for (Map.Entry<Integer, Point2D> entry : positions.entrySet()) {
 
 
-            newState = this.moveMovingBox(entry.getValue());
-            newState = newState.moveRobotToMovingBox(entry.getKey());
-
-            List<Box> movingObjects = new ArrayList<>();
-            movingObjects.addAll(newState.getMovingBoxes());
-            movingObjects.addAll(newState.getMovingObstacles());
-
-            if (tester.hasCollision(newState.getRobotConfig(), movingObjects)){
-//                System.out.println(newState.outputString());
+                newState = this.moveMovingBox(entry.getValue());
                 newState = newState.moveRobotToMovingBox(entry.getKey());
-                successors.add(new BotMateNode(newState, gScores(newState), hScores(newState, goal)));
+
+                List<Box> movingObjects = new ArrayList<>();
+                movingObjects.addAll(newState.getMovingBoxes());
+                movingObjects.addAll(newState.getMovingObstacles());
+
+                if (tester.hasCollision(newState.getRobotConfig(), movingObjects)) {
+//                System.out.println(newState.outputString());
+                    newState = newState.moveRobotToMovingBox(entry.getKey());
+                    successors.add(new BotMateNode(newState, gScores(newState), hScores(newState, goal)));
+                }
+
             }
 
         }
@@ -309,5 +273,4 @@ public class BotMateState {
         return (Math.abs(nextState.getMovingBox().getPos().getX() - goalState.getMovingBox().getPos().getX()) +
                 Math.abs(nextState.getMovingBox().getPos().getY() - goalState.getMovingBox().getPos().getY()));
     }
-
 }

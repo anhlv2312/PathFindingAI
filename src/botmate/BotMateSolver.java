@@ -12,13 +12,11 @@ import java.awt.geom.Rectangle2D;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class BotMateSolver {
 
-    private static final int ROBOT_RANDOM_SAMPLES = 0;
+    private static final int ROBOT_RANDOM_SAMPLES = 50;
 
     static ProblemSpec ps;
     static Tester tester;
@@ -77,7 +75,7 @@ public class BotMateSolver {
 
             // Search for solution
             System.out.println("Find solution to move box: " + i);
-            solution.addAll(agent.search(currentState, goalState));
+            solution.addAll(agent.search(currentState, goalState, false));
 
             // Update current State
             // Add successors always add a position to the last
@@ -105,7 +103,9 @@ public class BotMateSolver {
 
             moveStates.add(firstState);
 
-            moveStates.addAll(moveRobotToBox(firstState, robotGoal));
+            List<BotMateState> a = moveRobotToBox(firstState, robotGoal);
+            System.out.println(a.size());
+            moveStates.addAll(a);
 
             moveStates.add(firstState.moveRobotToMovingBox(direction));
 
@@ -131,7 +131,7 @@ public class BotMateSolver {
 
         currentState = initialState;
         for (BotMateState s : moveStates) {
-            output.add(s.outputString());
+//            output.add(s.outputString());
             output.addAll(generateMoves(currentState, s));
             currentState = s;
         }
@@ -160,7 +160,7 @@ public class BotMateSolver {
     private static List<BotMateState> PRMForRobot(BotMateState state, int numberOfSample) {
         double[] orientations = new double[]{0.0, 0.25, 0.5, 0.75};
 
-        List<Point2D> points = new LinkedList<>();
+        Set<Point2D> points = new HashSet<>();
 
         // Add random point
         for (int i = 0; i < numberOfSample; i++) {
@@ -168,7 +168,6 @@ public class BotMateSolver {
         }
 
         points.addAll(getPointAroundObjects(state, robotWidth / 2));
-        points.addAll(getPointAroundObjects(state, tester.MAX_BASE_STEP));
 
         // Check each point if it is valid or not
         List<BotMateState> steps = new ArrayList<>();
@@ -192,7 +191,7 @@ public class BotMateSolver {
 
     private static List<BotMateState> moveRobotToBox(BotMateState initialState, BotMateState goalState) {
 
-        List<BotMateState> solution;
+        List<BotMateState> solution = new ArrayList<>();
         List<BotMateState> possibleStates = new ArrayList<>();
 
         possibleStates.add(initialState);
@@ -200,13 +199,15 @@ public class BotMateSolver {
 
 
         for (BotMateState state : possibleStates) {
+//            System.out.println(state.outputString());
             for (BotMateState nextState : possibleStates) {
                 // if the moving robot is not collide with other box
                 if (!checkRobotCollide(state, nextState)) {
                     // Add the next state to the successor
                     double distance = state.getRobotConfig().getPos().distance(nextState.getRobotConfig().getPos());
                     if (distance > tester.MAX_ERROR) {
-                        state.addSuccessor(new BotMateNode(nextState));
+//                        System.out.println("\t" + nextState.outputString());
+                        state.addSapmle(nextState);
                     }
                 }
 
@@ -215,10 +216,7 @@ public class BotMateSolver {
 
 
         System.out.println("Find solution robot to get to box: " + initialState.getMovingBoxIndex());
-        solution = agent.search(initialState, goalState);
-        if (solution == null) {
-            System.out.println("No Solution");
-        }
+        solution.addAll(agent.search(initialState, goalState, true));
         return solution;
     }
 
@@ -247,7 +245,6 @@ public class BotMateSolver {
 
             for (Box box : state2.getMovingBoxes()) {
                 if (line.intersects(box.getRect())) {
-
                     return true;
                 }
             }
