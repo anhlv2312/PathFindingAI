@@ -8,15 +8,14 @@ import java.awt.geom.Point2D;
 import java.util.*;
 
 
-public class BotMateState implements State {
-
+public class BotMateState {
     private int movingBoxIndex;
     private RobotConfig robotConfig;
     private List<Box> movingBoxes;
     private List<Box> movingObstacles;
     private tester.Tester tester;
 
-    private List<StateCostPair> successors = new ArrayList<>();
+    private List<BotMateNode> successors = new ArrayList<>();
 
     /**
      * Create an problem state from an RobotConfig and list of moving objects
@@ -78,31 +77,8 @@ public class BotMateState implements State {
         return movingObstacles;
     }
 
-    /**
-     * An estimation of cost from current state to s.
-     *
-     * @param goalState
-     * @return a double number
-     */
-    @Override
-    public Double heuristic(State goalState) {
-        if (goalState instanceof BotMateState){
-            BotMateState goal = (BotMateState) goalState;
-            return (Math.abs(this.getMovingBox().getPos().getX() - goal.getMovingBox().getPos().getX()) +
-                    Math.abs(this.getMovingBox().getPos().getY() - goal.getMovingBox().getPos().getY()));
-        } else {
-            return 0.0;
-        }
-    }
+    public boolean equals(BotMateState state) {
 
-    @Override
-    public boolean equals(State s) {
-        BotMateState state;
-        if (s instanceof BotMateState){
-            state = (BotMateState) s;
-        } else {
-            return false;
-        }
 
         List<Box> thisBoxes = new ArrayList<>();
         List<Box> goalBoxes = new ArrayList<>();
@@ -135,7 +111,6 @@ public class BotMateState implements State {
 
     }
 
-    @Override
     public String outputString() {
         StringBuilder output = new StringBuilder();
 
@@ -158,12 +133,12 @@ public class BotMateState implements State {
         return output.toString();
     }
 
-    public void addSuccessor(StateCostPair stateCostPair) {
-        successors.add(stateCostPair);
+    public void addSuccessor(BotMateNode node) {
+        successors.add(node);
     }
 
-    @Override
-    public List<StateCostPair> getSuccessors() {
+
+    public List<BotMateNode> getSuccessors() {
         return successors;
     }
 
@@ -172,17 +147,17 @@ public class BotMateState implements State {
      *
      * @return list of successors
      */
-    @Override
-    public List<StateCostPair> getSuccessors(State goal) {
 
-        List<StateCostPair> successors = new LinkedList<>();
+    public List<BotMateNode> getSuccessors(BotMateState goal) {
+
+        List<BotMateNode> successors = new LinkedList<>();
 
         Map<Integer, Point2D> positions = new HashMap<>();
         Box movingBox = this.getMovingBox();
-        Box goalBox = ((BotMateState)goal).getMovingBox();
+        Box goalBox = goal.getMovingBox();
 
         if (movingBox.getPos().distance(goalBox.getPos()) < tester.MAX_ERROR) {
-            successors.add(new StateCostPair(goal, 0));
+            successors.add(new BotMateNode(goal));
         }
 
         double d = movingBox.getWidth();
@@ -207,7 +182,7 @@ public class BotMateState implements State {
             if (tester.hasCollision(newState.getRobotConfig(), movingObjects)){
 //                System.out.println(newState.outputString());
 //                newState = newState.moveRobotToMovingBox(entry.getKey());
-                successors.add(new StateCostPair(newState, newState.heuristic(goal)));
+                successors.add(new BotMateNode(newState));
             }
 
         }
@@ -323,6 +298,11 @@ public class BotMateState implements State {
                 return this;
         }
 
+    }
+
+    public Double hScores(BotMateState goalState) {
+        return (Math.abs(this.getMovingBox().getPos().getX() - goalState.getMovingBox().getPos().getX()) +
+                Math.abs(this.getMovingBox().getPos().getY() - goalState.getMovingBox().getPos().getY()));
     }
 
 }

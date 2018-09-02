@@ -27,8 +27,7 @@ public class BotMateSolver {
 
     static ProblemSpec ps;
     static Tester tester;
-    static SearchAgent boxAgent = new Astar();
-    static SearchAgent robotAgent = new BFS();
+    static BotMateAgent agent = new BotMateAgent();
     static double robotWidth;
 
     public static void main(String args[]) {
@@ -49,7 +48,7 @@ public class BotMateSolver {
         Point2D movingBoxGoal;
 
         // Solution variable, each solution for each box is a list
-        List<List<StateCostPair>> solutions = new LinkedList<>();
+        List<List<BotMateState>> solutions = new LinkedList<>();
 
         // Store the solution states that is combined with robots movement
         List<BotMateState> moveStates = new LinkedList<>();
@@ -67,13 +66,13 @@ public class BotMateSolver {
         for (int i = 0; i < ps.getMovingBoxes().size(); i++) {
 
             // Initialize a solution list for it
-            List<StateCostPair> solution = new LinkedList<>();
+            List<BotMateState> solution = new LinkedList<>();
 
             // Set the movingBoxIndex so we know what box we are moving
             currentState = currentState.changeMovingBox(i);
 
             // Add the start State (the cost is not important)
-            solution.add(new StateCostPair(currentState, 0));
+            solution.add(currentState);
 
             // Get the goal position of the box
             movingBoxGoal = ps.getMovingBoxEndPositions().get(i);
@@ -83,12 +82,12 @@ public class BotMateSolver {
 
             // Search for solution
             System.out.println("Find solution to move box: " + i);
-            solution.addAll(boxAgent.search(currentState, goalState));
+            solution.addAll(agent.search(currentState, goalState));
 
             // Update current State
             // Add successors always add a position to the last
-            StateCostPair lastState = solution.get(solution.size()-2);
-            currentState = ((BotMateState)lastState.state).moveRobotOut();
+            BotMateState lastState = solution.get(solution.size()-2);
+            currentState = lastState.moveRobotOut();
 
             solution.add(lastState);
 
@@ -98,10 +97,10 @@ public class BotMateSolver {
         }
 
         // For each solution set for each box
-        for (List<StateCostPair> solution : solutions) {
+        for (List<BotMateState> solution : solutions) {
 
-            BotMateState firstState = (BotMateState)solution.get(0).state;
-            BotMateState secondState = (BotMateState)solution.get(1).state;
+            BotMateState firstState = (BotMateState)solution.get(0);
+            BotMateState secondState = (BotMateState)solution.get(1);
 
             int direction = getDirection(firstState, secondState);
             BotMateState robotGoal = firstState.moveRobotToMovingBox(direction);
@@ -113,11 +112,9 @@ public class BotMateSolver {
 
             List<StateCostPair> robotSteps;
 
-            robotSteps = moveRobotToBox(firstState, robotGoal);
 
-            for (StateCostPair step: robotSteps) {
-                moveStates.add((BotMateState)step.state);
-            }
+            moveStates.addAll(moveRobotToBox(firstState, robotGoal));
+
 
             moveStates.add(firstState.moveRobotToMovingBox(direction));
 
@@ -125,8 +122,8 @@ public class BotMateSolver {
             for (int i = 1; i < solution.size() - 2; i++) {
 
                 // Get two continuous steps,
-                currentState = (BotMateState) solution.get(i).state;
-                nextState = (BotMateState) solution.get(i + 1).state;
+                currentState = (BotMateState) solution.get(i);
+                nextState = (BotMateState) solution.get(i + 1);
 
                 if (i < solution.size() - 3) {
                     moveStates.addAll(slideRobot(currentState, nextState));
@@ -202,9 +199,9 @@ public class BotMateSolver {
     }
 
 
-    private static List<StateCostPair> moveRobotToBox(BotMateState initialState, BotMateState goalState) {
+    private static List<BotMateState> moveRobotToBox(BotMateState initialState, BotMateState goalState) {
 
-        List<StateCostPair> solution;
+        List<BotMateState> solution;
         List<BotMateState> possibleStates = new ArrayList<>();
 
         possibleStates.add(initialState);
@@ -218,7 +215,7 @@ public class BotMateSolver {
                     // Add the next state to the successor
                     double distance = state.getRobotConfig().getPos().distance(nextState.getRobotConfig().getPos());
                     if (distance > tester.MAX_ERROR) {
-                        state.addSuccessor(new StateCostPair(nextState, 0));
+                        state.addSuccessor(new BotMateNode(nextState));
                     }
                 }
 
@@ -227,7 +224,7 @@ public class BotMateSolver {
 
 
         System.out.println("Find solution robot to get to box: " + initialState.getMovingBoxIndex());
-        solution = robotAgent.search(initialState, goalState);
+        solution = agent.search(initialState, goalState);
         if (solution == null) {
             System.out.println("No Solution");
         }
