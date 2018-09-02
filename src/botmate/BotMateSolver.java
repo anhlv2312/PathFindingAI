@@ -119,6 +119,7 @@ public class BotMateSolver {
                 moveStates.add((BotMateState)step.state);
             }
 
+            moveStates.add(firstState.moveRobotToMovingBox(direction));
 
             // For each state in the solution
             for (int i = 1; i < solution.size() - 2; i++) {
@@ -448,6 +449,7 @@ public class BotMateSolver {
         List<String> result = new LinkedList<>();
         result.add(state1.outputString());
         BotMateState tempState = state1;
+        int direction = getDirection(state1, state2);
 
         Point2D robotPosition, boxPosition;
 
@@ -472,6 +474,10 @@ public class BotMateSolver {
             Box box = tempState.getMovingBox();
 
             int coupled = tester.isCoupled(state1.getRobotConfig(), state1.getMovingBox());
+
+//            if (coupled < 0 && tester.hasCollision(tempState.getRobotConfig(), tempState.getMovingBoxes())) {
+//                tempState.moveRobotToMovingBox(direction);
+//            }
 
             // only move the box if moving box of two state are the same
             if (state1.getMovingBoxIndex() == state2.getMovingBoxIndex()) {
