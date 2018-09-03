@@ -122,8 +122,9 @@ public class BotMateState {
         Box movingBox = this.getMovingBox();
         Box goalBox = goal.getMovingBox();
 
-        if (movingBox.getPos().distance(goalBox.getPos()) < tester.MAX_ERROR) {
+        if (movingBox.getPos().distance(goalBox.getPos()) < movingBox.getWidth()) {
             successors.add(new BotMateNode(goal));
+            return successors;
         }
 
         double d = movingBox.getWidth();
