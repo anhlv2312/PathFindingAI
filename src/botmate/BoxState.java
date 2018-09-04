@@ -23,12 +23,12 @@ public class BoxState implements State{
 
     }
 
-    public List<Successor> getSuccessors() {
+    public List<SearchNode> getSuccessors() {
         return null;
     }
 
-    public List<Successor> getSuccessors(State goalState) {
-        List<Successor> successors;
+    public List<SearchNode> getSuccessors(State goalState) {
+        List<SearchNode> searchNodes;
         //TODO: write successor;
         return null;
     }

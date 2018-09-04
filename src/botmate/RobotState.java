@@ -21,11 +21,11 @@ public class RobotState implements State {
         }
     }
 
-    public List<Successor> getSuccessors() {
+    public List<SearchNode> getSuccessors() {
         return null;
     }
 
-    public List<Successor> getSuccessors(State goalState) {
+    public List<SearchNode> getSuccessors(State goalState) {
         //TODO: write successor;
         return null;
     }
