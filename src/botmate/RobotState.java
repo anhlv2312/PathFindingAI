@@ -7,7 +7,7 @@ import problem.RobotConfig;
 import java.awt.geom.Point2D;
 import java.util.List;
 
-public class RobotState {
+public class RobotState implements State {
 
     public  RobotConfig robotConfig;
     public List<Box> movingObstacles;
@@ -21,7 +21,11 @@ public class RobotState {
         }
     }
 
-    public RobotState getSuccessors(RobotState goalState) {
+    public List<Successor> getSuccessors() {
+        return null;
+    }
+
+    public List<Successor> getSuccessors(State goalState) {
         //TODO: write successor;
         return null;
     }

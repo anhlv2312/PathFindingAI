@@ -3,12 +3,11 @@ package botmate;
 import problem.Box;
 import problem.MovingBox;
 import problem.MovingObstacle;
-import problem.RobotConfig;
 
 import java.awt.geom.Point2D;
 import java.util.List;
 
-public class BoxState {
+public class BoxState implements State{
 
     public int robotPosition;
     public Box movingBox;
@@ -24,7 +23,12 @@ public class BoxState {
 
     }
 
-    public BoxState getSuccessors(BoxState goalState) {
+    public List<Successor> getSuccessors() {
+        return null;
+    }
+
+    public List<Successor> getSuccessors(State goalState) {
+        List<Successor> successors;
         //TODO: write successor;
         return null;
     }
@@ -39,6 +43,5 @@ public class BoxState {
         return moveBoxToPosition(position, robotPosition);
     }
 
-    
 
 }
