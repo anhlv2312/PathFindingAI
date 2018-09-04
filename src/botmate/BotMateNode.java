@@ -2,7 +2,6 @@ package botmate;
 
 public class BotMateNode implements Comparable<BotMateNode> {
 
-    public double cost;
     public double gScores;
     public double hScores;
     public double fScores;
