@@ -5,15 +5,15 @@ public class SearchNode implements Comparable<botmate.BotMateNode> {
     public double gScores;
     public double hScores;
     public double fScores;
-    public BotMateState state;
-    public botmate.BotMateNode parent;
+    public State state;
+    public SearchNode parent;
 
-    public SearchNode(BotMateState state){
+    public SearchNode(State state){
         this.parent = null;
         this.state = state;
     }
 
-    public SearchNode(BotMateState state, double gScores, double hScores ){
+    public SearchNode(State state, double gScores, double hScores ){
         this.state = state;
         this.gScores = gScores;
         this.hScores = hScores;

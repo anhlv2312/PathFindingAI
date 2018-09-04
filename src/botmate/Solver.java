@@ -35,6 +35,10 @@ public class Solver {
 
         RobotState robotState = new RobotState(ps.getInitialRobotConfig(), movingObstacles);
 
+        RobotState testState = robotState.moveRobot(0.5, 0.5, Math.PI/2);
+
+        System.out.println(robotState);
+        System.out.println(testState);
 
 
     }

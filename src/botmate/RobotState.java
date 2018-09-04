@@ -41,4 +41,21 @@ public class RobotState implements State {
         double orientation = robotConfig.getOrientation() + deltaO;
         return moveRobotToPosition(position, orientation);
     }
+
+    @Override
+    public String toString() {
+
+        StringBuilder output = new StringBuilder();
+
+        output.append(String.format("%.5f ", this.robotConfig.getPos().getX()));
+        output.append(String.format("%.5f ", this.robotConfig.getPos().getY()));
+        output.append(String.format("%.5f ", this.robotConfig.getOrientation()));
+
+        for (Box box: movingObstacles) {
+            output.append(String.format("%.5f ", box.getPos().getX() + box.getWidth()/2));
+            output.append(String.format("%.5f ", box.getPos().getY() + box.getWidth()/2));
+        }
+
+        return output.toString();
+    }
 }
