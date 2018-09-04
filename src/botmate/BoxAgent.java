@@ -1,9 +1,11 @@
 package botmate;
 
+import problem.ProblemSpec;
+
 public class BoxAgent extends SearchAgent {
 
-    public BoxAgent(tester.Tester tester) {
-        super(tester);
+    public BoxAgent(ProblemSpec ps) {
+        super(ps);
     }
 
     private boolean isFound(RobotState currentState, RobotState goalState) {

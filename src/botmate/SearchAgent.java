@@ -1,14 +1,22 @@
 package botmate;
 
+import problem.ProblemSpec;
+import problem.StaticObstacle;
+import tester.Tester;
 import java.util.*;
 
 public class SearchAgent {
 
     PriorityQueue<SearchNode> container;
-    static tester.Tester tester;
+    Tester tester;
+    double robotWidth;
+    List<StaticObstacle> staticObstacles;
 
-    public SearchAgent(tester.Tester tester) {
-        this.container = new PriorityQueue<>();
+    public SearchAgent(ProblemSpec ps) {
+        tester = new Tester(ps);
+        robotWidth = ps.getRobotWidth();
+        staticObstacles = ps.getStaticObstacles();
+        container = new PriorityQueue<>();
     }
 
     private boolean isFound(State currentState, State goalState) {
