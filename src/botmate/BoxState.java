@@ -5,6 +5,7 @@ import problem.MovingBox;
 import problem.MovingObstacle;
 
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.List;
 
 public class BoxState implements State{
@@ -17,6 +18,8 @@ public class BoxState implements State{
 
         this.movingBox = new MovingBox(movingBox.getPos(), movingBox.getWidth());
         this.robotPosition = robotPosition;
+
+        this.movingObstacles = new ArrayList<>();
         for (Box box: movingObstacles) {
             this.movingObstacles.add(new MovingObstacle(box.getPos(), box.getWidth()));
         }
