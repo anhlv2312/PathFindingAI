@@ -4,7 +4,12 @@ import java.util.*;
 
 public class SearchAgent {
 
-    static PriorityQueue<SearchNode> container = new PriorityQueue<>();
+    PriorityQueue<SearchNode> container;
+    static tester.Tester tester;
+
+    public SearchAgent(tester.Tester tester) {
+        this.container = new PriorityQueue<>();
+    }
 
     private boolean isFound(State currentState, State goalState) {
         return false;
