@@ -56,56 +56,6 @@ public abstract class SearchAgent {
         return true;
     }
 
-    public boolean checkRobotMovingCollision(State state, RobotConfig nextConfig) {
-
-        List<Line2D> movingLines = new ArrayList<>();
-        // Get robot config
-        RobotConfig currentConfig = state.robotConfig;
-
-        Point2D r1p1 = tester.getPoint1(currentConfig);
-        Point2D r1p2 = tester.getPoint2(currentConfig);
-        Point2D r2p1 = tester.getPoint1(nextConfig);
-        Point2D r2p2 = tester.getPoint2(nextConfig);
-
-
-        movingLines.add(new Line2D.Double(r1p1, r2p1));
-        movingLines.add(new Line2D.Double(r1p1, r2p2));
-        movingLines.add(new Line2D.Double(r1p2, r2p1));
-        movingLines.add(new Line2D.Double(r1p2, r2p2));
-
-
-        for (Line2D line: movingLines) {
-            for (Box box: state.movingObstacles) {
-                if (line.intersects(box.getRect())) {
-                    return false;
-                }
-            }
-        }
-
-        for (Line2D line: movingLines) {
-            for (StaticObstacle obstacle: staticObstacles) {
-                if (line.intersects(obstacle.getRect())) {
-                    return false;
-                }
-            }
-        }
-
-        if ((currentConfig.getOrientation() - nextConfig.getOrientation()) != 0) {
-            Rectangle2D robotRect;
-            double bottomLeftX = currentConfig.getPos().getX()-robotWidth/2;
-            double bottomLeftY = currentConfig.getPos().getY()-robotWidth/2;
-            robotRect = new Rectangle2D.Double(bottomLeftX, bottomLeftY, robotWidth, robotWidth);
-
-            for (Box box: state.movingObstacles) {
-                if (robotRect.intersects(box.getRect())) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
     public List<State> search() {
 
         Set<String> visited = new HashSet<>();
@@ -125,11 +75,12 @@ public abstract class SearchAgent {
 
             if (isFound(currentState)) {
                 List<State> pathToGoal = new LinkedList<>();
-                pathToGoal.add(initialState);
                 while (currentNode.parent != null) {
                     pathToGoal.add(currentNode.state);
                     currentNode = currentNode.parent;
                 }
+
+                pathToGoal.add(initialState);
                 Collections.reverse(pathToGoal);
 
                 // reset for next search
@@ -174,10 +125,11 @@ public abstract class SearchAgent {
 
     }
 
-    private static List<Point2D> getPointsAroundRectangle(Rectangle2D rect) {
+    public List<Point2D> getPointsAroundRectangle(Rectangle2D rectangle, double delta) {
         //sample 8 points(4 vertices and 4 at the middle of vertices) around the object
 
         List<Point2D> pointList = new ArrayList<>();
+        Rectangle2D rect = tester.grow(rectangle, delta);
 
         Point2D topLeft = new Point2D.Double();
         Point2D topRight = new Point2D.Double();
@@ -210,6 +162,8 @@ public abstract class SearchAgent {
 
     }
 
+
+
     public List<Point2D> getPointAroundObstacles(State currentState, double delta) {
         //this function creates samples around vertices of each object, and calculate the heuristics for each point.
 
@@ -227,8 +181,7 @@ public abstract class SearchAgent {
         //create samples around each obstacles
 
         for (Rectangle2D rect : obstacleList) {
-            Rectangle2D grownRec = tester.grow(rect, delta);
-            points.addAll(getPointsAroundRectangle(grownRec));
+            points.addAll(getPointsAroundRectangle(rect, delta));
         }
 
         return points;
