@@ -16,6 +16,7 @@ public class MovingObstacleAgent extends SearchAgent {
     List<Rectangle2D> movingPaths;
 
     public MovingObstacleAgent(ProblemSpec ps, State initialState, int movingObstacleIndex, List<Rectangle2D> movingPaths) {
+
         super(ps, initialState);
         this.movingObstacleIndex = movingObstacleIndex;
         boxWidth = initialState.movingObstacles.get(movingObstacleIndex).getWidth();
@@ -24,7 +25,13 @@ public class MovingObstacleAgent extends SearchAgent {
 
     @Override
     public boolean isFound(State currentState) {
-        return false;
+        Box movingBox = currentState.movingObstacles.get(movingObstacleIndex);
+        for (Rectangle2D rectangle: movingPaths) {
+            if (rectangle.intersects(movingBox.getRect())){
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -34,34 +41,40 @@ public class MovingObstacleAgent extends SearchAgent {
 
         List<State> states = new ArrayList<>();
 
-        int robotPosition = tester.isCoupled(currentState.robotConfig, currentState.movingObstacles.get(movingObstacleIndex));
+//        int robotPosition = tester.isCoupled(currentState.robotConfig, currentState.movingObstacles.get(movingObstacleIndex));
+//
+//        switch (robotPosition) {
+//            case 1:
+//                states.add(currentState.moveMovingObstacle(movingObstacleIndex, -delta, 0, 4));
+//                states.add(currentState.moveMovingObstacle(movingObstacleIndex, 0, delta, 1));
+//                states.add(currentState.moveMovingObstacle(movingObstacleIndex, delta, 0, 2));
+//                break;
+//            case 2:
+//                states.add(currentState.moveMovingObstacle(movingObstacleIndex, 0, delta, 1));
+//                states.add(currentState.moveMovingObstacle(movingObstacleIndex, delta, 0, 2));
+//                states.add(currentState.moveMovingObstacle(movingObstacleIndex, 0, -delta, 3));
+//                break;
+//            case 3:
+//                states.add(currentState.moveMovingObstacle(movingObstacleIndex, delta, 0, 2));
+//                states.add(currentState.moveMovingObstacle(movingObstacleIndex, 0, -delta, 3));
+//                states.add(currentState.moveMovingObstacle(movingObstacleIndex, -delta, 0, 4));
+//                break;
+//            case 4:
+//                states.add(currentState.moveMovingObstacle(movingObstacleIndex, 0, -delta, 3));
+//                states.add(currentState.moveMovingObstacle(movingObstacleIndex, -delta, 0, 4));
+//                states.add(currentState.moveMovingObstacle(movingObstacleIndex, 0, delta, 1));
+//                break;
+//            default:
+//                System.out.println("not attached to moving obstacle yet!");
+//
+//
+//        }
 
-        switch (robotPosition) {
-            case 1:
-                states.add(currentState.moveMovingObstacle(movingObstacleIndex, -delta, 0, 4));
-                states.add(currentState.moveMovingObstacle(movingObstacleIndex, 0, delta, 1));
-                states.add(currentState.moveMovingObstacle(movingObstacleIndex, delta, 0, 2));
-                break;
-            case 2:
-                states.add(currentState.moveMovingObstacle(movingObstacleIndex, 0, delta, 1));
-                states.add(currentState.moveMovingObstacle(movingObstacleIndex, delta, 0, 2));
-                states.add(currentState.moveMovingObstacle(movingObstacleIndex, 0, -delta, 3));
-                break;
-            case 3:
-                states.add(currentState.moveMovingObstacle(movingObstacleIndex, delta, 0, 2));
-                states.add(currentState.moveMovingObstacle(movingObstacleIndex, 0, -delta, 3));
-                states.add(currentState.moveMovingObstacle(movingObstacleIndex, -delta, 0, 4));
-                break;
-            case 4:
-                states.add(currentState.moveMovingObstacle(movingObstacleIndex, 0, -delta, 3));
-                states.add(currentState.moveMovingObstacle(movingObstacleIndex, -delta, 0, 4));
-                states.add(currentState.moveMovingObstacle(movingObstacleIndex, 0, delta, 1));
-                break;
-            default:
-                System.out.println("not attached to moving obstacle yet!");
 
-
-        }
+        states.add(currentState.moveMovingObstacle(movingObstacleIndex, -delta, 0, 4));
+        states.add(currentState.moveMovingObstacle(movingObstacleIndex, 0, delta, 1));
+        states.add(currentState.moveMovingObstacle(movingObstacleIndex, delta, 0, 2));
+        states.add(currentState.moveMovingObstacle(movingObstacleIndex, 0, -delta, 3));
 
         List<SearchNode> nodes = new ArrayList<>();
         for (State state : states) {
@@ -91,14 +104,16 @@ public class MovingObstacleAgent extends SearchAgent {
             return false;
         }
 
-        for (int i=0; i < state.movingBoxes.size(); i++) {
-            Box box = state.movingBoxes.get(i);
-            if (movingBox.getRect().intersects(box.getRect())) {
-                return false;
+        for (int i=0; i < state.movingObstacles.size(); i++) {
+            if (i != movingObstacleIndex) {
+                Box box = state.movingObstacles.get(i);
+                if (movingBox.getRect().intersects(box.getRect())) {
+                    return false;
+                }
             }
         }
 
-        for (Box box : state.movingObstacles) {
+        for (Box box : state.movingBoxes) {
             if (movingBox.getRect().intersects(box.getRect())) {
                 return false;
             }

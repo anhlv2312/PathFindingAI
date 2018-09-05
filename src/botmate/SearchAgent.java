@@ -52,7 +52,6 @@ public abstract class SearchAgent {
                     currentNode = currentNode.parent;
                 }
 
-                pathToGoal.add(initialState);
                 Collections.reverse(pathToGoal);
 
                 // reset for next search

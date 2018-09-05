@@ -55,38 +55,38 @@ public class MovingBoxAgent extends SearchAgent {
 
         int robotPosition = tester.isCoupled(currentState.robotConfig, currentState.movingBoxes.get(movingBoxIndex));
 
-        switch (robotPosition) {
-            case 1:
-                states.add(currentState.moveMovingBox(movingBoxIndex, -delta, 0, 4));
-                states.add(currentState.moveMovingBox(movingBoxIndex, 0, delta, 1));
-                states.add(currentState.moveMovingBox(movingBoxIndex, delta, 0, 2));
-                break;
-            case 2:
-                states.add(currentState.moveMovingBox(movingBoxIndex, 0, delta, 1));
-                states.add(currentState.moveMovingBox(movingBoxIndex, delta, 0, 2));
-                states.add(currentState.moveMovingBox(movingBoxIndex, 0, -delta, 3));
-                break;
-            case 3:
-                states.add(currentState.moveMovingBox(movingBoxIndex, delta, 0, 2));
-                states.add(currentState.moveMovingBox(movingBoxIndex, 0, -delta, 3));
-                states.add(currentState.moveMovingBox(movingBoxIndex, -delta, 0, 4));
-                break;
-            case 4:
-                states.add(currentState.moveMovingBox(movingBoxIndex, 0, -delta, 3));
-                states.add(currentState.moveMovingBox(movingBoxIndex, -delta, 0, 4));
-                states.add(currentState.moveMovingBox(movingBoxIndex, 0, delta, 1));
-                break;
-            default:
-                System.out.println("not attached yet!");
+//        switch (robotPosition) {
+//            case 1:
+//                states.add(currentState.moveMovingBox(movingBoxIndex, -delta, 0, 4));
+//                states.add(currentState.moveMovingBox(movingBoxIndex, 0, delta, 1));
+//                states.add(currentState.moveMovingBox(movingBoxIndex, delta, 0, 2));
+//                break;
+//            case 2:
+//                states.add(currentState.moveMovingBox(movingBoxIndex, 0, delta, 1));
+//                states.add(currentState.moveMovingBox(movingBoxIndex, delta, 0, 2));
+//                states.add(currentState.moveMovingBox(movingBoxIndex, 0, -delta, 3));
+//                break;
+//            case 3:
+//                states.add(currentState.moveMovingBox(movingBoxIndex, delta, 0, 2));
+//                states.add(currentState.moveMovingBox(movingBoxIndex, 0, -delta, 3));
+//                states.add(currentState.moveMovingBox(movingBoxIndex, -delta, 0, 4));
+//                break;
+//            case 4:
+//                states.add(currentState.moveMovingBox(movingBoxIndex, 0, -delta, 3));
+//                states.add(currentState.moveMovingBox(movingBoxIndex, -delta, 0, 4));
+//                states.add(currentState.moveMovingBox(movingBoxIndex, 0, delta, 1));
+//                break;
+//            default:
+//                System.out.println("not attached yet!");
+//
+//
+//        }
 
 
-        }
-
-
-//        states.add(currentState.moveMovingBox(movingBoxIndex, -delta, 0, 4));
-//        states.add(currentState.moveMovingBox(movingBoxIndex, 0, delta, 1));
-//        states.add(currentState.moveMovingBox(movingBoxIndex, delta, 0, 2));
-//        states.add(currentState.moveMovingBox(movingBoxIndex, 0, -delta, 3));
+        states.add(currentState.moveMovingBox(movingBoxIndex, -delta, 0, 4));
+        states.add(currentState.moveMovingBox(movingBoxIndex, 0, delta, 1));
+        states.add(currentState.moveMovingBox(movingBoxIndex, delta, 0, 2));
+        states.add(currentState.moveMovingBox(movingBoxIndex, 0, -delta, 3));
 
         List<SearchNode> nodes = new ArrayList<>();
         for (State state: states) {
