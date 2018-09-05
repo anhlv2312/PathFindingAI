@@ -42,42 +42,46 @@ public class Solver {
         State currentState = initialState;
 
 
-        int movingBoxIndex = 0;
+
+        for (int movingBoxIndex = 0; movingBoxIndex < ps.getMovingBoxes().size(); movingBoxIndex++) {
 
 
-        MovingBox movingBox = (MovingBox)ps.getMovingBoxes().get(movingBoxIndex);
+            MovingBox movingBox = (MovingBox) ps.getMovingBoxes().get(movingBoxIndex);
 
-        for (int i = 0; i < currentState.movingBoxes.size(); i++) {
-            if (movingBoxIndex != i) {
-                movingObstacles.add(currentState.movingBoxes.get(i));
+            for (int i = 0; i < currentState.movingBoxes.size(); i++) {
+                if (movingBoxIndex != i) {
+                    movingObstacles.add(currentState.movingBoxes.get(i));
+                }
             }
+
+            movingObstacles.addAll(currentState.movingObstacles);
+
+            if ((tester.isCoupled(currentState.robotConfig, movingBox)) < 0) {
+
+                State robotState = new State(currentState.robotConfig, currentState.movingBoxes, currentState.movingObstacles);
+                robotAgent = new RobotAgent(ps, robotState, movingBox);
+                states.addAll(robotAgent.search());
+                currentState = states.get(states.size() - 1);
+            }
+
+
+            movingObstacles.clear();
+
+            Point2D movingBoxGoal = ps.getMovingBoxEndPositions().get(movingBoxIndex);
+            movingBoxAgent = new MovingBoxAgent(ps, currentState, movingBoxIndex, movingBoxGoal);
+
+            states.addAll(movingBoxAgent.search());
+            currentState = states.get(states.size() - 1);
+
+            int robotPosition = tester.isCoupled(currentState.robotConfig, currentState.movingBoxes.get(movingBoxIndex));
+            currentState = currentState.moveRobotOut(movingBoxIndex, robotPosition, tester.MAX_ERROR);
+
         }
-
-        movingObstacles.addAll(currentState.getMovingObstacles());
-
-        if ((tester.isCoupled(currentState.robotConfig, movingBox)) < 0) {
-
-            State robotState =new State(currentState.robotConfig, currentState.movingBoxes,  currentState.movingObstacles);
-            robotAgent = new RobotAgent(ps, robotState, movingBox);
-            states.addAll(robotAgent.search());
-            currentState = states.get(states.size()-1);
-            System.out.println(currentState.toString());
-        }
-
-
-        movingObstacles.clear();
-
-//
-//        Point2D movingBoxGoal = ps.getMovingBoxEndPositions().get(movingBoxIndex);
-//        movingBoxAgent = new MovingBoxAgent(ps, currentState, movingBox, movingBoxGoal);
-//
-//
-//        states.addAll(movingBoxAgent.search());
-
-
 
         List<String> output = new LinkedList<>();
         for (State s : states) {
+
+//            System.out.println(s.toString());
             output.add(s.toString());
         }
 

@@ -53,13 +53,13 @@ public class RobotAgent extends SearchAgent {
                 }
             }
         }
-        System.out.println(currentState.toString());
+//        System.out.println(currentState.toString());
         List<SearchNode> nodes = new ArrayList<>();
         for (State state: states) {
             double cost = calculateCost(currentState.robotConfig, state.robotConfig);
             double heuristic = calculateHeuristic(state.robotConfig);
             nodes.add(new SearchNode(state, cost, heuristic));
-            System.out.println("\t" + state.toString());
+//            System.out.println("\t" + state.toString());
         }
 
         return nodes;

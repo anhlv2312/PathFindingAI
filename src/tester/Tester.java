@@ -71,7 +71,7 @@ public class Tester {
         List<Box> finalState = ps.getMovingBoxPath().get(ps.getMovingBoxPath().size() - 1);
         int count = 0;
         for (int i = 0; i < finalState.size(); i++){
-            if (finalState.get(i).getPos() == ps.getMovingBoxEndPositions().get(i)) {
+            if (finalState.get(i).getPos().distance(ps.getMovingBoxEndPositions().get(i)) <= MAX_ERROR) {
                 count++;
             }
         }
@@ -123,7 +123,7 @@ public class Tester {
         List<Box> movingObstacles = ps.getMovingObstacles();
         List<List<Box>> movingObstaclePath = ps.getMovingObstaclePath();
         for (int i = 0; i < movingObstacles.size(); i++) {
-            if (!movingObstacles.get(i).getPos().equals(movingObstaclePath.get(i).get(0).getPos())) {
+            if (!movingObstacles.get(i).getPos().equals(movingObstaclePath.get(0).get(i).getPos())) {
                 return false;
             }
         }
@@ -442,20 +442,20 @@ public class Tester {
         p2 = getPoint2(r);
         boolean horizontal;
         if (angle >= Math.PI * 4 - angleError || angle <= Math.PI * 2 + angleError) {
-            r1 = new Point2D.Double(p1.getX() + MAX_ERROR, p1.getY());
-            r2 = new Point2D.Double(p2.getX() - MAX_ERROR, p2.getY());
+            r1 = new Point2D.Double(p1.getX() + 2 * MAX_ERROR, p1.getY());
+            r2 = new Point2D.Double(p2.getX() - 2 * MAX_ERROR, p2.getY());
             horizontal = true;
         } else if (angle >= Math.PI * 2.5 - angleError && angle <= Math.PI * 2.5 + angleError) {
-            r1 = new Point2D.Double(p1.getX(), p1.getY() + MAX_ERROR);
-            r2 = new Point2D.Double(p2.getX(), p2.getY() - MAX_ERROR);
+            r1 = new Point2D.Double(p1.getX(), p1.getY() + 2 * MAX_ERROR);
+            r2 = new Point2D.Double(p2.getX(), p2.getY() - 2 * MAX_ERROR);
             horizontal = false;
         } else if (angle >= Math.PI * 3 - angleError && angle <= Math.PI * 3 + angleError) {
-            r1 = new Point2D.Double(p2.getX() + MAX_ERROR, p2.getY());
-            r2 = new Point2D.Double(p1.getX() - MAX_ERROR, p1.getY());
+            r1 = new Point2D.Double(p2.getX() + 2 * MAX_ERROR, p2.getY());
+            r2 = new Point2D.Double(p1.getX() - 2 * MAX_ERROR, p1.getY());
             horizontal = true;
         } else if (angle >= Math.PI * 3.5 - angleError && angle <= Math.PI * 3.5 + angleError) {
-            r1 = new Point2D.Double(p2.getX(), p2.getY() + MAX_ERROR);
-            r2 = new Point2D.Double(p1.getX(), p1.getY() - MAX_ERROR);
+            r1 = new Point2D.Double(p2.getX(), p2.getY() + 2 * MAX_ERROR);
+            r2 = new Point2D.Double(p1.getX(), p1.getY() - 2 * MAX_ERROR);
             horizontal = false;
         } else {
             return true;
@@ -479,21 +479,16 @@ public class Tester {
     private boolean isAtSameSide(Line2D line, List<Box> boxes, boolean horizontal) {
         double prevSide = 0;
         for (Box box: boxes) {
+            double side;
             if (horizontal) {
-                double side = box.getPos().getY() - line.getY1();
-                if (prevSide == 0) {
-                    prevSide = side;
-                } else if (prevSide * side < 0) {
-                    return false;
-                }
+                side = box.getPos().getY() + MAX_ERROR - line.getY1();
             } else {
-                double side = box.getPos().getX() - line.getX1();
-                if (prevSide == 0) {
-                    prevSide = side;
-                } else if (prevSide * side < 0) {
-                    return false;
-                }
+                side = box.getPos().getX() + MAX_ERROR - line.getX1();
             }
+            if (prevSide * side < 0) {
+                return false;
+            }
+            prevSide = side;
         }
         return true;
     }
@@ -505,7 +500,6 @@ public class Tester {
      * @return true if no collision
      */
     public boolean hasCollision(RobotConfig r, List<Box> movingObjects) {
-        boolean coupled = false;
         Line2D robotLine = new Line2D.Double(getPoint1(r), getPoint2(r));
         Rectangle2D border = new Rectangle2D.Double(0,0,1,1);
         for (StaticObstacle o: ps.getStaticObstacles()) {
@@ -536,7 +530,7 @@ public class Tester {
             }
 
             for (StaticObstacle o: ps.getStaticObstacles()) {
-                if (collisionBox.intersects(o.getRect()) || robotLine.intersects(o.getRect())) {
+                if (collisionBox.intersects(o.getRect())) {
                     return false;
                 }
             }

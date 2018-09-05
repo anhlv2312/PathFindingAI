@@ -30,32 +30,6 @@ public abstract class SearchAgent {
     public abstract boolean isFound(State currentState);
     public abstract List<SearchNode>  getSuccessors(State currentState);
 
-
-    public boolean checkMovingBoxCollision(State state, Box movingBox) {
-
-        Rectangle2D border = new Rectangle2D.Double(0,0,1,1);
-
-        Point2D bottomLeft = movingBox.getPos();
-        Point2D topRight = new Point2D.Double(bottomLeft.getX() + movingBox.getWidth(),
-                bottomLeft.getY() + movingBox.getWidth());
-
-        if (!border.contains(bottomLeft) || !border.contains(topRight)) {
-            return false;
-        }
-
-        for (Box box : state.movingObstacles) {
-            if (movingBox.getRect().intersects(box.getRect())) {
-                return false;
-            }
-        }
-        for (StaticObstacle obstacle: staticObstacles) {
-            if (movingBox.getRect().intersects(obstacle.getRect())) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     public List<State> search() {
 
         Set<String> visited = new HashSet<>();
@@ -161,8 +135,6 @@ public abstract class SearchAgent {
         return pointList;
 
     }
-
-
 
     public List<Point2D> getPointAroundObstacles(State currentState, double delta) {
         //this function creates samples around vertices of each object, and calculate the heuristics for each point.

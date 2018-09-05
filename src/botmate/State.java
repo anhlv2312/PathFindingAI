@@ -31,11 +31,6 @@ public class State {
 
     }
 
-
-    List<Box> getMovingObstacles() {
-        return movingObstacles;
-    }
-
     public String toString() {
 
         StringBuilder output = new StringBuilder();
@@ -64,24 +59,79 @@ public class State {
         return newRobotState;
     }
 
-//    public RobotState moveRobot(double deltaX, double deltaY, double deltaO) {
-//        double newX = robotConfig.getPos().getX() + deltaX;
-//        double newY = robotConfig.getPos().getY() + deltaY;
-//        double newOrientation = robotConfig.getOrientation() + deltaO;
-//        return moveRobotToPosition(new Point2D.Double(newX, newY), newOrientation);
-//    }
+    public State moveRobot(double deltaX, double deltaY, double deltaO) {
+        double newX = robotConfig.getPos().getX() + deltaX;
+        double newY = robotConfig.getPos().getY() + deltaY;
+        double newOrientation = robotConfig.getOrientation() + deltaO;
+        return moveRobotToPosition(new Point2D.Double(newX, newY), newOrientation);
+    }
 
 
-//    public State moveBoxToPosition(Point2D position) {
-//        State newBoxState = new State(robotConfig, movingBoxes, movingObstacles);
-//        newBoxState.movingBoxes.get().getPos().setLocation(position);
-//        return newBoxState;
-//    }
-//
-//    public State moveBox(double deltaX, double deltaY, int robotPosition) {
-//        Point2D position = new Point2D.Double(movingBox.getPos().getX() + deltaX, movingBox.getPos().getY() + deltaY);
-//        return moveBoxToPosition(position);
-//    }
+    public State moveMovingBoxToPosition(int movingBoxIndex, Point2D position) {
+        State newBoxState = new State(robotConfig, movingBoxes, movingObstacles);
+        newBoxState.movingBoxes.get(movingBoxIndex).getPos().setLocation(position);
+        return newBoxState;
+    }
+
+    public State moveMovingBox(int movingBoxIndex, double deltaX, double deltaY, int robotPosition) {
+        Point2D currentPosition = movingBoxes.get(movingBoxIndex).getPos();
+        Point2D newPosition = new Point2D.Double(currentPosition.getX() + deltaX, currentPosition.getY() + deltaY);
+        State tempState = moveMovingBoxToPosition(movingBoxIndex, newPosition);
+        tempState = tempState.moveRobotToMovingBox(movingBoxIndex, robotPosition);
+        return tempState;
+    }
+
+
+    public State moveRobotToMovingBox(int movingBoxIndex, int robotPosition) {
+
+        Double w = this.movingBoxes.get(movingBoxIndex).getWidth();
+        double bottomLeftX = this.movingBoxes.get(movingBoxIndex).getPos().getX();
+        double bottomLeftY = this.movingBoxes.get(movingBoxIndex).getPos().getY();
+
+        Point2D position;
+        double orientation;
+        switch (robotPosition) {
+            case 1:
+                position = new Point2D.Double(bottomLeftX + w / 2, bottomLeftY);
+                orientation = 0.0;
+                break;
+            case 2:
+                position = new Point2D.Double(bottomLeftX, bottomLeftY + w / 2);
+                orientation = Math.PI/2;
+                break;
+            case 3:
+                position = new Point2D.Double(bottomLeftX + w / 2, bottomLeftY + w);
+                orientation = 0.0;
+                break;
+            case 4:
+                position = new Point2D.Double(bottomLeftX + w, bottomLeftY + w / 2);
+                orientation = Math.PI/2;
+                break;
+            default:
+                position = this.robotConfig.getPos();
+                orientation = this.robotConfig.getOrientation();
+        }
+
+        return this.moveRobotToPosition(position, orientation);
+    }
+
+
+    public State moveRobotOut(int movingBoxIndex, int robotPosition, double delta) {
+
+        switch (robotPosition) {
+            case 1:
+                return this.moveRobot(0, -delta, 0);
+            case 2:
+                return this.moveRobot(-delta, 0, 0);
+            case 3:
+                return this.moveRobot(0, delta, 0);
+            case 4:
+                return this.moveRobot(delta, 0, 0);
+            default:
+                return this;
+        }
+
+    }
 
 
 }
