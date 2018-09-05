@@ -3,21 +3,21 @@ package botmate;
 import problem.Box;
 import problem.MovingBox;
 import problem.MovingObstacle;
+import problem.RobotConfig;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BoxState implements State{
+public class BoxState extends State {
 
-    public int robotPosition;
-    public Box movingBox;
-    public List<Box> movingObstacles;
+    MovingBox movingBox;
 
-    public BoxState(Box movingBox, int robotPosition, List<Box> movingObstacles) {
+    public BoxState(RobotConfig robotConfig, MovingBox movingBox, List<Box> movingObstacles) {
 
+        super(robotConfig, null, movingObstacles);
         this.movingBox = new MovingBox(movingBox.getPos(), movingBox.getWidth());
-        this.robotPosition = robotPosition;
+        this.robotConfig = new RobotConfig(robotConfig.getPos(), robotConfig.getOrientation());
 
         this.movingObstacles = new ArrayList<>();
         for (Box box: movingObstacles) {
@@ -25,6 +25,8 @@ public class BoxState implements State{
         }
 
     }
+
+
 
     public List<SearchNode> getSuccessors() {
         return null;
@@ -36,14 +38,15 @@ public class BoxState implements State{
         return null;
     }
 
-    public BoxState moveBoxToPosition(Point2D position, int robotPosition) {
-        MovingBox newBox = new MovingBox(position, movingBox.getWidth());
-        return new BoxState(newBox, robotPosition, movingObstacles);
+    public BoxState moveBoxToPosition(Point2D position) {
+        BoxState newBoxState = new BoxState (robotConfig, movingBox, movingObstacles);
+        newBoxState.movingBox.getPos().setLocation(position);
+        return newBoxState;
     }
 
     public BoxState moveBox(double deltaX, double deltaY, int robotPosition) {
         Point2D position = new Point2D.Double(movingBox.getPos().getX() + deltaX, movingBox.getPos().getY() + deltaY);
-        return moveBoxToPosition(position, robotPosition);
+        return moveBoxToPosition(position);
     }
 
 

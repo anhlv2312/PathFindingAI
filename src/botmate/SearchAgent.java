@@ -1,8 +1,12 @@
 package botmate;
 
+import problem.Box;
 import problem.ProblemSpec;
 import problem.StaticObstacle;
 import tester.Tester;
+
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.*;
 
 public class SearchAgent {
@@ -10,76 +14,74 @@ public class SearchAgent {
     PriorityQueue<SearchNode> container;
     Tester tester;
     double robotWidth;
+    State initialState;
     List<StaticObstacle> staticObstacles;
 
-    public SearchAgent(ProblemSpec ps) {
+    public SearchAgent(ProblemSpec ps, State initialState) {
         tester = new Tester(ps);
         robotWidth = ps.getRobotWidth();
         staticObstacles = ps.getStaticObstacles();
         container = new PriorityQueue<>();
+        this.initialState = initialState;
     }
 
-    private boolean isFound(State currentState, State goalState) {
-        return false;
+    private static List<Point2D> getPointsAroundRectangle(Rectangle2D rect) {
+        //sample 8 points(4 vertices and 4 at the middle of vertices) around the object
+
+        List<Point2D> pointList = new ArrayList<>();
+
+        Point2D topLeft = new Point2D.Double();
+        Point2D topRight = new Point2D.Double();
+        Point2D bottomLeft = new Point2D.Double();
+        Point2D BottomRight = new Point2D.Double();
+        Point2D midUp = new Point2D.Double();
+        Point2D midDown = new Point2D.Double();
+        Point2D midLeft = new Point2D.Double();
+        Point2D midRight = new Point2D.Double();
+
+        topLeft.setLocation(rect.getMaxX(), rect.getMinY());
+        topRight.setLocation(rect.getMaxX(), rect.getMaxY());
+        bottomLeft.setLocation(rect.getMinX(), rect.getMinY());
+        BottomRight.setLocation(rect.getMinX(), rect.getMaxY());
+        midUp.setLocation((rect.getMaxX() + rect.getMinX()) / 2, rect.getMaxY());
+        midDown.setLocation((rect.getMaxX() + rect.getMinX()) / 2, rect.getMinY());
+        midLeft.setLocation(rect.getMinX(), (rect.getMinY() + rect.getMaxY()) / 2);
+        midRight.setLocation(rect.getMaxX(), (rect.getMinY() + rect.getMaxY()) / 2);
+
+        pointList.add(topLeft);
+        pointList.add(topRight);
+        pointList.add(bottomLeft);
+        pointList.add(BottomRight);
+        pointList.add(midUp);
+        pointList.add(midDown);
+        pointList.add(midLeft);
+        pointList.add(midRight);
+
+        return pointList;
+
     }
 
-    public List<State> search(State initialState, State goalState) {
+    public List<Point2D> getPointAroundObstacles(State currentState, double delta) {
+        //this function creates samples around vertices of each object, and calculate the heuristics for each point.
 
-        Set<String> visited = new HashSet<>();
-        SearchNode initialNode = new SearchNode(initialState);
+        List<Point2D> points = new ArrayList<>();
 
-        initialNode.gScores = 0;
-        container.add(initialNode);
-
-        while (!container.isEmpty()) {
-
-            //the node in having the lowest f_score value
-            SearchNode currentNode = container.poll();
-            State currentState = currentNode.state;
-            visited.add(currentState.toString());
-
-            //goal found
-            if (isFound(currentState, goalState)) {
-                List<State> pathToGoal = new LinkedList<>();
-                while (currentNode.parent != null) {
-                    pathToGoal.add(currentNode.state);
-                    currentNode = currentNode.parent;
-                }
-                Collections.reverse(pathToGoal);
-
-                // reset for next search
-                container.clear();
-
-                return pathToGoal;
-            }
-
-            //check every child of current node
-
-            List<SearchNode> nodes = currentNode.state.getSuccessors();
-
-            for (SearchNode node : nodes) {
-                State child = node.state;
-                double temp_g_scores = currentNode.gScores + node.gScores;
-                double temp_f_scores = temp_g_scores + node.hScores;
-
-                if ((visited.contains(child.toString())) &&
-                        (temp_f_scores >= node.fScores)) {
-                    continue;
-                }
-                else if ((!container.contains(child)) ||
-                        (temp_f_scores < node.fScores)) {
-                    node.parent = currentNode;
-                    node.gScores = temp_g_scores;
-                    node.fScores = temp_f_scores;
-                    if (container.contains(child)) {
-                        container.remove(child);
-                    }
-                    container.add(node);
-                }
-            }
-
+        List<Rectangle2D> obstacleList = new ArrayList<>();
+        for (StaticObstacle so : staticObstacles) {
+            obstacleList.add(so.getRect());
         }
-        return null;
 
+        for (Box b : currentState.getMovingObstacles()) {
+            obstacleList.add(b.getRect());
+        }
+
+        //create samples around each obstacles
+
+        for (Rectangle2D rect : obstacleList) {
+            Rectangle2D grownRec = tester.grow(rect, delta);
+            points.addAll(getPointsAroundRectangle(grownRec));
+        }
+
+        return points;
     }
 }
