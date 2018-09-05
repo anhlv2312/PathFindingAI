@@ -21,8 +21,8 @@ public class Solver {
     static MovingBoxAgent movingBoxAgent;
     static MovingObstacleAgent movingObstacleAgent;
     static Tester tester;
-    static List<State> solutionStates;
     static State initialState, currentState;
+    static List<State> solutionStates = new LinkedList<>();
 
     public static void main(String args[]) {
         try {
@@ -34,11 +34,9 @@ public class Solver {
             System.out.println(e1.getMessage());
             return;
         }
-        solutionStates = new LinkedList<>();
         solveProblem();
-        writeOutputFile(args[1], solutionStates);
+        writeOutputFile(args[1]);
     }
-
 
     private static void solveProblem() {
 
@@ -69,8 +67,7 @@ public class Solver {
                 }
 
                 System.out.println("Find solution again for: " + movingBoxIndex);
-                movingBoxAgent = new MovingBoxAgent(ps, currentState, movingBoxIndex, movingBoxGoal, true);
-                solution = movingBoxAgent.search();
+                solution = findDirectSolution(currentState, movingBoxIndex, movingBoxGoal);
 
                 if (solution != null) {
                     solutionStates.addAll(solution);
@@ -84,13 +81,13 @@ public class Solver {
 
         }
     }
-    private static List<State> findDirectSolution(State currentState, int movingBoxIndex, Point2D movingBoxGoal) {
+    private static List<State> findDirectSolution(State state, int movingBoxIndex, Point2D movingBoxGoal) {
         System.out.println("Find direct solution for MovingBox: " + movingBoxIndex);
-        movingBoxAgent = new MovingBoxAgent(ps, currentState, movingBoxIndex, movingBoxGoal, true);
+        movingBoxAgent = new MovingBoxAgent(ps, state, movingBoxIndex, movingBoxGoal, true);
         return movingBoxAgent.search();
     }
 
-    private static List<State> findAlternativeSolution(State currentState, int movingBoxIndex, Point2D movingBoxGoal) {
+    private static List<State> findAlternativeSolution(State state, int movingBoxIndex, Point2D movingBoxGoal) {
 
         boolean hasSolution = true;
         List<State> states = new LinkedList<>();
@@ -98,7 +95,7 @@ public class Solver {
 
         System.out.println("\tFind alternative solution");
 
-        movingBoxAgent = new MovingBoxAgent(ps, currentState, movingBoxIndex, movingBoxGoal, false);
+        movingBoxAgent = new MovingBoxAgent(ps, state, movingBoxIndex, movingBoxGoal, false);
         List<State> alternativeSolution = movingBoxAgent.search();
 
         if (alternativeSolution == null) {
@@ -106,26 +103,12 @@ public class Solver {
         }
 
         List<Rectangle2D> movingPaths = generateMovingPath(movingBoxIndex, alternativeSolution);
-        Set<Integer> movingObstacleIndexes = getMovingObstaclesIndexes(movingPaths, currentState.movingObstacles);
+        Set<Integer> movingObstacleIndexes = getMovingObstaclesIndexes(movingPaths, state.movingObstacles);
 
         for (int j : movingObstacleIndexes) {
 
-//            movingBox = currentState.movingObstacles.get(j);
-//            if (tester.isCoupled(currentState.robotConfig, movingBox) < 0) {
-//                System.out.println("Find robot path to MovingObstacle: " + j);
-//                State robotState = new State(currentState.robotConfig, currentState.movingBoxes, currentState.movingObstacles);
-//                robotAgent = new RobotAgent(ps, robotState, movingBox);
-//                solution = robotAgent.search();
-//                if (solution != null) {
-//                    states.addAll(solution);
-//                } else {
-//                    System.out.println("No Solution for Robot");
-//                }
-//                currentState = states.get(states.size() - 1);
-//            }
-
             System.out.println("\t\tFind Solution for MovingObstacle " + j);
-            movingObstacleAgent = new MovingObstacleAgent(ps, currentState, j, movingPaths);
+            movingObstacleAgent = new MovingObstacleAgent(ps, state, j, movingPaths);
             List<State> solution = movingObstacleAgent.search();
 
             if (solution == null) {
@@ -133,7 +116,7 @@ public class Solver {
                 hasSolution = false;
             } else {
                 states.addAll(solution);
-                currentState = states.get(states.size() - 1);
+                state = states.get(states.size() - 1);
             }
 
         }
@@ -145,13 +128,22 @@ public class Solver {
 
     }
 
-    private static List<State> moveRobotToMovingBox(State currentState, int movingBoxIndex) {
-        List<State> states = new LinkedList<>();
-        Box movingBox = currentState.movingBoxes.get(movingBoxIndex);;
+    private static List<State> moveRobotToMovingBox(State state, int movingBoxIndex) {
+        System.out.println("Find robot path to MovingBox: " + movingBoxIndex);
+        Box movingBox = state.movingBoxes.get(movingBoxIndex);;
+        return moveRobotToBox(state, movingBox);
+    }
 
-        if (tester.isCoupled(currentState.robotConfig, movingBox) < 0) {
-            System.out.println("Find robot path to MovingBox: " + movingBoxIndex);
-            State robotState = new State(currentState.robotConfig, currentState.movingBoxes, currentState.movingObstacles);
+    private static List<State> moveRobotToMovingObstacle(State state, int movingObstacleIndex) {
+        System.out.println("Find robot path to MovingObstacle: " + movingObstacleIndex);
+        Box movingBox = state.movingObstacles.get(movingObstacleIndex);
+        return moveRobotToBox(state, movingBox);
+    }
+
+    private static List<State> moveRobotToBox(State state, Box movingBox) {
+        List<State> states = new LinkedList<>();
+        if (tester.isCoupled(state.robotConfig, movingBox) < 0) {
+            State robotState = new State(state.robotConfig, state.movingBoxes, state.movingObstacles);
             robotAgent = new RobotAgent(ps, robotState, movingBox);
             List<State> solution = robotAgent.search();
             if (solution == null) {
@@ -163,10 +155,10 @@ public class Solver {
         return states;
     }
 
-    private static void writeOutputFile(String fileName, List<State> states) {
+    private static void writeOutputFile(String fileName) {
 
         List<String> output = new LinkedList<>();
-        for (State s : states) {
+        for (State s : solutionStates) {
             output.add(s.toString());
         }
 
