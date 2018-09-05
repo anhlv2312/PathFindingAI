@@ -1,7 +1,5 @@
 package botmate;
 
-import jdk.nashorn.internal.runtime.regexp.joni.ast.StateNode;
-
 public class SearchNode implements Comparable<SearchNode> {
 
     public double gCost;
