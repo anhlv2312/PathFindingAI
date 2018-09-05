@@ -488,4 +488,33 @@ public class BotMateSolver {
         return result;
     }
 
+    // Generate Virtual Path for Moving Obstacle
+
+    public static List<Rectangle2D> createNewPathObtacle(List<Point2D> points) {
+
+        List<Rectangle2D> rectangle2DList = new ArrayList<>();
+
+        for (int i = 0; i < points.size() - 1; i++) {
+            int y = i + 1;
+            Line2D line1 = new Line2D.Double(points.get(i), points.get(y));
+            Rectangle2D rect1 = tester.grow(line1.getBounds2D(), ps.getRobotWidth() / 2 + tester.MAX_BASE_STEP);
+            rectangle2DList.add(rect1);
+        }
+        return rectangle2DList;
+    }
+
+    public static List<Box> checkMovingObstacleonThePath(List<Rectangle2D> list, ProblemSpec state) {
+        List<Box> movingObstacleList = new ArrayList<Box>();
+
+        for (Box box : state.getMovingObstacles()) {
+            for (Rectangle2D rect : list) {
+                if (rect.intersects(box.getRect())) {
+                    movingObstacleList.add(box);
+                }
+            }
+
+        }
+        return movingObstacleList;
+    }
+
 }
