@@ -89,7 +89,7 @@ public class Solver {
             }
 
             int robotPosition = tester.isCoupled(currentState.robotConfig, currentState.movingBoxes.get(movingBoxIndex));
-            currentState = currentState.moveRobotOut(movingBoxIndex, robotPosition, tester.MAX_ERROR);
+            currentState = currentState.moveRobotOut(robotPosition, tester.MAX_ERROR);
 
         }
 

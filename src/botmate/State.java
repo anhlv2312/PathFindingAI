@@ -66,11 +66,18 @@ public class State {
         return moveRobotToPosition(new Point2D.Double(newX, newY), newOrientation);
     }
 
-
     public State moveMovingBoxToPosition(int movingBoxIndex, Point2D position) {
         State newBoxState = new State(robotConfig, movingBoxes, movingObstacles);
         newBoxState.movingBoxes.get(movingBoxIndex).getPos().setLocation(position);
         return newBoxState;
+    }
+
+    public State moveMovingBox(int movingBoxIndex, double deltaX, double deltaY, int robotPosition) {
+        Point2D currentPosition = movingBoxes.get(movingBoxIndex).getPos();
+        Point2D newPosition = new Point2D.Double(currentPosition.getX() + deltaX, currentPosition.getY() + deltaY);
+        State tempState = moveMovingBoxToPosition(movingBoxIndex, newPosition);
+        tempState = tempState.moveRobotToMovingBox(movingBoxIndex, robotPosition);
+        return tempState;
     }
 
     public State moveMovingObstacleToPosition(int movingObstacleIndex, Point2D position) {
@@ -79,30 +86,20 @@ public class State {
         return newBoxState;
     }
 
-    public State moveMovingBox(int movingBoxIndex, double deltaX, double deltaY, int robotPosition) {
-        Box movingBox = movingBoxes.get(movingBoxIndex);
-        Point2D currentPosition = movingBoxes.get(movingBoxIndex).getPos();
-        Point2D newPosition = new Point2D.Double(currentPosition.getX() + deltaX, currentPosition.getY() + deltaY);
-        State tempState = moveMovingBoxToPosition(movingBoxIndex, newPosition);
-        tempState = tempState.moveRobotToMovingBox(movingBox, robotPosition);
-        return tempState;
-    }
 
     public State moveMovingObstacle(int movingObstacleIndex, double deltaX, double deltaY, int robotPosition) {
-        Box movingBox = movingObstacles.get(movingObstacleIndex);
-
-        Point2D currentPosition = movingBox.getPos();
+        Point2D currentPosition = movingObstacles.get(movingObstacleIndex).getPos();
         Point2D newPosition = new Point2D.Double(currentPosition.getX() + deltaX, currentPosition.getY() + deltaY);
         State tempState = moveMovingBoxToPosition(movingObstacleIndex, newPosition);
-        tempState = tempState.moveRobotToMovingBox(movingBox, robotPosition);
+        tempState = tempState.moveRobotToMovingBox(movingObstacleIndex, robotPosition);
         return tempState;
     }
 
-    public State moveRobotToMovingBox(Box box, int robotPosition) {
+    public State moveRobotToMovingBox(int movingBoxIndex, int robotPosition) {
 
-        Double w = box.getWidth();
-        double bottomLeftX = box.getPos().getX();
-        double bottomLeftY = box.getPos().getY();
+        Double w = this.movingBoxes.get(movingBoxIndex).getWidth();
+        double bottomLeftX = this.movingBoxes.get(movingBoxIndex).getPos().getX();
+        double bottomLeftY = this.movingBoxes.get(movingBoxIndex).getPos().getY();
 
         Point2D position;
         double orientation;
@@ -132,7 +129,40 @@ public class State {
     }
 
 
-    public State moveRobotOut(int movingBoxIndex, int robotPosition, double delta) {
+    public State moveRobotToMovingObstacle(int movingObstacleIndex, int robotPosition) {
+
+        Double w = this.movingObstacles.get(movingObstacleIndex).getWidth();
+        double bottomLeftX = this.movingObstacles.get(movingObstacleIndex).getPos().getX();
+        double bottomLeftY = this.movingObstacles.get(movingObstacleIndex).getPos().getY();
+
+        Point2D position;
+        double orientation;
+        switch (robotPosition) {
+            case 1:
+                position = new Point2D.Double(bottomLeftX + w / 2, bottomLeftY);
+                orientation = 0.0;
+                break;
+            case 2:
+                position = new Point2D.Double(bottomLeftX, bottomLeftY + w / 2);
+                orientation = Math.PI/2;
+                break;
+            case 3:
+                position = new Point2D.Double(bottomLeftX + w / 2, bottomLeftY + w);
+                orientation = 0.0;
+                break;
+            case 4:
+                position = new Point2D.Double(bottomLeftX + w, bottomLeftY + w / 2);
+                orientation = Math.PI/2;
+                break;
+            default:
+                position = this.robotConfig.getPos();
+                orientation = this.robotConfig.getOrientation();
+        }
+
+        return this.moveRobotToPosition(position, orientation);
+    }
+
+    public State moveRobotOut(int robotPosition, double delta) {
 
         switch (robotPosition) {
             case 1:
