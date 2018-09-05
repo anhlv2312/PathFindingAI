@@ -38,47 +38,45 @@ public class MovingBoxAgent extends SearchAgent {
 
     @Override
     public List<SearchNode> getSuccessors(State currentState) {
-        double delta = robotWidth;
-
-        BoxState boxState = (BoxState)currentState;
-
-
-        List<BoxState> states = new ArrayList<>();
-
-        switch (robotPosition) {
-            case 1:
-                states.add(boxState.moveBox(-delta, 0, 4));
-                states.add(boxState.moveBox(0, delta, 1));
-                states.add(boxState.moveBox(delta, 0, 2));
-                break;
-            case 2:
-                states.add(boxState.moveBox(0, delta, 1));
-                states.add(boxState.moveBox(delta, 0, 2));
-                states.add(boxState.moveBox(0, -delta, 3));
-                break;
-            case 3:
-                states.add(boxState.moveBox(delta, 0, 2));
-                states.add(boxState.moveBox(0, -delta, 3));
-                states.add(boxState.moveBox(-delta, 0, 4));
-                break;
-            case 4:
-                states.add(boxState.moveBox(0, -delta, 3));
-                states.add(boxState.moveBox(-delta, 0, 4));
-                states.add(boxState.moveBox(0, delta, 1));
-                break;
-        }
-
-
-        List<SearchNode> nodes = new ArrayList<>();
-        for (BoxState state: states) {
-            if (checkMovingBoxCollision(state, state.movingBox)) {
-                double cost = calculateCost(boxState.movingBox.getPos(), state.movingBox.getPos());
-                double heuristic = calculateHeuristic(state.movingBox.getPos());
-                nodes.add(new SearchNode(state, cost, heuristic));
-            }
-        }
-
-        System.out.println("not attached yet!");
+//        double delta = robotWidth;
+//
+//
+//        List<State> states = new ArrayList<>();
+//
+//        switch (robotPosition) {
+//            case 1:
+//                states.add(currentState.moveBox(-delta, 0, 4));
+//                states.add(currentState.moveBox(0, delta, 1));
+//                states.add(currentState.moveBox(delta, 0, 2));
+//                break;
+//            case 2:
+//                states.add(currentState.moveBox(0, delta, 1));
+//                states.add(currentState.moveBox(delta, 0, 2));
+//                states.add(currentState.moveBox(0, -delta, 3));
+//                break;
+//            case 3:
+//                states.add(currentState.moveBox(delta, 0, 2));
+//                states.add(currentState.moveBox(0, -delta, 3));
+//                states.add(currentState.moveBox(-delta, 0, 4));
+//                break;
+//            case 4:
+//                states.add(currentState.moveBox(0, -delta, 3));
+//                states.add(currentState.moveBox(-delta, 0, 4));
+//                states.add(currentState.moveBox(0, delta, 1));
+//                break;
+//        }
+//
+//
+//        List<SearchNode> nodes = new ArrayList<>();
+//        for (State state: states) {
+//            if (checkMovingBoxCollision(state, state.movingBox)) {
+//                double cost = calculateCost(currentState.movingBox.getPos(), state.movingBox.getPos());
+//                double heuristic = calculateHeuristic(state.movingBox.getPos());
+//                nodes.add(new SearchNode(state, cost, heuristic));
+//            }
+//        }
+//
+//        System.out.println("not attached yet!");
 
         return null;
     }

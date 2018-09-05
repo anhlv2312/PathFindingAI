@@ -57,10 +57,10 @@ public class State {
         return output.toString();
     }
 
-    public RobotState moveRobotToPosition(Point2D position, double orientation) {
+    public State moveRobotToPosition(Point2D position, double orientation) {
         RobotConfig newRobotConfig = new RobotConfig(robotConfig.getPos(), orientation);
         newRobotConfig.getPos().setLocation(position);
-        RobotState newRobotState = new RobotState(newRobotConfig, movingBoxes, movingObstacles);
+        State newRobotState = new State(newRobotConfig, movingBoxes, movingObstacles);
         return newRobotState;
     }
 
@@ -72,6 +72,16 @@ public class State {
 //    }
 
 
+//    public State moveBoxToPosition(Point2D position) {
+//        State newBoxState = new State(robotConfig, movingBoxes, movingObstacles);
+//        newBoxState.movingBoxes.get().getPos().setLocation(position);
+//        return newBoxState;
+//    }
+//
+//    public State moveBox(double deltaX, double deltaY, int robotPosition) {
+//        Point2D position = new Point2D.Double(movingBox.getPos().getX() + deltaX, movingBox.getPos().getY() + deltaY);
+//        return moveBoxToPosition(position);
+//    }
 
 
 }

@@ -5,6 +5,7 @@ import problem.MovingBox;
 import problem.ProblemSpec;
 import tester.Tester;
 
+import java.awt.geom.Point2D;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -56,24 +57,19 @@ public class Solver {
 
         if ((tester.isCoupled(currentState.robotConfig, movingBox)) < 0) {
 
-            RobotState robotState = new RobotState(currentState.robotConfig, currentState.movingBoxes,  currentState.movingObstacles);
-
+            State robotState =new State(currentState.robotConfig, currentState.movingBoxes,  currentState.movingObstacles);
             robotAgent = new RobotAgent(ps, robotState, movingBox);
-
             states.addAll(robotAgent.search());
-
             currentState = states.get(states.size()-1);
-
             System.out.println(currentState.toString());
         }
 
 
         movingObstacles.clear();
+
 //
-//
-//        BoxState boxState = new BoxState(currentState.robotConfig, movingBox, movingObstacles);
 //        Point2D movingBoxGoal = ps.getMovingBoxEndPositions().get(movingBoxIndex);
-//        movingBoxAgent = new MovingBoxAgent(ps, boxState, movingBox, movingBoxGoal);
+//        movingBoxAgent = new MovingBoxAgent(ps, currentState, movingBox, movingBoxGoal);
 //
 //
 //        states.addAll(movingBoxAgent.search());
