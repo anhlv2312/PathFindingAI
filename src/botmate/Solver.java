@@ -46,33 +46,39 @@ public class Solver {
     }
 
     private static void solveProblem() {
-
         List<State> solution;
 
-        for (int movingBoxIndex = 0; movingBoxIndex < ps.getMovingBoxes().size(); movingBoxIndex++) {
+        int goalCount = 0;
+        int retry = 10;
 
-            System.out.println("Solving MovingBox: " + movingBoxIndex);
-            Point2D movingBoxGoal = ps.getMovingBoxEndPositions().get(movingBoxIndex);
-            solution = findDirectSolution(currentState, movingBoxIndex, movingBoxGoal);
+        while (goalCount < ps.getMovingBoxes().size() && retry > 0) {
+            for (int movingBoxIndex = 0; movingBoxIndex < ps.getMovingBoxes().size(); movingBoxIndex++) {
 
-            if (solution != null) {
-                addStatesToSolution(solution);
-            } else {
+                System.out.println("Solving MovingBox: " + movingBoxIndex);
+                Point2D movingBoxGoal = ps.getMovingBoxEndPositions().get(movingBoxIndex);
+                solution = findDirectSolution(currentState, movingBoxIndex, movingBoxGoal);
 
-                System.out.println("\tNo direct solution, find alternatives");
-                List<State> alternativeSolution = findAlternativeSolution(currentState, movingBoxIndex, movingBoxGoal);
-
-                if (alternativeSolution != null) {
-                    addStatesToSolution(alternativeSolution);
-                    System.out.println("\tFind solution again");
-                    solution = findDirectSolution(currentState, movingBoxIndex, movingBoxGoal);
+                if (solution != null) {
                     addStatesToSolution(solution);
+                    goalCount ++;
+                } else {
+                    System.out.println("\tNo direct solution, find alternatives");
+                    List<State> alternativeSolution = findAlternativeSolution(currentState, movingBoxIndex, movingBoxGoal);
+
+                    if (alternativeSolution != null) {
+                        addStatesToSolution(alternativeSolution);
+                        System.out.println("\tFind solution again");
+                        solution = findDirectSolution(currentState, movingBoxIndex, movingBoxGoal);
+                        if (solution != null) {
+                            addStatesToSolution(solution);
+                            goalCount++;
+                        }
+
+                    }
                 }
-
+                int robotPosition = tester.isCoupled(currentState.robotConfig, currentState.movingBoxes.get(movingBoxIndex));
+                currentState = currentState.moveRobotOut(robotPosition, tester.MAX_ERROR);
             }
-
-            int robotPosition = tester.isCoupled(currentState.robotConfig, currentState.movingBoxes.get(movingBoxIndex));
-            currentState = currentState.moveRobotOut(robotPosition, tester.MAX_ERROR);
 
         }
     }
@@ -94,9 +100,9 @@ public class Solver {
         List<Rectangle2D> movingPaths = generateMovingPath(movingBoxIndex, alternativeSolution);
         Set<Integer> movingObstacleIndexes = getMovingObstaclesIndexes(movingPaths, state.movingObstacles);
 
-        for (int j : movingObstacleIndexes) {
-            System.out.println("\t\tMovingObstacle " + j);
-            movingObstacleAgent = new MovingObstacleAgent(ps, state, j, movingPaths);
+        for (int movingObstacleIndex : movingObstacleIndexes) {
+            System.out.println("\t\tMovingObstacle " + movingObstacleIndex);
+            movingObstacleAgent = new MovingObstacleAgent(ps, state, movingObstacleIndex, movingPaths);
             List<State> solution = movingObstacleAgent.search();
 
             if (solution == null) {
