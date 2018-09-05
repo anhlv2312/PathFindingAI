@@ -27,17 +27,6 @@ public class BoxState extends State {
     }
 
 
-
-    public List<SearchNode> getSuccessors() {
-        return null;
-    }
-
-    public List<SearchNode> getSuccessors(State goalState) {
-        List<SearchNode> searchNodes;
-        //TODO: write successor;
-        return null;
-    }
-
     public BoxState moveBoxToPosition(Point2D position) {
         BoxState newBoxState = new BoxState (robotConfig, movingBox, movingObstacles);
         newBoxState.movingBox.getPos().setLocation(position);

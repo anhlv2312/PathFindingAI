@@ -1,33 +1,30 @@
 package botmate;
 
-import jdk.nashorn.internal.runtime.regexp.joni.ast.StateNode;
-
 public class SearchNode implements Comparable<SearchNode> {
 
-    public double gCost;
-    public double hCost;
-    public double fCost;
+    public double priority;
+    public double totalCost;
+    public double heuristic;
+    public double cost;
     public State state;
     public SearchNode parent;
 
     public SearchNode(State state) {
         parent = null;
-        fCost = 0;
-        gCost = 1;
-        fCost = 1;
+        totalCost = 0;
+        heuristic = 100;
         this.state = state;
     }
 
-    public SearchNode(State state, double gCost, double hCost ) {
-        fCost = 0;
+    public SearchNode(State state, double cost, double heuristic ) {
         this.state = state;
-        this.gCost = gCost;
-        this.hCost = hCost;
+        this.cost = cost;
+        this.heuristic = heuristic;
     }
 
     @Override
     public int compareTo(SearchNode o) {
-        return Double.compare(this.gCost + hCost, o.gCost + hCost);
+        return Double.compare(this.priority, o.priority);
     }
 }
 

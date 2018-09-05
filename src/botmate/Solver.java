@@ -1,7 +1,9 @@
 package botmate;
 
 import problem.Box;
+import problem.MovingBox;
 import problem.ProblemSpec;
+import tester.Tester;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -16,10 +18,13 @@ public class Solver {
 
         ProblemSpec ps;
         RobotAgent robotAgent;
+        MovingBoxAgent movingBoxAgent;
+        Tester tester;
 
         try {
             ps = new ProblemSpec();
             ps.loadProblem(args[0]);
+            tester = new Tester(ps);
         } catch (IOException e1) {
             System.out.println("FAILED: Invalid problem file");
             System.out.println(e1.getMessage());
@@ -29,16 +34,50 @@ public class Solver {
 
         System.out.println("Start");
         List<Box> movingObstacles = new ArrayList<>();
-        movingObstacles.addAll(ps.getMovingBoxes());
-        movingObstacles.addAll(ps.getMovingObstacles());
+        List<State> states = new LinkedList<>();
 
-        RobotState robotState = new RobotState(ps.getInitialRobotConfig(), movingObstacles);
 
-        RobotState testState = robotState.moveRobot(0.7, 0.3, Math.PI/2);
+        State initialState = new State(ps.getInitialRobotConfig(), ps.getMovingBoxes(), ps.getMovingObstacles());
+        State currentState = initialState;
 
-        robotAgent = new RobotAgent(ps, robotState, testState.robotConfig);
 
-        List<State> states = robotAgent.search();
+        int movingBoxIndex = 0;
+
+
+        MovingBox movingBox = (MovingBox)ps.getMovingBoxes().get(movingBoxIndex);
+
+        for (int i = 0; i < currentState.movingBoxes.size(); i++) {
+            if (movingBoxIndex != i) {
+                movingObstacles.add(currentState.movingBoxes.get(i));
+            }
+        }
+
+        movingObstacles.addAll(currentState.getMovingObstacles());
+
+        if ((tester.isCoupled(currentState.robotConfig, movingBox)) < 0) {
+
+            RobotState robotState = new RobotState(currentState.robotConfig, currentState.movingBoxes,  currentState.movingObstacles);
+
+            robotAgent = new RobotAgent(ps, robotState, movingBox);
+
+            states.addAll(robotAgent.search());
+
+            currentState = states.get(states.size()-1);
+
+            System.out.println(currentState.toString());
+        }
+
+
+        movingObstacles.clear();
+//
+//
+//        BoxState boxState = new BoxState(currentState.robotConfig, movingBox, movingObstacles);
+//        Point2D movingBoxGoal = ps.getMovingBoxEndPositions().get(movingBoxIndex);
+//        movingBoxAgent = new MovingBoxAgent(ps, boxState, movingBox, movingBoxGoal);
+//
+//
+//        states.addAll(movingBoxAgent.search());
+
 
 
         List<String> output = new LinkedList<>();
@@ -47,9 +86,6 @@ public class Solver {
         }
 
         writeOutputFile(args[1], output);
-
-        System.out.println(robotState);
-        System.out.println(testState);
 
 
     }

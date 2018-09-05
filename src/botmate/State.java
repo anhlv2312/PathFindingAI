@@ -1,9 +1,11 @@
 package botmate;
 
 import problem.Box;
+import problem.MovingBox;
 import problem.MovingObstacle;
 import problem.RobotConfig;
 
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,13 +17,11 @@ public class State {
 
     public State(RobotConfig robotConfig, List<Box> movingBoxes, List<Box> movingObstacles) {
 
-        this.robotConfig = robotConfig;
-        this.movingBoxes = new ArrayList<>();
+        this.robotConfig = new RobotConfig(robotConfig.getPos(), robotConfig.getOrientation());
 
-        if (movingBoxes != null) {
-            for (Box box : movingBoxes) {
-                this.movingBoxes.add(new MovingObstacle(box.getPos(), box.getWidth()));
-            }
+        this.movingBoxes = new ArrayList<>();
+        for (Box box : movingBoxes) {
+            this.movingBoxes.add(new MovingBox(box.getPos(), box.getWidth()));
         }
 
         this.movingObstacles = new ArrayList<>();
@@ -31,10 +31,6 @@ public class State {
 
     }
 
-
-    List<Box> getMovingBoxes() {
-        return movingBoxes;
-    }
 
     List<Box> getMovingObstacles() {
         return movingObstacles;
@@ -48,6 +44,11 @@ public class State {
         output.append(String.format("%.5f ", robotConfig.getPos().getY()));
         output.append(String.format("%.5f ", robotConfig.getOrientation()));
 
+        for (Box box: movingBoxes) {
+            output.append(String.format("%.5f ", box.getPos().getX() + box.getWidth()/2));
+            output.append(String.format("%.5f ", box.getPos().getY() + box.getWidth()/2));
+        }
+
         for (Box box: movingObstacles) {
             output.append(String.format("%.5f ", box.getPos().getX() + box.getWidth()/2));
             output.append(String.format("%.5f ", box.getPos().getY() + box.getWidth()/2));
@@ -55,4 +56,22 @@ public class State {
 
         return output.toString();
     }
+
+    public RobotState moveRobotToPosition(Point2D position, double orientation) {
+        RobotConfig newRobotConfig = new RobotConfig(robotConfig.getPos(), orientation);
+        newRobotConfig.getPos().setLocation(position);
+        RobotState newRobotState = new RobotState(newRobotConfig, movingBoxes, movingObstacles);
+        return newRobotState;
+    }
+
+//    public RobotState moveRobot(double deltaX, double deltaY, double deltaO) {
+//        double newX = robotConfig.getPos().getX() + deltaX;
+//        double newY = robotConfig.getPos().getY() + deltaY;
+//        double newOrientation = robotConfig.getOrientation() + deltaO;
+//        return moveRobotToPosition(new Point2D.Double(newX, newY), newOrientation);
+//    }
+
+
+
+
 }
