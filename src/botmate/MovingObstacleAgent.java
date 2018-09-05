@@ -37,7 +37,7 @@ public class MovingObstacleAgent extends SearchAgent {
     @Override
     public List<SearchNode> getSuccessors(State currentState) {
 
-        double delta = robotWidth + tester.MAX_BASE_STEP;
+        double delta = robotWidth/2 - tester.MAX_BASE_STEP;
 
         List<State> states = new ArrayList<>();
 

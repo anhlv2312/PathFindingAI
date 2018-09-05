@@ -43,17 +43,29 @@ public class MovingBoxAgent extends SearchAgent {
 
     @Override
     public boolean isFound(State currentState) {
-        return currentState.movingBoxes.get(movingBoxIndex).getPos().distance(target) < boxWidth;
+        return currentState.movingBoxes.get(movingBoxIndex).getPos().distance(target) < tester.MAX_BASE_STEP;
     }
 
     @Override
     public List<SearchNode> getSuccessors(State currentState) {
 
-        double delta = robotWidth;
+        Box movingBox =  currentState.movingBoxes.get(movingBoxIndex);
+
+
+        double delta = robotWidth/2 - tester.MAX_BASE_STEP;
 
         List<State> states = new ArrayList<>();
 
-        int robotPosition = tester.isCoupled(currentState.robotConfig, currentState.movingBoxes.get(movingBoxIndex));
+        if (movingBox.getPos().distance(target) < delta) {
+            double gapX = Math.abs(movingBox.getPos().getX() - target.getX());
+            double gapY = Math.abs(movingBox.getPos().getY() - target.getY());
+            states.add(currentState.moveMovingBox(movingBoxIndex, gapX, 0, 2));
+            states.add(currentState.moveMovingBox(movingBoxIndex, 0, gapY, 1));
+            states.add(currentState.moveMovingBox(movingBoxIndex, -gapX, 0, 4));
+            states.add(currentState.moveMovingBox(movingBoxIndex, 0, -gapY, 3));
+        }
+
+        int robotPosition = tester.isCoupled(currentState.robotConfig, movingBox);
 
 //        switch (robotPosition) {
 //            case 1:
