@@ -5,22 +5,24 @@ import problem.MovingBox;
 import problem.ProblemSpec;
 import tester.Tester;
 
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class Solver {
 
+    static ProblemSpec ps;
+    static RobotAgent robotAgent;
+    static MovingBoxAgent movingBoxAgent;
+    static Tester tester;
+
     public static void main(String args[]) {
 
-        ProblemSpec ps;
-        RobotAgent robotAgent;
-        MovingBoxAgent movingBoxAgent;
-        Tester tester;
+
 
         try {
             ps = new ProblemSpec();
@@ -33,45 +35,58 @@ public class Solver {
         }
 
 
-        System.out.println("Start");
-        List<Box> movingObstacles = new ArrayList<>();
+        System.out.println("Start solving problem");
+
         List<State> states = new LinkedList<>();
 
 
         State initialState = new State(ps.getInitialRobotConfig(), ps.getMovingBoxes(), ps.getMovingObstacles());
         State currentState = initialState;
-
+        List<State> solution;
 
 
         for (int movingBoxIndex = 0; movingBoxIndex < ps.getMovingBoxes().size(); movingBoxIndex++) {
 
-
-            MovingBox movingBox = (MovingBox) ps.getMovingBoxes().get(movingBoxIndex);
-
-            for (int i = 0; i < currentState.movingBoxes.size(); i++) {
-                if (movingBoxIndex != i) {
-                    movingObstacles.add(currentState.movingBoxes.get(i));
-                }
-            }
-
-            movingObstacles.addAll(currentState.movingObstacles);
+            Box movingBox = ps.getMovingBoxes().get(movingBoxIndex);
 
             if ((tester.isCoupled(currentState.robotConfig, movingBox)) < 0) {
-
+                System.out.println("Find robot path to MovingBox: " + movingBoxIndex);
                 State robotState = new State(currentState.robotConfig, currentState.movingBoxes, currentState.movingObstacles);
                 robotAgent = new RobotAgent(ps, robotState, movingBox);
-                states.addAll(robotAgent.search());
+                solution = robotAgent.search();
+                if (solution != null) {
+                    states.addAll(solution);
+                } else {
+                    System.out.println("No Solution");
+                }
                 currentState = states.get(states.size() - 1);
             }
 
 
-            movingObstacles.clear();
-
             Point2D movingBoxGoal = ps.getMovingBoxEndPositions().get(movingBoxIndex);
-            movingBoxAgent = new MovingBoxAgent(ps, currentState, movingBoxIndex, movingBoxGoal);
+            movingBoxAgent = new MovingBoxAgent(ps, currentState, movingBoxIndex, movingBoxGoal, true);
 
-            states.addAll(movingBoxAgent.search());
-            currentState = states.get(states.size() - 1);
+            solution = movingBoxAgent.search();
+
+            if (solution == null) {
+
+                movingBoxAgent = new MovingBoxAgent(ps, currentState, movingBoxIndex, movingBoxGoal, false);
+                List<State> movingStates = movingBoxAgent.search();
+
+                List<Rectangle2D> movingPath = generateMovingPath(movingBoxIndex, movingStates);
+                System.out.println(movingPath);
+
+                Set<Integer> movingObstacleIndexes = getMovingObstaclesIndexes(movingPath, currentState.movingObstacles);
+                System.out.println(movingObstacleIndexes);
+
+                states.addAll(movingStates);
+
+                currentState = states.get(states.size() - 1);
+            } else {
+
+                states.addAll(solution);
+                currentState = states.get(states.size() - 1);
+            }
 
             int robotPosition = tester.isCoupled(currentState.robotConfig, currentState.movingBoxes.get(movingBoxIndex));
             currentState = currentState.moveRobotOut(movingBoxIndex, robotPosition, tester.MAX_ERROR);
@@ -108,5 +123,38 @@ public class Solver {
         } catch (IOException ex) {
             System.out.println("IO Exception occurred");
         }
+    }
+
+
+    public static List<Rectangle2D> generateMovingPath(int movingBoxIndex, List<State> movingStates) {
+
+
+
+        List<Rectangle2D> rectangles = new ArrayList<>();
+
+        for (int i = 0; i < movingStates.size() - 1; i++) {
+            Box currentBox = movingStates.get(i).movingBoxes.get(movingBoxIndex);
+            Box nextBox = movingStates.get(i+1).movingBoxes.get(movingBoxIndex);
+            Point2D currentCenter = new Point2D.Double(currentBox.getPos().getX() + ps.getRobotWidth()/2, currentBox.getPos().getY()+ps.getRobotWidth()/2);
+            Point2D nextCenter = new Point2D.Double(nextBox.getPos().getX() + ps.getRobotWidth()/2, nextBox.getPos().getY()+ps.getRobotWidth()/2);
+            Line2D line1 = new Line2D.Double(currentCenter, nextCenter);
+            Rectangle2D rectangle = tester.grow(line1.getBounds2D(), ps.getRobotWidth() / 2 + tester.MAX_ERROR);
+            rectangles.add(rectangle);
+        }
+        return rectangles;
+    }
+
+    public static Set<Integer> getMovingObstaclesIndexes(List<Rectangle2D> movingPaths, List<Box> movingObstacles) {
+        Set<Integer> indexes = new HashSet<>();
+
+        for (int i=0; i < movingObstacles.size(); i++) {
+            Box box = movingObstacles.get(i);
+            for (Rectangle2D rect : movingPaths) {
+                if (rect.intersects(box.getRect())) {
+                    indexes.add(i);
+                }
+            }
+        }
+        return indexes;
     }
 }

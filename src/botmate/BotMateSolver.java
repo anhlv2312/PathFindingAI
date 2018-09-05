@@ -503,7 +503,7 @@ public class BotMateSolver {
         return rectangle2DList;
     }
 
-    public static List<Box> checkMovingObstacleonThePath(List<Rectangle2D> list, ProblemSpec state) {
+    public static List<Box> checkMovingObstacleOnThePath(List<Rectangle2D> list, ProblemSpec state) {
         List<Box> movingObstacleList = new ArrayList<Box>();
 
         for (Box box : state.getMovingObstacles()) {

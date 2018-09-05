@@ -14,11 +14,12 @@ public class MovingBoxAgent extends SearchAgent {
     Point2D target;
     int movingBoxIndex;
     double boxWidth;
+    boolean direct;
 
-    public MovingBoxAgent(ProblemSpec ps, State initialState, int movingBoxIndex, Point2D target) {
+    public MovingBoxAgent(ProblemSpec ps, State initialState, int movingBoxIndex, Point2D target, boolean direct) {
         super(ps, initialState);
         this.movingBoxIndex = movingBoxIndex;
-
+        this.direct = direct;
         boxWidth = initialState.movingBoxes.get(movingBoxIndex).getWidth();
         this.target = target;
 
@@ -36,6 +37,7 @@ public class MovingBoxAgent extends SearchAgent {
     public double calculateHeuristic(State nextState) {
         Point2D nextPos = nextState.movingBoxes.get(movingBoxIndex).getPos();
         double distance = Math.abs(nextPos.getX() - target.getX()) + Math.abs(nextPos.getX() - target.getX());
+//        return nextPos.distance(target);
         return distance;
     }
 
@@ -47,7 +49,7 @@ public class MovingBoxAgent extends SearchAgent {
     @Override
     public List<SearchNode> getSuccessors(State currentState) {
 
-        double delta = robotWidth/4;
+        double delta = robotWidth;
 
         List<State> states = new ArrayList<>();
 
@@ -124,9 +126,11 @@ public class MovingBoxAgent extends SearchAgent {
             }
         }
 
-        for (Box box : state.movingObstacles) {
-            if (movingBox.getRect().intersects(box.getRect())) {
-                return false;
+        if (direct) {
+            for (Box box : state.movingObstacles) {
+                if (movingBox.getRect().intersects(box.getRect())) {
+                    return false;
+                }
             }
         }
 

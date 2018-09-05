@@ -73,20 +73,36 @@ public class State {
         return newBoxState;
     }
 
+    public State moveMovingObstacleToPosition(int movingObstacleIndex, Point2D position) {
+        State newBoxState = new State(robotConfig, movingBoxes, movingObstacles);
+        newBoxState.movingObstacles.get(movingObstacleIndex).getPos().setLocation(position);
+        return newBoxState;
+    }
+
     public State moveMovingBox(int movingBoxIndex, double deltaX, double deltaY, int robotPosition) {
+        Box movingBox = movingBoxes.get(movingBoxIndex);
         Point2D currentPosition = movingBoxes.get(movingBoxIndex).getPos();
         Point2D newPosition = new Point2D.Double(currentPosition.getX() + deltaX, currentPosition.getY() + deltaY);
         State tempState = moveMovingBoxToPosition(movingBoxIndex, newPosition);
-        tempState = tempState.moveRobotToMovingBox(movingBoxIndex, robotPosition);
+        tempState = tempState.moveRobotToMovingBox(movingBox, robotPosition);
         return tempState;
     }
 
+    public State moveMovingObstacle(int movingObstacleIndex, double deltaX, double deltaY, int robotPosition) {
+        Box movingBox = movingObstacles.get(movingObstacleIndex);
 
-    public State moveRobotToMovingBox(int movingBoxIndex, int robotPosition) {
+        Point2D currentPosition = movingBox.getPos();
+        Point2D newPosition = new Point2D.Double(currentPosition.getX() + deltaX, currentPosition.getY() + deltaY);
+        State tempState = moveMovingBoxToPosition(movingObstacleIndex, newPosition);
+        tempState = tempState.moveRobotToMovingBox(movingBox, robotPosition);
+        return tempState;
+    }
 
-        Double w = this.movingBoxes.get(movingBoxIndex).getWidth();
-        double bottomLeftX = this.movingBoxes.get(movingBoxIndex).getPos().getX();
-        double bottomLeftY = this.movingBoxes.get(movingBoxIndex).getPos().getY();
+    public State moveRobotToMovingBox(Box box, int robotPosition) {
+
+        Double w = box.getWidth();
+        double bottomLeftX = box.getPos().getX();
+        double bottomLeftY = box.getPos().getY();
 
         Point2D position;
         double orientation;

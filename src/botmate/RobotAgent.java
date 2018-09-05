@@ -9,16 +9,16 @@ import java.util.*;
 
 public class RobotAgent extends SearchAgent {
 
-    MovingBox target;
+    Box targetBox;
 
-    public RobotAgent(ProblemSpec ps, State initialState, MovingBox target) {
+    public RobotAgent(ProblemSpec ps, State initialState, Box targetBox) {
         super(ps, initialState);
-        this.target = target;
+        this.targetBox = targetBox;
     }
 
     @Override
     public boolean isFound(State currentState) {
-        return (tester.isCoupled(currentState.robotConfig, target) > 0);
+        return (tester.isCoupled(currentState.robotConfig, targetBox) > 0);
     }
 
     public double calculateCost(RobotConfig currentConfig, RobotConfig nextConfig) {
@@ -28,7 +28,7 @@ public class RobotAgent extends SearchAgent {
     }
 
     public double calculateHeuristic(RobotConfig currentConfig) {
-        double distance = currentConfig.getPos().distance(target.getPos());
+        double distance = currentConfig.getPos().distance(targetBox.getPos());
         return distance;
     }
 
@@ -40,7 +40,7 @@ public class RobotAgent extends SearchAgent {
         List<Point2D> positions = new ArrayList<>();
         positions.addAll(getPointAroundObstacles(currentState, robotWidth/2));
         positions.addAll(getPointAroundObstacles(currentState, tester.MAX_ERROR));
-        positions.addAll(getPointsAroundRectangle(target.getRect(), tester.MAX_ERROR));
+        positions.addAll(getPointsAroundRectangle(targetBox.getRect(), tester.MAX_ERROR));
 
         List<State> states = new ArrayList<>();
         State tempState;
