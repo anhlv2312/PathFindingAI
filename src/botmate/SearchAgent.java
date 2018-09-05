@@ -90,9 +90,6 @@ public abstract class SearchAgent {
             }
 
         }
-
-        System.out.println("Not found");
-
         return null;
 
     }

@@ -90,8 +90,8 @@ public class State {
     public State moveMovingObstacle(int movingObstacleIndex, double deltaX, double deltaY, int robotPosition) {
         Point2D currentPosition = movingObstacles.get(movingObstacleIndex).getPos();
         Point2D newPosition = new Point2D.Double(currentPosition.getX() + deltaX, currentPosition.getY() + deltaY);
-        State tempState = moveMovingBoxToPosition(movingObstacleIndex, newPosition);
-        tempState = tempState.moveRobotToMovingBox(movingObstacleIndex, robotPosition);
+        State tempState = moveMovingObstacleToPosition(movingObstacleIndex, newPosition);
+        tempState = tempState.moveRobotToMovingObstacle(movingObstacleIndex, robotPosition);
         return tempState;
     }
 

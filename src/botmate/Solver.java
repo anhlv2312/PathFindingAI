@@ -2,6 +2,7 @@ package botmate;
 
 import problem.Box;
 import problem.MovingBox;
+import problem.MovingObstacle;
 import problem.ProblemSpec;
 import tester.Tester;
 
@@ -18,11 +19,10 @@ public class Solver {
     static ProblemSpec ps;
     static RobotAgent robotAgent;
     static MovingBoxAgent movingBoxAgent;
+    static MovingObstacleAgent movingObstacleAgent;
     static Tester tester;
 
     public static void main(String args[]) {
-
-
 
         try {
             ps = new ProblemSpec();
@@ -38,7 +38,7 @@ public class Solver {
         System.out.println("Start solving problem");
 
         List<State> states = new LinkedList<>();
-
+        Box movingBox;
 
         State initialState = new State(ps.getInitialRobotConfig(), ps.getMovingBoxes(), ps.getMovingObstacles());
         State currentState = initialState;
@@ -47,9 +47,9 @@ public class Solver {
 
         for (int movingBoxIndex = 0; movingBoxIndex < ps.getMovingBoxes().size(); movingBoxIndex++) {
 
-            Box movingBox = ps.getMovingBoxes().get(movingBoxIndex);
+            movingBox = currentState.movingBoxes.get(movingBoxIndex);
 
-            if ((tester.isCoupled(currentState.robotConfig, movingBox)) < 0) {
+            if (tester.isCoupled(currentState.robotConfig, movingBox) < 0) {
                 System.out.println("Find robot path to MovingBox: " + movingBoxIndex);
                 State robotState = new State(currentState.robotConfig, currentState.movingBoxes, currentState.movingObstacles);
                 robotAgent = new RobotAgent(ps, robotState, movingBox);
@@ -70,14 +70,46 @@ public class Solver {
 
             if (solution == null) {
 
+                System.out.println("No direct solution for MovingBox");
+
+
+
                 movingBoxAgent = new MovingBoxAgent(ps, currentState, movingBoxIndex, movingBoxGoal, false);
                 List<State> movingStates = movingBoxAgent.search();
 
-                List<Rectangle2D> movingPath = generateMovingPath(movingBoxIndex, movingStates);
-                System.out.println(movingPath);
+                List<Rectangle2D> movingPaths = generateMovingPath(movingBoxIndex, movingStates);
 
-                Set<Integer> movingObstacleIndexes = getMovingObstaclesIndexes(movingPath, currentState.movingObstacles);
-                System.out.println(movingObstacleIndexes);
+                Set<Integer> movingObstacleIndexes = getMovingObstaclesIndexes(movingPaths, currentState.movingObstacles);
+
+                for (int j = 0; j < movingObstacleIndexes.size(); j++) {
+
+                    movingBox = currentState.movingObstacles.get(j);
+
+
+
+                    if (tester.isCoupled(currentState.robotConfig, movingBox) < 0) {
+                        System.out.println("Find robot path to MovingObstacle: " + j);
+                        State robotState = new State(currentState.robotConfig, currentState.movingBoxes, currentState.movingObstacles);
+                        robotAgent = new RobotAgent(ps, robotState, movingBox);
+                        solution = robotAgent.search();
+                        if (solution != null) {
+                            states.addAll(solution);
+                        } else {
+                            System.out.println("No Solution for Robot");
+                        }
+                        currentState = states.get(states.size() - 1);
+                    }
+
+                    movingObstacleAgent = new MovingObstacleAgent(ps, currentState, j, movingPaths);
+
+                    solution = movingObstacleAgent.search();
+
+                    if (solution == null) {
+                        System.out.println("No Solution for MovingObstacle");
+                    }
+
+
+                }
 
                 states.addAll(movingStates);
 
@@ -127,8 +159,6 @@ public class Solver {
 
 
     public static List<Rectangle2D> generateMovingPath(int movingBoxIndex, List<State> movingStates) {
-
-
 
         List<Rectangle2D> rectangles = new ArrayList<>();
 
