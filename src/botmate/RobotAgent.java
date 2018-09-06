@@ -32,12 +32,6 @@ public class RobotAgent extends SearchAgent {
         return distance + rotation;
     }
 
-    public double calculateHeuristic(RobotConfig currentConfig) {
-        //todo: Fix this, should not be target box, should
-        double distance = currentConfig.getPos().distance(targetConfig.getPos());
-        return distance;
-    }
-
     @Override
     public List<SearchNode> getSuccessors(State currentState) {
 
@@ -45,17 +39,12 @@ public class RobotAgent extends SearchAgent {
         List<Point2D> positions = new ArrayList<>();
 
         if (currentState.robotConfig.getPos().distance(targetConfig.getPos()) < robotWidth) {
-            //todo: do something here
             positions.addAll(getPointsAroundRectangle(targetBox.getRect(), Tester.MAX_ERROR));
-//            positions.add(targetConfig.getPos());
         }
-
         positions.addAll(getPointsAroundObstacles(currentState, robotWidth/2 + Tester.MAX_ERROR));
-//        positions.addAll(getPointsAroundObstacles(currentState, Tester.MAX_ERROR));
 
         List<State> states = new ArrayList<>();
         State tempState;
-
         for (Point2D position: positions) {
             for (double orientation: orientations) {
                 tempState = currentState.moveRobotToPosition(position, orientation);
@@ -65,12 +54,11 @@ public class RobotAgent extends SearchAgent {
             }
         }
 
-
 //        System.out.println(currentState.toString());
         List<SearchNode> nodes = new ArrayList<>();
         for (State state: states) {
             double cost = calculateCost(currentState.robotConfig, state.robotConfig);
-            double heuristic = calculateHeuristic(state.robotConfig);
+            double heuristic = calculateCost(state.robotConfig, targetConfig);
             nodes.add(new SearchNode(state, cost, heuristic));
 //            System.out.println(state.toString());
         }
@@ -89,6 +77,8 @@ public class RobotAgent extends SearchAgent {
         if (angle == 0) {
             tempRobotConfig = new RobotConfig(state.robotConfig.getPos(), state.robotConfig.getOrientation());
         } else {
+
+            // todo: need to think about the smarter colision check while rotating
             Rectangle2D robotRect;
             double bottomLeftX = state.robotConfig.getPos().getX()-robotWidth/2;
             double bottomLeftY = state.robotConfig.getPos().getY()-robotWidth/2;
@@ -138,8 +128,6 @@ public class RobotAgent extends SearchAgent {
         movingLines.add(new Line2D.Double(r1p2, r2p1));
         movingLines.add(new Line2D.Double(r1p2, r2p2));
 
-
-
         if (!border.contains(r1p1) || !border.contains(r1p2) || !border.contains(r2p1) || !border.contains(r2p2)) {
             return false;
         }
@@ -179,6 +167,8 @@ public class RobotAgent extends SearchAgent {
     public List<Point2D> getPointsAroundRectangle(Rectangle2D rectangle, double delta) {
         //sample 8 points(4 vertices and 4 at the middle of vertices) around the object
 
+
+        //Todo: add 8 more point that help the robot to rotate through the corner
         List<Point2D> pointList = new ArrayList<>();
         Rectangle2D rect = tester.grow(rectangle, delta);
 

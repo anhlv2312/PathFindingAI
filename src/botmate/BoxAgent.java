@@ -28,6 +28,9 @@ public class BoxAgent extends SearchAgent {
     public double calculateCost(State currentState, State nextState) {
         Point2D currentPos = currentState.movingBoxes.get(movingBoxIndex).getPos();
         Point2D nextPos = nextState.movingBoxes.get(movingBoxIndex).getPos();
+
+        //Todo: add cost of collide with moving box
+
         double distance = Math.abs(nextPos.getX() - currentPos.getX()) + Math.abs(nextPos.getY() - currentPos.getY());
         return distance;
     }
