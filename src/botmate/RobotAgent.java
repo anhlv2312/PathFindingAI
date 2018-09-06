@@ -98,18 +98,20 @@ public class RobotAgent extends SearchAgent {
         for (Line2D line: movingLines) {
             for (Box box: state.movingBoxes) {
                 if (tester.isCoupled(state.robotConfig, box) > 0) {
-                    continue;
-                }
-                if (line.intersects(box.getRect())) {
+                    if (line.intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR))) {
+                        return false;
+                    }
+                } else if (line.intersects(box.getRect())) {
                     return false;
                 }
             }
 
             for (Box box: state.movingObstacles) {
                 if (tester.isCoupled(state.robotConfig, box) > 0) {
-                    continue;
-                }
-                if (line.intersects(box.getRect())) {
+                    if (line.intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR))) {
+                        return false;
+                    }
+                } else if (line.intersects(box.getRect())) {
                     return false;
                 }
             }
@@ -135,36 +137,6 @@ public class RobotAgent extends SearchAgent {
         }
 
         return true;
-    }
-
-    public List<RobotConfig> getPossibleRobotConfig(Box movingBox) {
-
-        List<RobotConfig> robotConfigs = new ArrayList<>();
-        Double w = movingBox.getWidth();
-        double bottomLeftX = movingBox.getPos().getX();
-        double bottomLeftY = movingBox.getPos().getY();
-
-        robotConfigs.add(new RobotConfig(new Point2D.Double(bottomLeftX + w/2, bottomLeftY), 0));
-        robotConfigs.add(new RobotConfig(new Point2D.Double(bottomLeftX, bottomLeftY + w/2), Math.PI/2));
-        robotConfigs.add(new RobotConfig(new Point2D.Double(bottomLeftX + w/2, bottomLeftY + w), 0));
-        robotConfigs.add(new RobotConfig(new Point2D.Double(bottomLeftX + w, bottomLeftY + w/2), Math.PI/2));
-
-        return robotConfigs;
-    }
-
-    public List<Point2D> getPossibleRobotPoint(Box movingBox) {
-
-        List<Point2D> robotPoints = new ArrayList<>();
-        Double w = movingBox.getWidth();
-        double bottomLeftX = movingBox.getPos().getX();
-        double bottomLeftY = movingBox.getPos().getY();
-
-        robotPoints.add(new Point2D.Double(bottomLeftX + w/2, bottomLeftY));
-        robotPoints.add(new Point2D.Double(bottomLeftX, bottomLeftY + w/2));
-        robotPoints.add(new Point2D.Double(bottomLeftX + w/2, bottomLeftY + w));
-        robotPoints.add(new Point2D.Double(bottomLeftX + w, bottomLeftY + w/2));
-
-        return robotPoints;
     }
 
 

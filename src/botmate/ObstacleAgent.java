@@ -77,13 +77,6 @@ public class ObstacleAgent extends SearchAgent {
                 states.add(moveDown);
         }
 
-
-
-//        states.add(currentState.moveObstacle(movingObstacleIndex, -stepWidth, 0, 4));
-//        states.add(currentState.moveObstacle(movingObstacleIndex, 0, stepWidth, 1));
-//        states.add(currentState.moveObstacle(movingObstacleIndex, stepWidth, 0, 2));
-//        states.add(currentState.moveObstacle(movingObstacleIndex, 0, -stepWidth, 3));
-
         List<SearchNode> nodes = new ArrayList<>();
         for (State state : states) {
             if (checkMovingObstacleCollision(state, movingObstacleIndex)) {
