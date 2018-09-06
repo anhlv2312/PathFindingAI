@@ -149,6 +149,7 @@ public class Solver {
                     } else {
                         System.out.println("\t\t\tNo solution for robot!");
                     }
+
                     tempState = states.get(states.size() - 1);
                 }
             }
