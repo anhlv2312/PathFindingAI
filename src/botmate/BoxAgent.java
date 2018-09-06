@@ -3,6 +3,7 @@ package botmate;
 import problem.Box;
 import problem.ProblemSpec;
 import problem.StaticObstacle;
+import tester.Tester;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -11,11 +12,10 @@ import java.util.List;
 
 public class BoxAgent extends SearchAgent {
 
-    Point2D target;
-    int movingBoxIndex;
-    double boxWidth;
-    double stepWidth;
-    boolean direct;
+    private Point2D target;
+    private int movingBoxIndex;
+    private double stepWidth;
+    private boolean direct;
 
     public BoxAgent(ProblemSpec ps, State initialState, int movingBoxIndex, Point2D target, double stepWidth, boolean direct) {
         super(ps, initialState);
@@ -23,7 +23,6 @@ public class BoxAgent extends SearchAgent {
         this.target = target;
         this.stepWidth = stepWidth;
         this.direct = direct;
-        boxWidth = initialState.movingBoxes.get(movingBoxIndex).getWidth();
     }
 
     public double calculateCost(State currentState, State nextState) {
@@ -41,7 +40,7 @@ public class BoxAgent extends SearchAgent {
 
     @Override
     public boolean isFound(State currentState) {
-        return currentState.movingBoxes.get(movingBoxIndex).getPos().distance(target) < tester.MAX_BASE_STEP;
+        return currentState.movingBoxes.get(movingBoxIndex).getPos().distance(target) < Tester.MAX_BASE_STEP;
     }
 
     @Override
@@ -51,50 +50,49 @@ public class BoxAgent extends SearchAgent {
 
         List<State> states = new ArrayList<>();
 
-        if (movingBox.getPos().distance(target) > stepWidth) {
-
-            int robotPosition = tester.isCoupled(currentState.robotConfig, movingBox);
-
-            switch (robotPosition) {
-                case 1:
-                    states.add(currentState.moveMovingBox(movingBoxIndex, -stepWidth, 0, 4));
-                    states.add(currentState.moveMovingBox(movingBoxIndex, 0, stepWidth, 1));
-                    states.add(currentState.moveMovingBox(movingBoxIndex, stepWidth, 0, 2));
-                    break;
-                case 2:
-                    states.add(currentState.moveMovingBox(movingBoxIndex, 0, stepWidth, 1));
-                    states.add(currentState.moveMovingBox(movingBoxIndex, stepWidth, 0, 2));
-                    states.add(currentState.moveMovingBox(movingBoxIndex, 0, -stepWidth, 3));
-                    break;
-                case 3:
-                    states.add(currentState.moveMovingBox(movingBoxIndex, stepWidth, 0, 2));
-                    states.add(currentState.moveMovingBox(movingBoxIndex, 0, -stepWidth, 3));
-                    states.add(currentState.moveMovingBox(movingBoxIndex, -stepWidth, 0, 4));
-                    break;
-                case 4:
-                    states.add(currentState.moveMovingBox(movingBoxIndex, 0, -stepWidth, 3));
-                    states.add(currentState.moveMovingBox(movingBoxIndex, -stepWidth, 0, 4));
-                    states.add(currentState.moveMovingBox(movingBoxIndex, 0, stepWidth, 1));
-                    break;
-                default:
-                    states.add(currentState.moveMovingBox(movingBoxIndex, -stepWidth, 0, 4));
-                    states.add(currentState.moveMovingBox(movingBoxIndex, 0, stepWidth, 1));
-                    states.add(currentState.moveMovingBox(movingBoxIndex, stepWidth, 0, 2));
-                    states.add(currentState.moveMovingBox(movingBoxIndex, 0, -stepWidth, 3));
-            }
-
-
-        } else {
+        if (movingBox.getPos().distance(target) < stepWidth) {
             double gapX = Math.abs(movingBox.getPos().getX() - target.getX());
             double gapY = Math.abs(movingBox.getPos().getY() - target.getY());
             states.add(currentState.moveMovingBox(movingBoxIndex, gapX, 0, 2));
             states.add(currentState.moveMovingBox(movingBoxIndex, 0, gapY, 1));
             states.add(currentState.moveMovingBox(movingBoxIndex, -gapX, 0, 4));
             states.add(currentState.moveMovingBox(movingBoxIndex, 0, -gapY, 3));
+        } else {
+            int robotPosition = tester.isCoupled(currentState.robotConfig, movingBox);
+
+            State moveLeft = currentState.moveMovingBox(movingBoxIndex, -stepWidth, 0, 4);
+            State moveUp = currentState.moveMovingBox(movingBoxIndex, 0, stepWidth, 1);
+            State moveRight = currentState.moveMovingBox(movingBoxIndex, stepWidth, 0, 2);
+            State moveDown = currentState.moveMovingBox(movingBoxIndex, 0, -stepWidth, 3);
+
+            switch (robotPosition) {
+                case 1:
+                    states.add(moveLeft);
+                    states.add(moveUp);
+                    states.add(moveRight);
+                    break;
+                case 2:
+                    states.add(moveUp);
+                    states.add(moveRight);
+                    states.add(moveDown);
+                    break;
+                case 3:
+                    states.add(moveRight);
+                    states.add(moveDown);
+                    states.add(moveLeft);
+                    break;
+                case 4:
+                    states.add(moveDown);
+                    states.add(moveLeft);
+                    states.add(moveUp);
+                    break;
+                default:
+                    states.add(moveLeft);
+                    states.add(moveUp);
+                    states.add(moveRight);
+                    states.add(moveDown);
+            }
         }
-
-
-
 
         List<SearchNode> nodes = new ArrayList<>();
         for (State state: states) {
@@ -104,8 +102,6 @@ public class BoxAgent extends SearchAgent {
                 nodes.add(new SearchNode(state, cost, heuristic));
             }
         }
-
-
 
         return nodes;
     }

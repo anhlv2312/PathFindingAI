@@ -74,11 +74,13 @@ public class Solver {
                         if (solution != null) {
                             addStatesToSolution(solution);
                             goalCount++;
+                        } else {
+                            System.out.println("\t\tStill no Solution!");
                         }
-
+                    } else {
+                        System.out.println("\t\tNo alternative solution!");
                     }
                 }
-
             }
             retry--;
             boxStepWidth = boxStepWidth/2 - Tester.MAX_BASE_STEP;
@@ -96,10 +98,25 @@ public class Solver {
 
 
     private static List<State> findDirectSolution(State state, int movingBoxIndex, Point2D movingBoxGoal) {
-        List<State> solution;
+        List<State> states = new LinkedList<>();
+
         boxAgent = new BoxAgent(ps, state, movingBoxIndex, movingBoxGoal, boxStepWidth, true);
-        solution = boxAgent.search();
-        return solution;
+        List<State> solution = boxAgent.search();
+
+        if (solution == null) {
+            return null;
+        } else {
+            State firstState = solution.get(0);
+            int targetEdge = tester.isCoupled(firstState.robotConfig, firstState.movingBoxes.get(movingBoxIndex));
+            List<State> robotSolution = moveRobotToMovingBox(state, movingBoxIndex, targetEdge);
+            if (robotSolution != null) {
+                states.addAll(robotSolution);
+                states.addAll(solution);
+            } else {
+                System.out.println("\t\t\tNo solution for robot!");
+            }
+        }
+        return states;
     }
 
     private static List<State> findAlternativeSolution(State state, int movingBoxIndex, Point2D movingBoxGoal) {
@@ -131,18 +148,15 @@ public class Solver {
                     } else {
                         System.out.println("\t\t\tNo solution for robot!");
                     }
-
                     tempState = states.get(states.size() - 1);
                 }
             }
-        } else {
-            System.out.println("\t\tNo alternative solution!");
         }
         return states;
     }
 
     private static List<State> moveRobotToMovingBox(State state, int movingBoxIndex, int targetEdge) {
-        System.out.println("\t\t\tFind robot path to MovingBox: " + movingBoxIndex);
+        System.out.println("\t\tFind robot path");
         Box movingBox = state.movingBoxes.get(movingBoxIndex);
         return moveRobotToBox(state, movingBox, targetEdge);
     }

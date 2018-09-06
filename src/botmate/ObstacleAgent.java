@@ -11,17 +11,15 @@ import java.util.List;
 
 public class ObstacleAgent extends SearchAgent {
 
-    int movingObstacleIndex;
-    double boxWidth;
-    double stepWidth;
-    List<Rectangle2D> movingPaths;
+    private int movingObstacleIndex;
+    private double stepWidth;
+    private List<Rectangle2D> movingPaths;
 
     public ObstacleAgent(ProblemSpec ps, State initialState, int movingObstacleIndex, double stepWidth, List<Rectangle2D> movingPaths) {
 
         super(ps, initialState);
         this.movingObstacleIndex = movingObstacleIndex;
         this.stepWidth = stepWidth;
-        boxWidth = initialState.movingObstacles.get(movingObstacleIndex).getWidth();
         this.movingPaths = movingPaths;
     }
 
@@ -39,12 +37,52 @@ public class ObstacleAgent extends SearchAgent {
     @Override
     public List<SearchNode> getSuccessors(State currentState) {
 
+
+        Box movingObstacle =  currentState.movingObstacles.get(movingObstacleIndex);
+
         List<State> states = new ArrayList<>();
 
-        states.add(currentState.moveObstacle(movingObstacleIndex, -stepWidth, 0, 4));
-        states.add(currentState.moveObstacle(movingObstacleIndex, 0, stepWidth, 1));
-        states.add(currentState.moveObstacle(movingObstacleIndex, stepWidth, 0, 2));
-        states.add(currentState.moveObstacle(movingObstacleIndex, 0, -stepWidth, 3));
+        int robotPosition = tester.isCoupled(currentState.robotConfig, movingObstacle);
+
+        State moveLeft = currentState.moveObstacle(movingObstacleIndex, -stepWidth, 0, 4);
+        State moveUp = currentState.moveObstacle(movingObstacleIndex, 0, stepWidth, 1);
+        State moveRight = currentState.moveObstacle(movingObstacleIndex, stepWidth, 0, 2);
+        State moveDown = currentState.moveObstacle(movingObstacleIndex, 0, -stepWidth, 3);
+
+        switch (robotPosition) {
+            case 1:
+                states.add(moveLeft);
+                states.add(moveUp);
+                states.add(moveRight);
+                break;
+            case 2:
+                states.add(moveUp);
+                states.add(moveRight);
+                states.add(moveDown);
+                break;
+            case 3:
+                states.add(moveRight);
+                states.add(moveDown);
+                states.add(moveLeft);
+                break;
+            case 4:
+                states.add(moveDown);
+                states.add(moveLeft);
+                states.add(moveUp);
+                break;
+            default:
+                states.add(moveLeft);
+                states.add(moveUp);
+                states.add(moveRight);
+                states.add(moveDown);
+        }
+
+
+
+//        states.add(currentState.moveObstacle(movingObstacleIndex, -stepWidth, 0, 4));
+//        states.add(currentState.moveObstacle(movingObstacleIndex, 0, stepWidth, 1));
+//        states.add(currentState.moveObstacle(movingObstacleIndex, stepWidth, 0, 2));
+//        states.add(currentState.moveObstacle(movingObstacleIndex, 0, -stepWidth, 3));
 
         List<SearchNode> nodes = new ArrayList<>();
         for (State state : states) {

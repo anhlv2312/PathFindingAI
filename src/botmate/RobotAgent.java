@@ -1,6 +1,7 @@
 package botmate;
 
 import problem.*;
+import tester.Tester;
 
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
@@ -9,8 +10,8 @@ import java.util.*;
 
 public class RobotAgent extends SearchAgent {
 
-    Box targetBox;
-    int targetEdge;
+    private Box targetBox;
+    private int targetEdge;
 
     public RobotAgent(ProblemSpec ps, State initialState, Box targetBox, int targetEdge) {
         super(ps, initialState);
@@ -41,8 +42,8 @@ public class RobotAgent extends SearchAgent {
 
         List<Point2D> positions = new ArrayList<>();
         positions.addAll(getPointAroundObstacles(currentState, robotWidth/2));
-        positions.addAll(getPointAroundObstacles(currentState, tester.MAX_ERROR));
-        positions.addAll(getPointsAroundRectangle(targetBox.getRect(), tester.MAX_ERROR));
+        positions.addAll(getPointAroundObstacles(currentState, Tester.MAX_ERROR));
+        positions.addAll(getPointsAroundRectangle(targetBox.getRect(), Tester.MAX_ERROR));
         positions.add(currentState.robotConfig.getPos());
 
         List<State> states = new ArrayList<>();
