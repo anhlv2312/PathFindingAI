@@ -2,6 +2,7 @@ package botmate;
 
 import problem.Box;
 import problem.ProblemSpec;
+import problem.RobotConfig;
 import tester.Tester;
 
 import java.awt.geom.Line2D;
@@ -185,8 +186,14 @@ public class Solver {
     private static void writeOutputFile(String fileName) {
 
         List<String> output = new LinkedList<>();
-        for (State s : solutionStates) {
-            output.add(s.toString());
+
+        Iterator<State> stateIterator = solutionStates.iterator();
+        State currentState = initialState;
+        while (stateIterator.hasNext()) {
+            State nextState = stateIterator.next();
+//            output.add(currentState.toString());
+            output.addAll(generateMoves(currentState, nextState));
+            currentState = nextState;
         }
 
         try {
@@ -262,62 +269,59 @@ public class Solver {
         return 1;
     }
 
+
+
+    private static List<String> generateMoves(State state1, State state2) {
+
+        List<String> result = new LinkedList<>();
+        result.add(state1.toString());
+        State tempState = state1;
+
+        RobotConfig r1 = state1.robotConfig;
+        RobotConfig r2 = state2.robotConfig;
+        Double numberOfSteps;
+
+        double angle = tester.normaliseAngle(r2.getOrientation()) - tester.normaliseAngle(r1.getOrientation());
+        if (angle != 0) {
+            numberOfSteps = (angle * ps.getRobotWidth() / 2) / Tester.MAX_BASE_STEP;
+            double deltaO = angle / numberOfSteps;
+            for (int i = 0; i < numberOfSteps; i++) {
+                tempState = tempState.moveRobot(0, 0, deltaO);
+                result.add(tempState.toString());
+            }
+        }
+
+        tempState = tempState.moveRobotToPosition(r1.getPos(), r2.getOrientation());
+        result.add(tempState.toString());
+
+        numberOfSteps = Math.ceil(r1.getPos().distance(r2.getPos()) / Tester.MAX_BASE_STEP);
+        double deltaX = (r2.getPos().getX() - r1.getPos().getX()) / numberOfSteps;
+        double deltaY = (r2.getPos().getY() - r1.getPos().getY()) / numberOfSteps;
+
+        for (int i = 0; i < numberOfSteps; i++) {
+            tempState = tempState.moveRobot(deltaX, deltaY, 0);
+            result.add(tempState.toString());
+        }
+
+        result.add(state2.toString());
+        return result;
+    }
 //
+//    // Get the next edge that the robot need to get to
+//    public static int getDirection(State state1, State state2) {
 //
-//    private static List<String> generateMoves(State state1, State state2) {
+//        Box box1 = state1.getMovingBox();
+//        Box box2 = state2.getMovingBox();
 //
-//        List<String> result = new LinkedList<>();
-//        result.add(state1.toString());
-//        State tempState = state1;
-//        int direction = getDirection(state1, state2);
-//
-//        Point2D robotPosition, boxPosition;
-//
-//        // Get two robot config
-//        RobotConfig r1 = state1.robotConfig;
-//        RobotConfig r2 = state2.robotConfig;
-//
-//        // Calculate the number of steps
-//        Double numberOfSteps = Math.ceil(r1.getPos().distance(r2.getPos()) / Tester.MAX_BASE_STEP);
-//
-//        // Calculate the delta values
-//        double deltaX = (r2.getPos().getX() - r1.getPos().getX()) / numberOfSteps;
-//        double deltaY = (r2.getPos().getY() - r1.getPos().getY()) / numberOfSteps;
-//        double deltaO = (tester.normaliseAngle(r2.getOrientation()) - tester.normaliseAngle(r1.getOrientation())) / numberOfSteps;
-//
-//        // For each steps
-//        for (int i = 0; i < numberOfSteps; i++) {
-//
-//
-//            tempState = tempState.moveRobot(deltaX, deltaY, deltaO);
-//
-//            Box box = tempState.getMovingBox();
-//
-//            int coupled = tester.isCoupled(state1.robotConfig, state1.getMovingBox());
-//
-////            if (coupled < 0 && tester.hasCollision(tempState.robotConfig, tempState.getMovingBoxes())) {
-////                tempState.moveRobotToMovingBox(direction);
-////            }
-//
-//            // only move the box if moving box of two state are the same
-//            if (state1.getMovingBoxIndex() == state2.getMovingBoxIndex()) {
-//
-//                // if the box move horizontally
-//                if ((deltaX > 0 && coupled == 2) || (deltaX < 0 && coupled == 4)) {
-//                    boxPosition = new Point2D.Double(box.getPos().getX() + deltaX, box.getPos().getY());
-//                    tempState = tempState.moveMovingBox(boxPosition);
-//                }
-//
-//                // if the box move vertically
-//                if ((deltaY > 0 && coupled == 1) || (deltaY < 0 && coupled == 3)) {
-//                    boxPosition = new Point2D.Double(box.getPos().getX(), box.getPos().getY() + deltaY);
-//                    tempState = tempState.moveMovingBox(boxPosition);
-//                }
-//            }
-//
-//            result.add(tempState.toString());
+//        if (box2.getPos().getX() > box1.getPos().getX()) {
+//            return 2;
+//        } else if (box2.getPos().getX() < box1.getPos().getX()) {
+//            return 4;
+//        } else if (box2.getPos().getY() > box1.getPos().getY()) {
+//            return 1;
+//        } else if (box2.getPos().getY() < box1.getPos().getY()) {
+//            return 3;
 //        }
-//
-//        return result;
+//        return 1;
 //    }
 }

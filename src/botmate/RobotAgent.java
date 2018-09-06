@@ -44,7 +44,6 @@ public class RobotAgent extends SearchAgent {
         positions.addAll(getPointAroundObstacles(currentState, robotWidth/2));
         positions.addAll(getPointAroundObstacles(currentState, Tester.MAX_ERROR));
         positions.addAll(getPointsAroundRectangle(targetBox.getRect(), Tester.MAX_ERROR));
-        positions.add(currentState.robotConfig.getPos());
 
         List<State> states = new ArrayList<>();
         State tempState;
@@ -149,7 +148,7 @@ public class RobotAgent extends SearchAgent {
         Point2D topLeft = new Point2D.Double();
         Point2D topRight = new Point2D.Double();
         Point2D bottomLeft = new Point2D.Double();
-        Point2D BottomRight = new Point2D.Double();
+        Point2D bottomRight = new Point2D.Double();
         Point2D midUp = new Point2D.Double();
         Point2D midDown = new Point2D.Double();
         Point2D midLeft = new Point2D.Double();
@@ -158,7 +157,7 @@ public class RobotAgent extends SearchAgent {
         topLeft.setLocation(rect.getMaxX(), rect.getMinY());
         topRight.setLocation(rect.getMaxX(), rect.getMaxY());
         bottomLeft.setLocation(rect.getMinX(), rect.getMinY());
-        BottomRight.setLocation(rect.getMinX(), rect.getMaxY());
+        bottomRight.setLocation(rect.getMinX(), rect.getMaxY());
         midUp.setLocation((rect.getMaxX() + rect.getMinX()) / 2, rect.getMaxY());
         midDown.setLocation((rect.getMaxX() + rect.getMinX()) / 2, rect.getMinY());
         midLeft.setLocation(rect.getMinX(), (rect.getMinY() + rect.getMaxY()) / 2);
@@ -167,7 +166,7 @@ public class RobotAgent extends SearchAgent {
         pointList.add(topLeft);
         pointList.add(topRight);
         pointList.add(bottomLeft);
-        pointList.add(BottomRight);
+        pointList.add(bottomRight);
         pointList.add(midUp);
         pointList.add(midDown);
         pointList.add(midLeft);
@@ -178,25 +177,13 @@ public class RobotAgent extends SearchAgent {
     }
 
     public List<Point2D> getPointAroundObstacles(State currentState, double delta) {
-        //this function creates samples around vertices of each object, and calculate the heuristics for each point.
-
         List<Point2D> points = new ArrayList<>();
-
-        List<Rectangle2D> obstacleList = new ArrayList<>();
-        for (StaticObstacle so : staticObstacles) {
-            obstacleList.add(so.getRect());
+        for (Box box : currentState.movingObstacles) {
+            points.addAll(getPointsAroundRectangle(box.getRect(), delta));
         }
-
-        for (Box b : currentState.movingObstacles) {
-            obstacleList.add(b.getRect());
+        for (StaticObstacle obstacle : staticObstacles) {
+            points.addAll(getPointsAroundRectangle(obstacle.getRect(), delta));
         }
-
-        //create samples around each obstacles
-
-        for (Rectangle2D rect : obstacleList) {
-            points.addAll(getPointsAroundRectangle(rect, delta));
-        }
-
         return points;
     }
 
