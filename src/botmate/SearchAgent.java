@@ -8,10 +8,10 @@ import java.util.*;
 public abstract class SearchAgent {
 
     PriorityQueue<SearchNode> container;
-    Tester tester;
-    double robotWidth;
-    State initialState;
     List<StaticObstacle> staticObstacles;
+    Tester tester;
+    State initialState;
+    double robotWidth;
 
     public SearchAgent(ProblemSpec ps, State initialState) {
         tester = new Tester(ps);
@@ -29,65 +29,51 @@ public abstract class SearchAgent {
         Set<String> visited = new HashSet<>();
         SearchNode initialNode = new SearchNode(initialState);
 
+        container.clear();
         container.add(initialNode);
 
         while (!container.isEmpty()) {
 
-            //the node in having the lowest f_score value
             SearchNode currentNode = container.poll();
-
             State currentState = currentNode.state;
-
             visited.add(currentState.toString());
-            //goal found
 
             if (isFound(currentState)) {
-                List<State> pathToGoal = new LinkedList<>();
-                while (currentNode.parent != null) {
-                    pathToGoal.add(currentNode.state);
-                    currentNode = currentNode.parent;
-                }
-
-                Collections.reverse(pathToGoal);
-
-                // reset for next search
-                container.clear();
-
-                return pathToGoal;
+                return getPathToGoal(currentNode);
             }
 
-            List<SearchNode> nodes = getSuccessors(currentState);
+            List<SearchNode> nextNodes = getSuccessors(currentState);
+            for (SearchNode nextNode : nextNodes) {
+                State nextState = nextNode.state;
 
-            for (SearchNode node : nodes) {
+                double nextTotalCost = currentNode.totalCost + nextNode.cost;
+                double nextPriority = nextTotalCost + nextNode.heuristic;
 
-
-                double newTotalCost = currentNode.totalCost + node.cost;
-                double priority = newTotalCost + node.heuristic;
-
-                if ((visited.contains(node.state.toString())) &&
-                        (priority >= node.totalCost)) {
+                if (visited.contains(nextState.toString()) && nextPriority >= nextNode.totalCost) {
                     continue;
-                }
-
-                else if ((!container.contains(node.state.toString())) ||
-                        (priority < node.totalCost)) {
-                    node.parent = currentNode;
-                    node.totalCost = newTotalCost;
-                    node.priority = priority;
-                    if (container.contains(node.state.toString())) {
-                        container.remove(node.state.toString());
+                } else if (!container.contains(nextState.toString()) || nextPriority < nextNode.totalCost) {
+                    nextNode.parent = currentNode;
+                    nextNode.totalCost = nextTotalCost;
+                    nextNode.priority = nextPriority;
+                    if (container.contains(nextState.toString())) {
+                        container.remove(nextState.toString());
                     }
-                    container.add(node);
+                    container.add(nextNode);
                 }
-
             }
-
         }
         return null;
-
     }
 
+    private List<State> getPathToGoal (SearchNode currentNode) {
+        List<State> pathToGoal = new LinkedList<>();
 
+        while (currentNode.parent != null) {
+            pathToGoal.add(currentNode.state);
+            currentNode = currentNode.parent;
+        }
 
-
+        Collections.reverse(pathToGoal);
+        return pathToGoal;
+    }
 }

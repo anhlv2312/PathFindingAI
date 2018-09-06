@@ -16,37 +16,33 @@ public class State {
     List<Box> movingObstacles;
 
     public State(RobotConfig robotConfig, List<Box> movingBoxes, List<Box> movingObstacles) {
-
         this.robotConfig = new RobotConfig(robotConfig.getPos(), robotConfig.getOrientation());
-
         this.movingBoxes = new ArrayList<>();
         for (Box box : movingBoxes) {
             this.movingBoxes.add(new MovingBox(box.getPos(), box.getWidth()));
         }
-
         this.movingObstacles = new ArrayList<>();
         for (Box box: movingObstacles) {
             this.movingObstacles.add(new MovingObstacle(box.getPos(), box.getWidth()));
         }
-
     }
 
     public String toString() {
-
         StringBuilder output = new StringBuilder();
 
-        output.append(String.format("%.5f ", robotConfig.getPos().getX()));
-        output.append(String.format("%.5f ", robotConfig.getPos().getY()));
-        output.append(String.format("%.5f ", robotConfig.getOrientation()));
+        String doubleFormat = "%.6f";
+        output.append(String.format(doubleFormat + " ", robotConfig.getPos().getX()));
+        output.append(String.format(doubleFormat + " ", robotConfig.getPos().getY()));
+        output.append(String.format(doubleFormat + " ", robotConfig.getOrientation()));
 
         for (Box box: movingBoxes) {
-            output.append(String.format("%.5f ", box.getPos().getX() + box.getWidth()/2));
-            output.append(String.format("%.5f ", box.getPos().getY() + box.getWidth()/2));
+            output.append(String.format(doubleFormat + " ", box.getPos().getX() + box.getWidth()/2));
+            output.append(String.format(doubleFormat + " ", box.getPos().getY() + box.getWidth()/2));
         }
 
         for (Box box: movingObstacles) {
-            output.append(String.format("%.5f ", box.getPos().getX() + box.getWidth()/2));
-            output.append(String.format("%.5f ", box.getPos().getY() + box.getWidth()/2));
+            output.append(String.format(doubleFormat + " ", box.getPos().getX() + box.getWidth()/2));
+            output.append(String.format(doubleFormat + " ", box.getPos().getY() + box.getWidth()/2));
         }
 
         return output.toString();
@@ -80,90 +76,64 @@ public class State {
         return tempState;
     }
 
-    public State moveMovingObstacleToPosition(int movingObstacleIndex, Point2D position) {
+    public State moveObstacleToPosition(int movingObstacleIndex, Point2D position) {
         State newBoxState = new State(robotConfig, movingBoxes, movingObstacles);
         newBoxState.movingObstacles.get(movingObstacleIndex).getPos().setLocation(position);
         return newBoxState;
     }
 
-
-    public State moveMovingObstacle(int movingObstacleIndex, double deltaX, double deltaY, int robotPosition) {
+    public State moveObstacle(int movingObstacleIndex, double deltaX, double deltaY, int robotPosition) {
         Point2D currentPosition = movingObstacles.get(movingObstacleIndex).getPos();
         Point2D newPosition = new Point2D.Double(currentPosition.getX() + deltaX, currentPosition.getY() + deltaY);
-        State tempState = moveMovingObstacleToPosition(movingObstacleIndex, newPosition);
-        tempState = tempState.moveRobotToMovingObstacle(movingObstacleIndex, robotPosition);
+        State tempState = moveObstacleToPosition(movingObstacleIndex, newPosition);
+        tempState = tempState.moveRobotToObstacle(movingObstacleIndex, robotPosition);
         return tempState;
     }
 
     public State moveRobotToMovingBox(int movingBoxIndex, int robotPosition) {
-
-        Double w = this.movingBoxes.get(movingBoxIndex).getWidth();
-        double bottomLeftX = this.movingBoxes.get(movingBoxIndex).getPos().getX();
-        double bottomLeftY = this.movingBoxes.get(movingBoxIndex).getPos().getY();
-
-        Point2D position;
-        double orientation;
-        switch (robotPosition) {
-            case 1:
-                position = new Point2D.Double(bottomLeftX + w / 2, bottomLeftY);
-                orientation = 0.0;
-                break;
-            case 2:
-                position = new Point2D.Double(bottomLeftX, bottomLeftY + w / 2);
-                orientation = Math.PI/2;
-                break;
-            case 3:
-                position = new Point2D.Double(bottomLeftX + w / 2, bottomLeftY + w);
-                orientation = 0.0;
-                break;
-            case 4:
-                position = new Point2D.Double(bottomLeftX + w, bottomLeftY + w / 2);
-                orientation = Math.PI/2;
-                break;
-            default:
-                position = this.robotConfig.getPos();
-                orientation = this.robotConfig.getOrientation();
-        }
-
-        return this.moveRobotToPosition(position, orientation);
+        Box box =  this.movingBoxes.get(movingBoxIndex);
+        return this.moveRobotToBox(box, robotPosition);
     }
 
 
-    public State moveRobotToMovingObstacle(int movingObstacleIndex, int robotPosition) {
+    public State moveRobotToObstacle(int movingObstacleIndex, int robotPosition) {
+        Box box =  this.movingObstacles.get(movingObstacleIndex);
+        return this.moveRobotToBox(box, robotPosition);
+    }
 
-        Double w = this.movingObstacles.get(movingObstacleIndex).getWidth();
-        double bottomLeftX = this.movingObstacles.get(movingObstacleIndex).getPos().getX();
-        double bottomLeftY = this.movingObstacles.get(movingObstacleIndex).getPos().getY();
+    private State moveRobotToBox(Box box, int edge){
+        double w, x, y, o;
+        Point2D p;
 
-        Point2D position;
-        double orientation;
-        switch (robotPosition) {
+        w = box.getWidth();
+        x = box.getPos().getX();
+        y = box.getPos().getY();
+
+        switch (edge) {
             case 1:
-                position = new Point2D.Double(bottomLeftX + w / 2, bottomLeftY);
-                orientation = 0.0;
+                p = new Point2D.Double(x + w/2, y);
+                o = 0.0;
                 break;
             case 2:
-                position = new Point2D.Double(bottomLeftX, bottomLeftY + w / 2);
-                orientation = Math.PI/2;
+                p = new Point2D.Double(x, y + w/2);
+                o = Math.PI/2;
                 break;
             case 3:
-                position = new Point2D.Double(bottomLeftX + w / 2, bottomLeftY + w);
-                orientation = 0.0;
+                p = new Point2D.Double(x + w/2, y + w);
+                o = 0.0;
                 break;
             case 4:
-                position = new Point2D.Double(bottomLeftX + w, bottomLeftY + w / 2);
-                orientation = Math.PI/2;
+                p = new Point2D.Double(x + w, y + w/2);
+                o = Math.PI/2;
                 break;
             default:
-                position = this.robotConfig.getPos();
-                orientation = this.robotConfig.getOrientation();
+                p = this.robotConfig.getPos();
+                o = this.robotConfig.getOrientation();
         }
-
-        return this.moveRobotToPosition(position, orientation);
+        return this.moveRobotToPosition(p, o);
     }
 
     public State moveRobotOut(int robotPosition, double delta) {
-
         switch (robotPosition) {
             case 1:
                 return this.moveRobot(0, -delta, 0);
@@ -178,6 +148,5 @@ public class State {
         }
 
     }
-
 
 }
