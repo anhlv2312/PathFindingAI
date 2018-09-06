@@ -44,13 +44,14 @@ public class RobotAgent extends SearchAgent {
         double[] orientations = new double[]{0, Math.PI * 0.5, };
         List<Point2D> positions = new ArrayList<>();
 
-        if (currentState.robotConfig.getPos().distance(targetBox.getPos()) < robotWidth/2) {
+        if (currentState.robotConfig.getPos().distance(targetConfig.getPos()) < robotWidth) {
             //todo: do something here
-            positions.addAll(getPointAroundObstacles(currentState, 0));
+            positions.addAll(getPointsAroundRectangle(targetBox.getRect(), Tester.MAX_ERROR));
+//            positions.add(targetConfig.getPos());
         }
 
-        positions.addAll(getPointAroundObstacles(currentState, robotWidth/2 + Tester.MAX_ERROR));
-        positions.addAll(getPointAroundObstacles(currentState, Tester.MAX_ERROR));
+        positions.addAll(getPointsAroundObstacles(currentState, robotWidth/2 + Tester.MAX_ERROR));
+//        positions.addAll(getPointsAroundObstacles(currentState, Tester.MAX_ERROR));
 
         List<State> states = new ArrayList<>();
         State tempState;
@@ -212,7 +213,7 @@ public class RobotAgent extends SearchAgent {
 
     }
 
-    public List<Point2D> getPointAroundObstacles(State currentState, double delta) {
+    public List<Point2D> getPointsAroundObstacles(State currentState, double delta) {
         List<Point2D> points = new ArrayList<>();
 
         for (Box box : currentState.movingBoxes) {
