@@ -80,10 +80,53 @@ public class RobotAgent extends SearchAgent {
 
     public boolean checkRobotMovingCollision(State state, RobotConfig nextConfig) {
 
+        Rectangle2D border = new Rectangle2D.Double(0,0,1,1);
+
+        double angle = state.robotConfig.getOrientation() - nextConfig.getOrientation();
+
+        RobotConfig tempRobotConfig;
+        if (angle == 0) {
+            tempRobotConfig = new RobotConfig(state.robotConfig.getPos(), state.robotConfig.getOrientation());
+        } else {
+            Rectangle2D robotRect;
+            double bottomLeftX = state.robotConfig.getPos().getX()-robotWidth/2;
+            double bottomLeftY = state.robotConfig.getPos().getY()-robotWidth/2;
+            robotRect = new Rectangle2D.Double(bottomLeftX, bottomLeftY, robotWidth, robotWidth);
+            List<Point2D> robotPoints = getPointsAroundRectangle(robotRect, 0);
+
+            for (Point2D point: robotPoints) {
+                if (!border.contains(point)) {
+                    return false;
+                }
+            }
+
+            for (Box box: state.movingBoxes) {
+                if (tester.isCoupled(state.robotConfig, box) > 0) {
+                    if (robotRect.intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR))) {
+                        return false;
+                    }
+                } else if (robotRect.intersects(box.getRect())) {
+                    return false;
+                }
+            }
+
+            for (Box box: state.movingObstacles) {
+                if (tester.isCoupled(state.robotConfig, box) > 0) {
+                    if (robotRect.intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR))) {
+                        return false;
+                    }
+                } else if (robotRect.intersects(box.getRect())) {
+                    return false;
+                }
+            }
+
+            tempRobotConfig = new RobotConfig(state.robotConfig.getPos(), nextConfig.getOrientation());
+        }
+
         List<Line2D> movingLines = new ArrayList<>();
 
-        Point2D r1p1 = tester.getPoint1(state.robotConfig);
-        Point2D r1p2 = tester.getPoint2(state.robotConfig);
+        Point2D r1p1 = tester.getPoint1(tempRobotConfig);
+        Point2D r1p2 = tester.getPoint2(tempRobotConfig);
         Point2D r2p1 = tester.getPoint1(nextConfig);
         Point2D r2p2 = tester.getPoint2(nextConfig);
 
@@ -94,7 +137,7 @@ public class RobotAgent extends SearchAgent {
         movingLines.add(new Line2D.Double(r1p2, r2p1));
         movingLines.add(new Line2D.Double(r1p2, r2p2));
 
-        Rectangle2D border = new Rectangle2D.Double(0,0,1,1);
+
 
         if (!border.contains(r1p1) || !border.contains(r1p2) || !border.contains(r2p1) || !border.contains(r2p2)) {
             return false;
@@ -123,26 +166,6 @@ public class RobotAgent extends SearchAgent {
 
             for (StaticObstacle obstacle: staticObstacles) {
                 if (line.intersects(obstacle.getRect())) {
-                    return false;
-                }
-            }
-        }
-
-        if ((state.robotConfig.getOrientation() - nextConfig.getOrientation()) != 0) {
-            Rectangle2D robotRect;
-            double bottomLeftX = state.robotConfig.getPos().getX()-robotWidth/2;
-            double bottomLeftY = state.robotConfig.getPos().getY()-robotWidth/2;
-            robotRect = new Rectangle2D.Double(bottomLeftX, bottomLeftY, robotWidth, robotWidth);
-            List<Point2D> robotPoints = getPointsAroundRectangle(robotRect, 0);
-
-            for (Point2D point: robotPoints) {
-                if (!border.contains(point)) {
-                    return false;
-                }
-            }
-
-            for (Box box: state.movingObstacles) {
-                if (robotRect.intersects(box.getRect())) {
                     return false;
                 }
             }
