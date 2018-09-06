@@ -79,7 +79,7 @@ public class Solver {
                     }
                 }
                 int robotPosition = tester.isCoupled(currentState.robotConfig, currentState.movingBoxes.get(movingBoxIndex));
-                currentState = currentState.moveRobotOut(robotPosition, Tester.MAX_ERROR);
+                currentState = currentState.moveRobotOutOfBox(robotPosition, Tester.MAX_ERROR);
             }
             retry--;
             boxStepWidth = boxStepWidth/2 - Tester.MAX_BASE_STEP;

@@ -52,8 +52,6 @@ public class ObstacleAgent extends SearchAgent {
                 nodes.add(new SearchNode(state));
             }
         }
-
-
         return nodes;
     }
 

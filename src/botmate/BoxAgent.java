@@ -27,10 +27,8 @@ public class BoxAgent extends SearchAgent {
     }
 
     public double calculateCost(State currentState, State nextState) {
-
         Point2D currentPos = currentState.movingBoxes.get(movingBoxIndex).getPos();
         Point2D nextPos = nextState.movingBoxes.get(movingBoxIndex).getPos();
-
         double distance = Math.abs(nextPos.getX() - currentPos.getX()) + Math.abs(nextPos.getX() - currentPos.getX());
         return distance;
     }
@@ -38,7 +36,6 @@ public class BoxAgent extends SearchAgent {
     public double calculateHeuristic(State nextState) {
         Point2D nextPos = nextState.movingBoxes.get(movingBoxIndex).getPos();
         double distance = Math.abs(nextPos.getX() - target.getX()) + Math.abs(nextPos.getX() - target.getX());
-//        return nextPos.distance(target);
         return distance;
     }
 

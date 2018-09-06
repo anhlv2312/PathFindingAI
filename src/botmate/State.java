@@ -133,7 +133,7 @@ public class State {
         return this.moveRobotToPosition(p, o);
     }
 
-    public State moveRobotOut(int robotPosition, double delta) {
+    public State moveRobotOutOfBox(int robotPosition, double delta) {
         switch (robotPosition) {
             case 1:
                 return this.moveRobot(0, -delta, 0);
