@@ -52,10 +52,38 @@ public class BoxAgent extends SearchAgent {
         List<State> states = new ArrayList<>();
 
         if (movingBox.getPos().distance(target) > stepWidth) {
-            states.add(currentState.moveMovingBox(movingBoxIndex, -stepWidth, 0, 4));
-            states.add(currentState.moveMovingBox(movingBoxIndex, 0, stepWidth, 1));
-            states.add(currentState.moveMovingBox(movingBoxIndex, stepWidth, 0, 2));
-            states.add(currentState.moveMovingBox(movingBoxIndex, 0, -stepWidth, 3));
+
+            int robotPosition = tester.isCoupled(currentState.robotConfig, movingBox);
+
+            switch (robotPosition) {
+                case 1:
+                    states.add(currentState.moveMovingBox(movingBoxIndex, -stepWidth, 0, 4));
+                    states.add(currentState.moveMovingBox(movingBoxIndex, 0, stepWidth, 1));
+                    states.add(currentState.moveMovingBox(movingBoxIndex, stepWidth, 0, 2));
+                    break;
+                case 2:
+                    states.add(currentState.moveMovingBox(movingBoxIndex, 0, stepWidth, 1));
+                    states.add(currentState.moveMovingBox(movingBoxIndex, stepWidth, 0, 2));
+                    states.add(currentState.moveMovingBox(movingBoxIndex, 0, -stepWidth, 3));
+                    break;
+                case 3:
+                    states.add(currentState.moveMovingBox(movingBoxIndex, stepWidth, 0, 2));
+                    states.add(currentState.moveMovingBox(movingBoxIndex, 0, -stepWidth, 3));
+                    states.add(currentState.moveMovingBox(movingBoxIndex, -stepWidth, 0, 4));
+                    break;
+                case 4:
+                    states.add(currentState.moveMovingBox(movingBoxIndex, 0, -stepWidth, 3));
+                    states.add(currentState.moveMovingBox(movingBoxIndex, -stepWidth, 0, 4));
+                    states.add(currentState.moveMovingBox(movingBoxIndex, 0, stepWidth, 1));
+                    break;
+                default:
+                    states.add(currentState.moveMovingBox(movingBoxIndex, -stepWidth, 0, 4));
+                    states.add(currentState.moveMovingBox(movingBoxIndex, 0, stepWidth, 1));
+                    states.add(currentState.moveMovingBox(movingBoxIndex, stepWidth, 0, 2));
+                    states.add(currentState.moveMovingBox(movingBoxIndex, 0, -stepWidth, 3));
+            }
+
+
         } else {
             double gapX = Math.abs(movingBox.getPos().getX() - target.getX());
             double gapY = Math.abs(movingBox.getPos().getY() - target.getY());
@@ -64,35 +92,6 @@ public class BoxAgent extends SearchAgent {
             states.add(currentState.moveMovingBox(movingBoxIndex, -gapX, 0, 4));
             states.add(currentState.moveMovingBox(movingBoxIndex, 0, -gapY, 3));
         }
-
-//        int robotPosition = tester.isCoupled(currentState.robotConfig, movingBox);
-//
-//        switch (robotPosition) {
-//            case 1:
-//                states.add(currentState.moveMovingBox(movingBoxIndex, -delta, 0, 4));
-//                states.add(currentState.moveMovingBox(movingBoxIndex, 0, delta, 1));
-//                states.add(currentState.moveMovingBox(movingBoxIndex, delta, 0, 2));
-//                break;
-//            case 2:
-//                states.add(currentState.moveMovingBox(movingBoxIndex, 0, delta, 1));
-//                states.add(currentState.moveMovingBox(movingBoxIndex, delta, 0, 2));
-//                states.add(currentState.moveMovingBox(movingBoxIndex, 0, -delta, 3));
-//                break;
-//            case 3:
-//                states.add(currentState.moveMovingBox(movingBoxIndex, delta, 0, 2));
-//                states.add(currentState.moveMovingBox(movingBoxIndex, 0, -delta, 3));
-//                states.add(currentState.moveMovingBox(movingBoxIndex, -delta, 0, 4));
-//                break;
-//            case 4:
-//                states.add(currentState.moveMovingBox(movingBoxIndex, 0, -delta, 3));
-//                states.add(currentState.moveMovingBox(movingBoxIndex, -delta, 0, 4));
-//                states.add(currentState.moveMovingBox(movingBoxIndex, 0, delta, 1));
-//                break;
-//            default:
-//                System.out.println("not attached yet!");
-//
-//
-//        }
 
 
 

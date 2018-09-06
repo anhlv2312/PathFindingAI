@@ -4,6 +4,7 @@ import problem.Box;
 import problem.MovingBox;
 import problem.MovingObstacle;
 import problem.RobotConfig;
+import tester.Tester;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -102,28 +103,29 @@ public class State {
     }
 
     private State moveRobotToBox(Box box, int edge){
-        double w, x, y, o;
+        double w ,d , x, y, o;
         Point2D p;
 
         w = box.getWidth();
+        d = w/2 + Tester.MAX_ERROR;
         x = box.getPos().getX();
         y = box.getPos().getY();
 
         switch (edge) {
             case 1:
-                p = new Point2D.Double(x + w/2, y);
+                p = new Point2D.Double(x + d, y);
                 o = 0.0;
                 break;
             case 2:
-                p = new Point2D.Double(x, y + w/2);
+                p = new Point2D.Double(x, y + d);
                 o = Math.PI/2;
                 break;
             case 3:
-                p = new Point2D.Double(x + w/2, y + w);
+                p = new Point2D.Double(x + d, y + w);
                 o = 0.0;
                 break;
             case 4:
-                p = new Point2D.Double(x + w, y + w/2);
+                p = new Point2D.Double(x + w, y + d);
                 o = Math.PI/2;
                 break;
             default:
@@ -131,22 +133,6 @@ public class State {
                 o = this.robotConfig.getOrientation();
         }
         return this.moveRobotToPosition(p, o);
-    }
-
-    public State moveRobotOutOfBox(int robotPosition, double delta) {
-        switch (robotPosition) {
-            case 1:
-                return this.moveRobot(0, -delta, 0);
-            case 2:
-                return this.moveRobot(-delta, 0, 0);
-            case 3:
-                return this.moveRobot(0, delta, 0);
-            case 4:
-                return this.moveRobot(delta, 0, 0);
-            default:
-                return this;
-        }
-
     }
 
 }

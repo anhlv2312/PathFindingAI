@@ -10,15 +10,17 @@ import java.util.*;
 public class RobotAgent extends SearchAgent {
 
     Box targetBox;
+    int targetEdge;
 
-    public RobotAgent(ProblemSpec ps, State initialState, Box targetBox) {
+    public RobotAgent(ProblemSpec ps, State initialState, Box targetBox, int targetEdge) {
         super(ps, initialState);
         this.targetBox = targetBox;
+        this.targetEdge = targetEdge;
     }
 
     @Override
     public boolean isFound(State currentState) {
-        return (tester.isCoupled(currentState.robotConfig, targetBox) > 0);
+        return (tester.isCoupled(currentState.robotConfig, targetBox) == targetEdge);
     }
 
     public double calculateCost(RobotConfig currentConfig, RobotConfig nextConfig) {
@@ -35,24 +37,27 @@ public class RobotAgent extends SearchAgent {
     @Override
     public List<SearchNode> getSuccessors(State currentState) {
 
-        double[] orientations = new double[]{0, Math.PI * 0.25, Math.PI * 0.5, Math.PI * 0.75};
+        double[] orientations = new double[]{0, Math.PI * 0.5, };
 
         List<Point2D> positions = new ArrayList<>();
         positions.addAll(getPointAroundObstacles(currentState, robotWidth/2));
         positions.addAll(getPointAroundObstacles(currentState, tester.MAX_ERROR));
         positions.addAll(getPointsAroundRectangle(targetBox.getRect(), tester.MAX_ERROR));
+        positions.add(currentState.robotConfig.getPos());
 
         List<State> states = new ArrayList<>();
         State tempState;
+
         for (Point2D position: positions) {
             for (double orientation: orientations) {
                 tempState = currentState.moveRobotToPosition(position, orientation);
                 if (checkRobotMovingCollision(currentState, tempState.robotConfig)) {
                     states.add(tempState);
-                    break;
                 }
             }
         }
+
+
 //        System.out.println(currentState.toString());
         List<SearchNode> nodes = new ArrayList<>();
         for (State state: states) {
@@ -70,10 +75,9 @@ public class RobotAgent extends SearchAgent {
 
         List<Line2D> movingLines = new ArrayList<>();
         // Get robot config
-        RobotConfig currentConfig = state.robotConfig;
 
-        Point2D r1p1 = tester.getPoint1(currentConfig);
-        Point2D r1p2 = tester.getPoint2(currentConfig);
+        Point2D r1p1 = tester.getPoint1(state.robotConfig);
+        Point2D r1p2 = tester.getPoint2(state.robotConfig);
         Point2D r2p1 = tester.getPoint1(nextConfig);
         Point2D r2p2 = tester.getPoint2(nextConfig);
 
@@ -92,21 +96,23 @@ public class RobotAgent extends SearchAgent {
 
         for (Line2D line: movingLines) {
             for (Box box: state.movingBoxes) {
+                if (tester.isCoupled(state.robotConfig, box) > 0) {
+                    continue;
+                }
                 if (line.intersects(box.getRect())) {
                     return false;
                 }
             }
-        }
 
-        for (Line2D line: movingLines) {
             for (Box box: state.movingObstacles) {
+                if (tester.isCoupled(state.robotConfig, box) > 0) {
+                    continue;
+                }
                 if (line.intersects(box.getRect())) {
                     return false;
                 }
             }
-        }
 
-        for (Line2D line: movingLines) {
             for (StaticObstacle obstacle: staticObstacles) {
                 if (line.intersects(obstacle.getRect())) {
                     return false;
@@ -114,10 +120,10 @@ public class RobotAgent extends SearchAgent {
             }
         }
 
-        if ((currentConfig.getOrientation() - nextConfig.getOrientation()) != 0) {
+        if ((state.robotConfig.getOrientation() - nextConfig.getOrientation()) != 0) {
             Rectangle2D robotRect;
-            double bottomLeftX = currentConfig.getPos().getX()-robotWidth/2;
-            double bottomLeftY = currentConfig.getPos().getY()-robotWidth/2;
+            double bottomLeftX = state.robotConfig.getPos().getX()-robotWidth/2;
+            double bottomLeftY = state.robotConfig.getPos().getY()-robotWidth/2;
             robotRect = new Rectangle2D.Double(bottomLeftX, bottomLeftY, robotWidth, robotWidth);
 
             for (Box box: state.movingObstacles) {
@@ -221,4 +227,5 @@ public class RobotAgent extends SearchAgent {
         return points;
     }
 
+    
 }
