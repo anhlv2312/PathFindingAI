@@ -41,7 +41,13 @@ public class RobotAgent extends SearchAgent {
         double[] orientations = new double[]{0, Math.PI * 0.5, };
 
         List<Point2D> positions = new ArrayList<>();
-        positions.addAll(getPointAroundObstacles(currentState, robotWidth/2));
+
+        if (currentState.robotConfig.getPos().distance(targetBox.getPos()) < robotWidth/2) {
+            //todo: do somthing here
+            positions.addAll(getPointAroundObstacles(currentState, 0));
+        }
+
+        positions.addAll(getPointAroundObstacles(currentState, robotWidth/2 + Tester.MAX_ERROR));
         positions.addAll(getPointAroundObstacles(currentState, Tester.MAX_ERROR));
         positions.addAll(getPointsAroundRectangle(targetBox.getRect(), Tester.MAX_ERROR));
 
@@ -127,6 +133,10 @@ public class RobotAgent extends SearchAgent {
             double bottomLeftX = state.robotConfig.getPos().getX()-robotWidth/2;
             double bottomLeftY = state.robotConfig.getPos().getY()-robotWidth/2;
             robotRect = new Rectangle2D.Double(bottomLeftX, bottomLeftY, robotWidth, robotWidth);
+
+            if (robotRect.intersects(border)) {
+                return false;
+            }
 
             for (Box box: state.movingObstacles) {
                 if (robotRect.intersects(box.getRect())) {

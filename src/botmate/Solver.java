@@ -176,7 +176,7 @@ public class Solver {
             robotAgent = new RobotAgent(ps, robotState, movingBox, targetEdge);
             List<State> solution = robotAgent.search();
             if (solution == null) {
-                System.out.println("\t\t\tNo Solution!");
+                return null;
             } else {
                 states.addAll(solution);
             }
