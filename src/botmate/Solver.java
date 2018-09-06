@@ -1,8 +1,6 @@
 package botmate;
 
 import problem.Box;
-import problem.MovingBox;
-import problem.MovingObstacle;
 import problem.ProblemSpec;
 import tester.Tester;
 
@@ -18,11 +16,12 @@ public class Solver {
 
     static ProblemSpec ps;
     static RobotAgent robotAgent;
-    static MovingBoxAgent movingBoxAgent;
-    static MovingObstacleAgent movingObstacleAgent;
+    static BoxAgent boxAgent;
+    static ObstacleAgent obstacleAgent;
     static Tester tester;
     static State initialState, currentState;
     static List<State> solutionStates = new LinkedList<>();
+    static double boxStepWidth, obstacleStepWidth;
 
     public static void main(String args[]) {
         try {
@@ -38,6 +37,9 @@ public class Solver {
         initialState = new State(ps.getInitialRobotConfig(), ps.getMovingBoxes(), ps.getMovingObstacles());
         currentState = initialState;
         solutionStates.add(initialState);
+
+        boxStepWidth = ps.getRobotWidth()/2 - tester.MAX_BASE_STEP;
+        obstacleStepWidth = boxStepWidth;
 
         System.out.println("Start solving problem");
 
@@ -83,15 +85,15 @@ public class Solver {
         }
     }
     private static List<State> findDirectSolution(State state, int movingBoxIndex, Point2D movingBoxGoal) {
-        movingBoxAgent = new MovingBoxAgent(ps, state, movingBoxIndex, movingBoxGoal, true);
-        return movingBoxAgent.search();
+        boxAgent = new BoxAgent(ps, state, movingBoxIndex, movingBoxGoal, boxStepWidth, true);
+        return boxAgent.search();
     }
 
     private static List<State> findAlternativeSolution(State state, int movingBoxIndex, Point2D movingBoxGoal) {
 
         List<State> states = new LinkedList<>();
-        movingBoxAgent = new MovingBoxAgent(ps, state, movingBoxIndex, movingBoxGoal, false);
-        List<State> alternativeSolution = movingBoxAgent.search();
+        boxAgent = new BoxAgent(ps, state, movingBoxIndex, movingBoxGoal, boxStepWidth, false);
+        List<State> alternativeSolution = boxAgent.search();
 
         if (alternativeSolution == null) {
             System.out.println("\t\tNo alternative solution!");
@@ -102,8 +104,8 @@ public class Solver {
 
         for (int movingObstacleIndex : movingObstacleIndexes) {
             System.out.println("\t\tMovingObstacle " + movingObstacleIndex);
-            movingObstacleAgent = new MovingObstacleAgent(ps, state, movingObstacleIndex, movingPaths);
-            List<State> solution = movingObstacleAgent.search();
+            obstacleAgent = new ObstacleAgent(ps, state, movingObstacleIndex, obstacleStepWidth, movingPaths);
+            List<State> solution = obstacleAgent.search();
 
             if (solution == null) {
                 System.out.println("\t\t\tUnable to move!");
@@ -136,8 +138,6 @@ public class Solver {
         Box movingBox = state.movingObstacles.get(movingObstacleIndex);
         return moveRobotToBox(state, movingBox);
     }
-
-
 
     private static List<State> moveRobotToBox(State state, Box movingBox) {
         List<State> states = new LinkedList<>();

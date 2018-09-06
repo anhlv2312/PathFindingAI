@@ -9,20 +9,21 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MovingBoxAgent extends SearchAgent {
+public class BoxAgent extends SearchAgent {
 
     Point2D target;
     int movingBoxIndex;
     double boxWidth;
+    double stepWidth;
     boolean direct;
 
-    public MovingBoxAgent(ProblemSpec ps, State initialState, int movingBoxIndex, Point2D target, boolean direct) {
+    public BoxAgent(ProblemSpec ps, State initialState, int movingBoxIndex, Point2D target, double stepWidth, boolean direct) {
         super(ps, initialState);
         this.movingBoxIndex = movingBoxIndex;
+        this.target = target;
+        this.stepWidth = stepWidth;
         this.direct = direct;
         boxWidth = initialState.movingBoxes.get(movingBoxIndex).getWidth();
-        this.target = target;
-
     }
 
     public double calculateCost(State currentState, State nextState) {
@@ -51,12 +52,14 @@ public class MovingBoxAgent extends SearchAgent {
 
         Box movingBox =  currentState.movingBoxes.get(movingBoxIndex);
 
-
-        double delta = robotWidth/2 - tester.MAX_BASE_STEP;
-
         List<State> states = new ArrayList<>();
 
-        if (movingBox.getPos().distance(target) < delta) {
+        if (movingBox.getPos().distance(target) > stepWidth) {
+            states.add(currentState.moveMovingBox(movingBoxIndex, -stepWidth, 0, 4));
+            states.add(currentState.moveMovingBox(movingBoxIndex, 0, stepWidth, 1));
+            states.add(currentState.moveMovingBox(movingBoxIndex, stepWidth, 0, 2));
+            states.add(currentState.moveMovingBox(movingBoxIndex, 0, -stepWidth, 3));
+        } else {
             double gapX = Math.abs(movingBox.getPos().getX() - target.getX());
             double gapY = Math.abs(movingBox.getPos().getY() - target.getY());
             states.add(currentState.moveMovingBox(movingBoxIndex, gapX, 0, 2));
@@ -65,8 +68,8 @@ public class MovingBoxAgent extends SearchAgent {
             states.add(currentState.moveMovingBox(movingBoxIndex, 0, -gapY, 3));
         }
 
-        int robotPosition = tester.isCoupled(currentState.robotConfig, movingBox);
-
+//        int robotPosition = tester.isCoupled(currentState.robotConfig, movingBox);
+//
 //        switch (robotPosition) {
 //            case 1:
 //                states.add(currentState.moveMovingBox(movingBoxIndex, -delta, 0, 4));
@@ -95,10 +98,7 @@ public class MovingBoxAgent extends SearchAgent {
 //        }
 
 
-        states.add(currentState.moveMovingBox(movingBoxIndex, -delta, 0, 4));
-        states.add(currentState.moveMovingBox(movingBoxIndex, 0, delta, 1));
-        states.add(currentState.moveMovingBox(movingBoxIndex, delta, 0, 2));
-        states.add(currentState.moveMovingBox(movingBoxIndex, 0, -delta, 3));
+
 
         List<SearchNode> nodes = new ArrayList<>();
         for (State state: states) {
