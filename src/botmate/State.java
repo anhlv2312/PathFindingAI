@@ -102,7 +102,7 @@ public class State {
         return this.moveRobotToBox(box, robotPosition);
     }
 
-    private State moveRobotToBox(Box box, int edge){
+    public State moveRobotToBox(Box box, int edge){
         double w ,d , x, y, o;
         Point2D p;
 

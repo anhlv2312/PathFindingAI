@@ -14,11 +14,11 @@ public class RobotAgent extends SearchAgent {
     private int targetEdge;
     private RobotConfig targetConfig;
 
-    public RobotAgent(ProblemSpec ps, State initialState, int targetBoxIndex, int targetEdge) {
+    public RobotAgent(ProblemSpec ps, State initialState, Box movingBox, int targetEdge) {
         super(ps, initialState);
+        this.targetBox = movingBox;
         this.targetEdge = targetEdge;
-        this.targetBox = initialState.movingBoxes.get(targetBoxIndex);
-        this.targetConfig = initialState.moveRobotToMovingBox(targetBoxIndex, targetEdge).robotConfig;
+        this.targetConfig = initialState.moveRobotToBox(movingBox, targetEdge).robotConfig;
     }
 
     @Override
@@ -70,7 +70,7 @@ public class RobotAgent extends SearchAgent {
         for (State state: states) {
             double cost = calculateCost(currentState.robotConfig, state.robotConfig);
             double heuristic = calculateHeuristic(state.robotConfig);
-            nodes.add(new SearchNode(state, 1, heuristic));
+            nodes.add(new SearchNode(state, cost, heuristic));
 //            System.out.println(state.toString());
         }
 
@@ -81,7 +81,6 @@ public class RobotAgent extends SearchAgent {
     public boolean checkRobotMovingCollision(State state, RobotConfig nextConfig) {
 
         List<Line2D> movingLines = new ArrayList<>();
-        // Get robot config
 
         Point2D r1p1 = tester.getPoint1(state.robotConfig);
         Point2D r1p2 = tester.getPoint2(state.robotConfig);

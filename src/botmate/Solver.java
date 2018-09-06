@@ -109,7 +109,7 @@ public class Solver {
         } else {
             State firstState = solution.get(0);
             int targetEdge = tester.isCoupled(firstState.robotConfig, firstState.movingBoxes.get(movingBoxIndex));
-            List<State> robotSolution = moveRobotToMovingBox(state, movingBoxIndex, targetEdge);
+            List<State> robotSolution = findPathToMovingBox(state, movingBoxIndex, targetEdge);
             if (robotSolution != null) {
                 states.addAll(robotSolution);
                 states.addAll(solution);
@@ -142,7 +142,7 @@ public class Solver {
 
                     State firstState = solution.get(0);
                     int targetEdge = tester.isCoupled(firstState.robotConfig, firstState.movingObstacles.get(movingObstacleIndex));
-                    List<State> robotSolution = moveRobotToObstacle(tempState, movingObstacleIndex, targetEdge);
+                    List<State> robotSolution = findPathToObstacle(tempState, movingObstacleIndex, targetEdge);
                     if (robotSolution != null) {
                         states.addAll(robotSolution);
                         states.addAll(solution);
@@ -157,24 +157,23 @@ public class Solver {
         return states;
     }
 
-    private static List<State> moveRobotToMovingBox(State state, int movingBoxIndex, int targetEdge) {
+    private static List<State> findPathToMovingBox(State state, int movingBoxIndex, int targetEdge) {
         System.out.println("\t\tFind robot path");
         Box movingBox = state.movingBoxes.get(movingBoxIndex);
-        return moveRobotToBox(state, movingBoxIndex, targetEdge);
+        return findPathToBox(state, movingBox, targetEdge);
     }
 
-    private static List<State> moveRobotToObstacle(State state, int movingObstacleIndex, int targetEdge) {
+    private static List<State> findPathToObstacle(State state, int movingObstacleIndex, int targetEdge) {
         System.out.println("\t\t\tFind robot path");
         Box movingBox = state.movingObstacles.get(movingObstacleIndex);
-        return moveRobotToBox(state, movingObstacleIndex, targetEdge);
+        return findPathToBox(state, movingBox, targetEdge);
     }
 
-    private static List<State> moveRobotToBox(State state, int movingBoxIndex, int targetEdge) {
+    private static List<State> findPathToBox(State state, Box movingBox, int targetEdge) {
         List<State> states = new LinkedList<>();
-        Box movingBox = state.movingBoxes.get(movingBoxIndex);
         if (tester.isCoupled(state.robotConfig, movingBox) < 0) {
             State robotState = new State(state.robotConfig, state.movingBoxes, state.movingObstacles);
-            robotAgent = new RobotAgent(ps, robotState, movingBoxIndex, targetEdge);
+            robotAgent = new RobotAgent(ps, robotState, movingBox, targetEdge);
             List<State> solution = robotAgent.search();
             if (solution == null) {
                 return null;
