@@ -160,20 +160,21 @@ public class Solver {
     private static List<State> moveRobotToMovingBox(State state, int movingBoxIndex, int targetEdge) {
         System.out.println("\t\tFind robot path");
         Box movingBox = state.movingBoxes.get(movingBoxIndex);
-        return moveRobotToBox(state, movingBox, targetEdge);
+        return moveRobotToBox(state, movingBoxIndex, targetEdge);
     }
 
     private static List<State> moveRobotToObstacle(State state, int movingObstacleIndex, int targetEdge) {
         System.out.println("\t\t\tFind robot path");
         Box movingBox = state.movingObstacles.get(movingObstacleIndex);
-        return moveRobotToBox(state, movingBox, targetEdge);
+        return moveRobotToBox(state, movingObstacleIndex, targetEdge);
     }
 
-    private static List<State> moveRobotToBox(State state, Box movingBox, int targetEdge) {
+    private static List<State> moveRobotToBox(State state, int movingBoxIndex, int targetEdge) {
         List<State> states = new LinkedList<>();
+        Box movingBox = state.movingBoxes.get(movingBoxIndex);
         if (tester.isCoupled(state.robotConfig, movingBox) < 0) {
             State robotState = new State(state.robotConfig, state.movingBoxes, state.movingObstacles);
-            robotAgent = new RobotAgent(ps, robotState, movingBox, targetEdge);
+            robotAgent = new RobotAgent(ps, robotState, movingBoxIndex, targetEdge);
             List<State> solution = robotAgent.search();
             if (solution == null) {
                 return null;

@@ -12,11 +12,13 @@ public class RobotAgent extends SearchAgent {
 
     private Box targetBox;
     private int targetEdge;
+    private RobotConfig targetConfig;
 
-    public RobotAgent(ProblemSpec ps, State initialState, Box targetBox, int targetEdge) {
+    public RobotAgent(ProblemSpec ps, State initialState, int targetBoxIndex, int targetEdge) {
         super(ps, initialState);
-        this.targetBox = targetBox;
         this.targetEdge = targetEdge;
+        this.targetBox = initialState.movingBoxes.get(targetBoxIndex);
+        this.targetConfig = initialState.moveRobotToMovingBox(targetBoxIndex, targetEdge).robotConfig;
     }
 
     @Override
@@ -26,12 +28,13 @@ public class RobotAgent extends SearchAgent {
 
     public double calculateCost(RobotConfig currentConfig, RobotConfig nextConfig) {
         double distance = currentConfig.getPos().distance(nextConfig.getPos());
-        double rotation = currentConfig.getOrientation() - nextConfig.getOrientation() * robotWidth / 2;
+        double rotation = (currentConfig.getOrientation() - nextConfig.getOrientation()) * robotWidth / 2;
         return distance + rotation;
     }
 
     public double calculateHeuristic(RobotConfig currentConfig) {
-        double distance = currentConfig.getPos().distance(targetBox.getPos());
+        //todo: Fix this, should not be target box, should
+        double distance = currentConfig.getPos().distance(targetConfig.getPos());
         return distance;
     }
 
@@ -39,17 +42,15 @@ public class RobotAgent extends SearchAgent {
     public List<SearchNode> getSuccessors(State currentState) {
 
         double[] orientations = new double[]{0, Math.PI * 0.5, };
-
         List<Point2D> positions = new ArrayList<>();
 
         if (currentState.robotConfig.getPos().distance(targetBox.getPos()) < robotWidth/2) {
-            //todo: do somthing here
+            //todo: do something here
             positions.addAll(getPointAroundObstacles(currentState, 0));
         }
 
         positions.addAll(getPointAroundObstacles(currentState, robotWidth/2 + Tester.MAX_ERROR));
         positions.addAll(getPointAroundObstacles(currentState, Tester.MAX_ERROR));
-        positions.addAll(getPointsAroundRectangle(targetBox.getRect(), Tester.MAX_ERROR));
 
         List<State> states = new ArrayList<>();
         State tempState;
@@ -69,8 +70,8 @@ public class RobotAgent extends SearchAgent {
         for (State state: states) {
             double cost = calculateCost(currentState.robotConfig, state.robotConfig);
             double heuristic = calculateHeuristic(state.robotConfig);
-            nodes.add(new SearchNode(state, cost, heuristic));
-//            System.out.println("\t" + state.toString());
+            nodes.add(new SearchNode(state, 1, heuristic));
+//            System.out.println(state.toString());
         }
 
         return nodes;
@@ -133,9 +134,12 @@ public class RobotAgent extends SearchAgent {
             double bottomLeftX = state.robotConfig.getPos().getX()-robotWidth/2;
             double bottomLeftY = state.robotConfig.getPos().getY()-robotWidth/2;
             robotRect = new Rectangle2D.Double(bottomLeftX, bottomLeftY, robotWidth, robotWidth);
+            List<Point2D> robotPoints = getPointsAroundRectangle(robotRect, 0);
 
-            if (robotRect.intersects(border)) {
-                return false;
+            for (Point2D point: robotPoints) {
+                if (!border.contains(point)) {
+                    return false;
+                }
             }
 
             for (Box box: state.movingObstacles) {
@@ -188,6 +192,11 @@ public class RobotAgent extends SearchAgent {
 
     public List<Point2D> getPointAroundObstacles(State currentState, double delta) {
         List<Point2D> points = new ArrayList<>();
+
+        for (Box box : currentState.movingBoxes) {
+            points.addAll(getPointsAroundRectangle(box.getRect(), delta));
+        }
+
         for (Box box : currentState.movingObstacles) {
             points.addAll(getPointsAroundRectangle(box.getRect(), delta));
         }
