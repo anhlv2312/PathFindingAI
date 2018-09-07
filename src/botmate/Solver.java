@@ -79,8 +79,6 @@ public class Solver {
                         } else {
                             System.out.println("\t\tNo solution for robot!");
                         }
-//                        solutionStates.addAll(boxSolution);
-//                        goalCount++;
                         currentState = solutionStates.get(solutionStates.size() - 1);
                     } else {
                         for (int movingObstacleIndex : movingObstacleIndexes) {
@@ -90,17 +88,15 @@ public class Solver {
                             if (obstacleSolution == null) {
                                 System.out.println("\t\tUnable to move obstacle!");
                             } else {
-//                                State firstState = solution.get(0);
-//                                int targetEdge = tester.isCoupled(firstState.robotConfig, firstState.movingObstacles.get(movingObstacleIndex));
-//                                List<State> robotSolution = findPathToObstacle(currentState, movingObstacleIndex, targetEdge);
-//                                if (robotSolution != null) {
-//                                    solutionStates.addAll(robotSolution);
-//                                    solutionStates.addAll(obstacleSolution);
-//                                } else {
-//                                    System.out.println("\t\t\tNo solution for robot!");
-//                                }
-
-                                solutionStates.addAll(obstacleSolution);
+                                State firstState = obstacleSolution.get(0);
+                                int targetEdge = tester.isCoupled(firstState.robotConfig, firstState.movingObstacles.get(movingObstacleIndex));
+                                List<State> robotSolution = findPathToObstacle(currentState, movingObstacleIndex, targetEdge);
+                                if (robotSolution != null) {
+                                    solutionStates.addAll(robotSolution);
+                                    solutionStates.addAll(obstacleSolution);
+                                } else {
+                                    System.out.println("\t\t\tNo solution for robot!");
+                                }
                                 currentState = solutionStates.get(solutionStates.size() - 1);
                             }
                         }
@@ -108,19 +104,16 @@ public class Solver {
                         boxAgent = new BoxAgent(ps, currentState, movingBoxIndex, movingBoxGoal, boxStepWidth);
                         boxSolution = boxAgent.search();
 
-//                        State firstState = boxSolution.get(0);
-//                        int targetEdge = tester.isCoupled(firstState.robotConfig, firstState.movingBoxes.get(movingBoxIndex));
-//                        List<State> robotSolution = findPathToMovingBox(currentState, movingBoxIndex, targetEdge);
-//                        if (robotSolution != null) {
-//                            solutionStates.addAll(robotSolution);
-//                            solutionStates.addAll(boxSolution);
-//                            goalCount++;
-//                        } else {
-//                            System.out.println("\t\tNo solution for robot!");
-//                        }
-
-                        solutionStates.addAll(boxSolution);
-                        goalCount++;
+                        State firstState = boxSolution.get(0);
+                        int targetEdge = tester.isCoupled(firstState.robotConfig, firstState.movingBoxes.get(movingBoxIndex));
+                        List<State> robotSolution = findPathToMovingBox(currentState, movingBoxIndex, targetEdge);
+                        if (robotSolution != null) {
+                            solutionStates.addAll(robotSolution);
+                            solutionStates.addAll(boxSolution);
+                            goalCount++;
+                        } else {
+                            System.out.println("\t\tNo solution for robot!");
+                        }
 
                         currentState = solutionStates.get(solutionStates.size() - 1);
                     }
