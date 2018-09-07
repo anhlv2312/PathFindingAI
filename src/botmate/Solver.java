@@ -247,17 +247,18 @@ public class Solver {
 
         RobotConfig r1 = state1.robotConfig;
         RobotConfig r2 = state2.robotConfig;
+        double newOrientation = state2.robotConfig.getOrientation();
         Double numberOfSteps;
 
         double angle = tester.normaliseAngle(r2.getOrientation()) - tester.normaliseAngle(r1.getOrientation());
         if (angle != 0) {
-            numberOfSteps = (angle * ps.getRobotWidth() / 2) / Tester.MAX_BASE_STEP;
+            numberOfSteps = Math.abs(angle) * ps.getRobotWidth() / 2 / Tester.MAX_BASE_STEP;
             double deltaO = angle / numberOfSteps;
             for (int i = 0; i < numberOfSteps; i++) {
                 tempState = tempState.moveRobot(0, 0, deltaO);
                 result.add(tempState.toString());
             }
-            tempState = tempState.moveRobotToPosition(r1.getPos(), r2.getOrientation());
+            tempState = tempState.moveRobotToPosition(r1.getPos(), newOrientation);
             result.add(tempState.toString());
         }
 
