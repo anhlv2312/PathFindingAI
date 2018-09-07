@@ -29,7 +29,7 @@ public class RobotAgent extends SearchAgent {
     public double calculateCost(RobotConfig currentConfig, RobotConfig nextConfig) {
         double distance = currentConfig.getPos().distance(nextConfig.getPos());
         double rotation = (currentConfig.getOrientation() - nextConfig.getOrientation()) * robotWidth / 2;
-        return distance + rotation;
+        return distance + (2 * rotation);
     }
 
     @Override

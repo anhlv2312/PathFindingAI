@@ -37,11 +37,8 @@ public class ObstacleAgent extends SearchAgent {
     @Override
     public List<SearchNode> getSuccessors(State currentState) {
 
-
         Box movingObstacle =  currentState.movingObstacles.get(movingObstacleIndex);
-
         List<State> states = new ArrayList<>();
-
         int robotPosition = tester.isCoupled(currentState.robotConfig, movingObstacle);
 
         State moveLeft = currentState.moveObstacle(movingObstacleIndex, -stepWidth, 0, 4);

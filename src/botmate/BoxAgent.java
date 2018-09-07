@@ -25,13 +25,12 @@ public class BoxAgent extends SearchAgent {
         this.direct = direct;
     }
 
-    public double calculateCost(State currentState, State nextState) {
+    public double calculateCost(State currentState, State nextState, int totalMovingBox) {
         Point2D currentPos = currentState.movingBoxes.get(movingBoxIndex).getPos();
         Point2D nextPos = nextState.movingBoxes.get(movingBoxIndex).getPos();
-
         //Todo: add cost of collide with moving box
-
         double distance = Math.abs(nextPos.getX() - currentPos.getX()) + Math.abs(nextPos.getY() - currentPos.getY());
+        distance = distance + totalMovingBox;
         return distance;
     }
 
@@ -100,7 +99,11 @@ public class BoxAgent extends SearchAgent {
         List<SearchNode> nodes = new ArrayList<>();
         for (State state: states) {
             if (checkMovingBoxCollision(state, movingBoxIndex)) {
-                double cost = calculateCost(currentState, state);
+                int totalMovingBox= 0;
+                if(!direct){
+                    totalMovingBox = counterMovingBox(state,movingBoxIndex);
+                }
+                double cost = calculateCost(currentState, state, totalMovingBox);
                 double heuristic = calculateHeuristic(state);
                 nodes.add(new SearchNode(state, cost, heuristic));
             }
@@ -147,6 +150,21 @@ public class BoxAgent extends SearchAgent {
             }
         }
         return true;
+    }
+
+    public int counterMovingBox(State state, int movingBoxIndex){
+        int movingBoxcounter=0;
+        Box movingBox = state.movingBoxes.get(movingBoxIndex);
+        Rectangle2D border = new Rectangle2D.Double(0,0,1,1);
+        Point2D bottomLeft = movingBox.getPos();
+        Point2D topRight = new Point2D.Double(bottomLeft.getX() + movingBox.getWidth(),
+                bottomLeft.getY() + movingBox.getWidth());
+        for (Box box : state.movingObstacles) {
+            if (movingBox.getRect().intersects(box.getRect())) {
+                movingBoxcounter++;
+            }
+        }
+        return movingBoxcounter;
     }
 
 }

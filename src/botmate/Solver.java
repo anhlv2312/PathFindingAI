@@ -113,6 +113,8 @@ public class Solver {
             if (robotSolution != null) {
                 states.addAll(robotSolution);
                 states.addAll(solution);
+
+
             } else {
                 System.out.println("\t\t\tNo solution for robot!");
             }
@@ -188,8 +190,8 @@ public class Solver {
 
         List<String> output = new LinkedList<>();
 
-        Iterator<State> stateIterator = solutionStates.iterator();
         State currentState = initialState;
+        Iterator<State> stateIterator = solutionStates.iterator();
         while (stateIterator.hasNext()) {
             State nextState = stateIterator.next();
 //            output.add(currentState.toString());
