@@ -55,18 +55,18 @@ public class Solver {
 
     private static void solveProblem() {
 
-        Set<Integer> movingBoxIndexes = new HashSet<>();
+        Set<Integer> solvedMovingBoxes = new HashSet<>();
 
-        for (int i = 0; i < ps.getMovingBoxes().size(); i++) {
-            movingBoxIndexes.add(i);
-        }
-
-        while (!movingBoxIndexes.isEmpty() && stepSize > 0) {
+        while (solvedMovingBoxes.size() < ps.getMovingBoxes().size() && stepSize > 0) {
 
             System.out.println();
             System.out.println(String.format("Start solving with step size: %.2f", stepSize));
 
-            for (int movingBoxIndex : movingBoxIndexes) {
+            for (int movingBoxIndex = 0; movingBoxIndex < ps.getMovingBoxes().size(); movingBoxIndex++ ) {
+
+                if (solvedMovingBoxes.contains(movingBoxIndex)) {
+                    continue;
+                }
 
                 System.out.println("\tSolving MovingBox: " + movingBoxIndex);
                 Point2D movingBoxGoal = ps.getMovingBoxEndPositions().get(movingBoxIndex);
@@ -86,7 +86,7 @@ public class Solver {
                         if (robotSolution != null) {
                             solutionStates.addAll(robotSolution);
                             solutionStates.addAll(boxSolution);
-                            movingBoxIndexes.remove(movingBoxIndex);
+                            solvedMovingBoxes.add(movingBoxIndex);
                         } else {
                             System.out.println("\tNo solution for Robot!");
                         }
@@ -126,7 +126,7 @@ public class Solver {
                             if (robotSolution != null) {
                                 solutionStates.addAll(robotSolution);
                                 solutionStates.addAll(boxSolution);
-                                movingBoxIndexes.remove(movingBoxIndex);
+                                solvedMovingBoxes.add(movingBoxIndex);
                             } else {
                                 System.out.println("\t\tNo solution for Robot!");
                             }
@@ -257,10 +257,9 @@ public class Solver {
                 tempState = tempState.moveRobot(0, 0, deltaO);
                 result.add(tempState.toString());
             }
+            tempState = tempState.moveRobotToPosition(r1.getPos(), r2.getOrientation());
+            result.add(tempState.toString());
         }
-
-        tempState = tempState.moveRobotToPosition(r1.getPos(), r2.getOrientation());
-        result.add(tempState.toString());
 
         numberOfSteps = Math.ceil(r1.getPos().distance(r2.getPos()) / Tester.MAX_BASE_STEP);
         double deltaX = (r2.getPos().getX() - r1.getPos().getX()) / numberOfSteps;
