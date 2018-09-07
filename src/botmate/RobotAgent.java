@@ -1,5 +1,6 @@
 package botmate;
 
+import org.w3c.dom.css.Rect;
 import problem.*;
 import tester.Tester;
 
@@ -21,10 +22,6 @@ public class RobotAgent extends SearchAgent {
         this.targetConfig = initialState.moveRobotToBox(movingBox, targetEdge).robotConfig;
     }
 
-    public double calculateHeuristic(State nextState) {
-        return nextState.robotConfig.getPos().distance(targetConfig.getPos());
-    }
-
     @Override
     public boolean isFound(State currentState) {
         return (tester.isCoupled(currentState.robotConfig, targetBox) == targetEdge);
@@ -34,10 +31,10 @@ public class RobotAgent extends SearchAgent {
     public List<SearchNode> getSuccessors(State currentState) {
 
         double[] orientations = new double[]{0, Math.PI * 0.5};
-        List<Point2D> positions = new ArrayList<>();
+        Set<Point2D> positions = new HashSet<>();
 
+        positions.addAll(getPointsAroundObstacles(getObstacles(currentState), robotWidth/2 + Tester.MAX_ERROR));
         positions.addAll(getPointsAroundRectangle(targetBox.getRect(), Tester.MAX_ERROR));
-        positions.addAll(getPointsAroundObstacles(currentState, robotWidth/2 + Tester.MAX_ERROR));
 
         List<State> possibleStates = new ArrayList<>();
         State tempState;
@@ -46,15 +43,16 @@ public class RobotAgent extends SearchAgent {
                 tempState = currentState.moveRobotToPosition(position, orientation);
                 if (checkRobotMovingCollision(currentState, tempState.robotConfig)) {
                     possibleStates.add(tempState);
+//                    System.out.println(positions.size());
                 }
             }
         }
 
+
 //        System.out.println(currentState.toString());
         List<SearchNode> nodes = new ArrayList<>();
         for (State nextState: possibleStates) {
-            double heuristic = calculateHeuristic(nextState);
-            nodes.add(new SearchNode(nextState, 1, heuristic));
+            nodes.add(new SearchNode(nextState));
 //            System.out.println(state.toString());
         }
 
@@ -158,14 +156,13 @@ public class RobotAgent extends SearchAgent {
         return true;
     }
 
-
     public List<Point2D> getPointsAroundRectangle(Rectangle2D rectangle, double delta) {
         //sample 8 points(4 vertices and 4 at the middle of vertices) around the object
 
 
         //Todo: add 8 more point that help the robot to rotate through the corner
         List<Point2D> pointList = new ArrayList<>();
-        Rectangle2D rect = tester.grow(rectangle, delta);
+        Rectangle2D boundary = tester.grow(rectangle, delta);
 
         Point2D topLeft = new Point2D.Double();
         Point2D topRight = new Point2D.Double();
@@ -176,14 +173,15 @@ public class RobotAgent extends SearchAgent {
         Point2D midLeft = new Point2D.Double();
         Point2D midRight = new Point2D.Double();
 
-        topLeft.setLocation(rect.getMaxX(), rect.getMinY());
-        topRight.setLocation(rect.getMaxX(), rect.getMaxY());
-        bottomLeft.setLocation(rect.getMinX(), rect.getMinY());
-        bottomRight.setLocation(rect.getMinX(), rect.getMaxY());
-        midUp.setLocation((rect.getMaxX() + rect.getMinX()) / 2, rect.getMaxY());
-        midDown.setLocation((rect.getMaxX() + rect.getMinX()) / 2, rect.getMinY());
-        midLeft.setLocation(rect.getMinX(), (rect.getMinY() + rect.getMaxY()) / 2);
-        midRight.setLocation(rect.getMaxX(), (rect.getMinY() + rect.getMaxY()) / 2);
+
+        topLeft.setLocation(boundary.getMaxX(), boundary.getMinY());
+        topRight.setLocation(boundary.getMaxX(), boundary.getMaxY());
+        bottomLeft.setLocation(boundary.getMinX(), boundary.getMinY());
+        bottomRight.setLocation(boundary.getMinX(), boundary.getMaxY());
+        midUp.setLocation((boundary.getMaxX() + boundary.getMinX()) / 2, boundary.getMaxY());
+        midDown.setLocation((boundary.getMaxX() + boundary.getMinX()) / 2, boundary.getMinY());
+        midLeft.setLocation(boundary.getMinX(), (boundary.getMinY() + boundary.getMaxY()) / 2);
+        midRight.setLocation(boundary.getMaxX(), (boundary.getMinY() + boundary.getMaxY()) / 2);
 
         pointList.add(topLeft);
         pointList.add(topRight);
@@ -194,25 +192,70 @@ public class RobotAgent extends SearchAgent {
         pointList.add(midLeft);
         pointList.add(midRight);
 
+        double error = Tester.MAX_ERROR;
+        Point2D leftUp = new Point2D.Double();
+        Point2D rightUp = new Point2D.Double();
+        Point2D leftDown = new Point2D.Double();
+        Point2D rightDown = new Point2D.Double();
+        Point2D upLeft = new Point2D.Double();
+        Point2D downLeft = new Point2D.Double();
+        Point2D upRight = new Point2D.Double();
+        Point2D downRight = new Point2D.Double();
+
+        leftUp.setLocation(rectangle.getMinX() - error, boundary.getMaxY());
+        rightUp.setLocation(rectangle.getMaxX() + error, boundary.getMaxY());
+        leftDown.setLocation(rectangle.getMinX() - error, boundary.getMinY());
+        rightDown.setLocation(rectangle.getMinX() + error, boundary.getMinY());
+        upLeft.setLocation(boundary.getMinX(), rectangle.getMaxY() + error);
+        downLeft.setLocation(boundary.getMinX(), rectangle.getMinY() - error);
+        upRight.setLocation(boundary.getMinX(), rectangle.getMaxY() + error);
+        downRight.setLocation(boundary.getMinX(), rectangle.getMaxY() - error);
+
+        pointList.add(leftUp);
+        pointList.add(rightUp);
+        pointList.add(leftDown);
+        pointList.add(rightDown);
+        pointList.add(upLeft);
+        pointList.add(downLeft);
+        pointList.add(upRight);
+        pointList.add(downRight);
+
         return pointList;
 
     }
 
-    public List<Point2D> getPointsAroundObstacles(State currentState, double delta) {
+    public List<Point2D> getPointsAroundObstacles(List<Rectangle2D> obstacles, double delta) {
         List<Point2D> points = new ArrayList<>();
-
-        for (Box box : currentState.movingBoxes) {
-            points.addAll(getPointsAroundRectangle(box.getRect(), delta));
-        }
-
-        for (Box box : currentState.movingObstacles) {
-            points.addAll(getPointsAroundRectangle(box.getRect(), delta));
-        }
-        for (StaticObstacle obstacle : staticObstacles) {
-            points.addAll(getPointsAroundRectangle(obstacle.getRect(), delta));
+        for (Rectangle2D obstacle : obstacles) {
+            points.addAll(getPointsAroundRectangle(obstacle, delta));
         }
         return points;
     }
 
+
+    public List<Rectangle2D> getObstacles(State currentState) {
+
+        List<Rectangle2D> obstacles = new ArrayList<>();
+        Line2D connectionLine = new Line2D.Double(currentState.robotConfig.getPos(), targetConfig.getPos());
+
+        for (Box box : currentState.movingBoxes) {
+            if (connectionLine.intersects(box.getRect())) {
+                obstacles.add(box.getRect());
+            }
+        }
+
+        for (Box box : currentState.movingObstacles) {
+            if (connectionLine.intersects(box.getRect())) {
+                obstacles.add(box.getRect());
+            }
+        }
+        for (StaticObstacle box : staticObstacles) {
+            if (connectionLine.intersects(box.getRect())) {
+                obstacles.add(box.getRect());
+            }
+        }
+
+        return obstacles;
+    }
     
 }
