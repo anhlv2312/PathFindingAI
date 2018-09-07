@@ -9,6 +9,14 @@ public class SearchNode implements Comparable<SearchNode> {
     public State state;
     public SearchNode parent;
 
+    public SearchNode(State state) {
+        parent = null;
+        totalCost = 0;
+        this.state = state;
+        cost = 1;
+        heuristic = 0;
+    }
+
     public SearchNode(State state, double cost, double heuristic ) {
         parent = null;
         totalCost = 0;

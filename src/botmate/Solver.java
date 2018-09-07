@@ -42,16 +42,19 @@ public class Solver {
         boxStepWidth = ps.getRobotWidth() - Tester.MAX_BASE_STEP;
         obstacleStepWidth = boxStepWidth;
 
-        System.out.println("Start solving problem");
+        System.out.println("Number of MovingBox: " + ps.getMovingBoxes().size());
+        System.out.println("Number of Obstacle: " + ps.getMovingObstacles().size());
+
+        double startTime = System.currentTimeMillis();
 
         solveProblem();
+
+        System.out.println(String.format("Total time: %.2f seconds", (System.currentTimeMillis() - startTime)/1000));
+
         writeOutputFile(args[1]);
     }
 
     private static void solveProblem() {
-
-
-
         int goalCount = 0;
         int retry = 5;
 
@@ -77,16 +80,16 @@ public class Solver {
                             solutionStates.addAll(boxSolution);
                             goalCount++;
                         } else {
-                            System.out.println("\t\tNo solution for robot!");
+                            System.out.println("\t\tNo solution for Robot!");
                         }
                         currentState = solutionStates.get(solutionStates.size() - 1);
                     } else {
                         for (int movingObstacleIndex : movingObstacleIndexes) {
-                            System.out.println("\tMovingObstacle " + movingObstacleIndex);
+                            System.out.println("\tSolving Obstacle: " + movingObstacleIndex);
                             obstacleAgent = new ObstacleAgent(ps, currentState, movingObstacleIndex, obstacleStepWidth, movingPaths);
                             List<State> obstacleSolution = obstacleAgent.search();
                             if (obstacleSolution == null) {
-                                System.out.println("\t\tUnable to move obstacle!");
+                                System.out.println("\t\tUnable to move Obstacle!");
                             } else {
                                 State firstState = obstacleSolution.get(0);
                                 int targetEdge = tester.isCoupled(firstState.robotConfig, firstState.movingObstacles.get(movingObstacleIndex));
@@ -95,7 +98,7 @@ public class Solver {
                                     solutionStates.addAll(robotSolution);
                                     solutionStates.addAll(obstacleSolution);
                                 } else {
-                                    System.out.println("\t\t\tNo solution for robot!");
+                                    System.out.println("\t\t\tNo solution for Robot!");
                                 }
                                 currentState = solutionStates.get(solutionStates.size() - 1);
                             }
@@ -112,7 +115,7 @@ public class Solver {
                             solutionStates.addAll(boxSolution);
                             goalCount++;
                         } else {
-                            System.out.println("\t\tNo solution for robot!");
+                            System.out.println("\t\tNo solution for Robot!");
                         }
 
                         currentState = solutionStates.get(solutionStates.size() - 1);
@@ -122,19 +125,19 @@ public class Solver {
 
             }
             retry--;
-            boxStepWidth = boxStepWidth/2 - Tester.MAX_BASE_STEP;
+            boxStepWidth = boxStepWidth - Tester.MAX_BASE_STEP;
             obstacleStepWidth = boxStepWidth;
         }
     }
 
     private static List<State> findPathToMovingBox(State state, int movingBoxIndex, int targetEdge) {
-        System.out.println("\tFind robot path to MovingBox");
+        System.out.println("\tFind path to MovingBox: " + movingBoxIndex);
         Box movingBox = state.movingBoxes.get(movingBoxIndex);
         return findPathToBox(state, movingBox, targetEdge);
     }
 
     private static List<State> findPathToObstacle(State state, int movingObstacleIndex, int targetEdge) {
-        System.out.println("\t\tFind robot path to Obstacle");
+        System.out.println("\t\tFind path to Obstacle: " + movingObstacleIndex);
         Box movingBox = state.movingObstacles.get(movingObstacleIndex);
         return findPathToBox(state, movingBox, targetEdge);
     }
@@ -162,7 +165,6 @@ public class Solver {
         Iterator<State> stateIterator = solutionStates.iterator();
         while (stateIterator.hasNext()) {
             State nextState = stateIterator.next();
-//            output.add(currentState.toString());
             output.addAll(generateMoves(currentState, nextState));
             currentState = nextState;
         }
@@ -171,7 +173,7 @@ public class Solver {
             FileWriter fw = new FileWriter(fileName);
             BufferedWriter bw = new BufferedWriter(fw);
 
-            System.out.println("Number of steps: " + output.size());
+            System.out.println("Number of Steps: " + output.size());
             bw.write(Integer.toString(output.size()));
             bw.write("\n");
             bw.flush();
@@ -222,26 +224,6 @@ public class Solver {
         return indexes;
     }
 
-
-    public static int getMovingBOxDirection(int movingBoxIndex, State state1, State state2) {
-
-        Box box1 = state1.movingBoxes.get(movingBoxIndex);
-        Box box2 = state2.movingBoxes.get(movingBoxIndex);
-
-        if (box2.getPos().getX() > box1.getPos().getX()) {
-            return 2;
-        } else if (box2.getPos().getX() < box1.getPos().getX()) {
-            return 4;
-        } else if (box2.getPos().getY() > box1.getPos().getY()) {
-            return 1;
-        } else if (box2.getPos().getY() < box1.getPos().getY()) {
-            return 3;
-        }
-        return 1;
-    }
-
-
-
     private static List<String> generateMoves(State state1, State state2) {
 
         List<String> result = new LinkedList<>();
@@ -283,6 +265,24 @@ public class Solver {
 //
 //        Box box1 = state1.getMovingBox();
 //        Box box2 = state2.getMovingBox();
+//
+//        if (box2.getPos().getX() > box1.getPos().getX()) {
+//            return 2;
+//        } else if (box2.getPos().getX() < box1.getPos().getX()) {
+//            return 4;
+//        } else if (box2.getPos().getY() > box1.getPos().getY()) {
+//            return 1;
+//        } else if (box2.getPos().getY() < box1.getPos().getY()) {
+//            return 3;
+//        }
+//        return 1;
+//    }
+
+//
+//    public static int getMovingBoxDirection(int movingBoxIndex, State state1, State state2) {
+//
+//        Box box1 = state1.movingBoxes.get(movingBoxIndex);
+//        Box box2 = state2.movingBoxes.get(movingBoxIndex);
 //
 //        if (box2.getPos().getX() > box1.getPos().getX()) {
 //            return 2;

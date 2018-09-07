@@ -53,7 +53,8 @@ public class RobotAgent extends SearchAgent {
 //        System.out.println(currentState.toString());
         List<SearchNode> nodes = new ArrayList<>();
         for (State nextState: possibleStates) {
-            nodes.add(new SearchNode(nextState, 1, calculateHeuristic(nextState)));
+            double heuristic = calculateHeuristic(nextState);
+            nodes.add(new SearchNode(nextState, 1, heuristic));
 //            System.out.println(state.toString());
         }
 
