@@ -23,11 +23,21 @@ public class BoxAgent extends SearchAgent {
         this.stepWidth = stepWidth;
     }
 
-    public double calculateCost(State currentState, State nextState, int obstacleCount) {
+    public double calculateMovingCost(State currentState, State nextState) {
         Point2D currentPos = currentState.movingBoxes.get(movingBoxIndex).getPos();
         Point2D nextPos = nextState.movingBoxes.get(movingBoxIndex).getPos();
         double distance = Math.abs(nextPos.getX() - currentPos.getX()) + Math.abs(nextPos.getY() - currentPos.getY());
-        distance = distance + obstacleCount;
+        return distance;
+    }
+
+    public double calculateObstacleCost(State nextState) {
+        double distance = 0;
+        Box movingBox = nextState.movingBoxes.get(movingBoxIndex);
+        for (Box box : nextState.movingObstacles) {
+            if (movingBox.getRect().intersects(box.getRect())) {
+                distance += 2 * movingBox.getWidth();
+            }
+        }
         return distance;
     }
 
@@ -47,15 +57,15 @@ public class BoxAgent extends SearchAgent {
 
         Box movingBox =  currentState.movingBoxes.get(movingBoxIndex);
 
-        List<State> states = new ArrayList<>();
+        List<State> possibleStates = new ArrayList<>();
 
         if (movingBox.getPos().distance(target) < stepWidth) {
             double gapX = Math.abs(movingBox.getPos().getX() - target.getX());
             double gapY = Math.abs(movingBox.getPos().getY() - target.getY());
-            states.add(currentState.moveMovingBox(movingBoxIndex, gapX, 0, 2));
-            states.add(currentState.moveMovingBox(movingBoxIndex, 0, gapY, 1));
-            states.add(currentState.moveMovingBox(movingBoxIndex, -gapX, 0, 4));
-            states.add(currentState.moveMovingBox(movingBoxIndex, 0, -gapY, 3));
+            possibleStates.add(currentState.moveMovingBox(movingBoxIndex, gapX, 0, 2));
+            possibleStates.add(currentState.moveMovingBox(movingBoxIndex, 0, gapY, 1));
+            possibleStates.add(currentState.moveMovingBox(movingBoxIndex, -gapX, 0, 4));
+            possibleStates.add(currentState.moveMovingBox(movingBoxIndex, 0, -gapY, 3));
         } else {
             int robotPosition = tester.isCoupled(currentState.robotConfig, movingBox);
 
@@ -66,39 +76,40 @@ public class BoxAgent extends SearchAgent {
 
             switch (robotPosition) {
                 case 1:
-                    states.add(moveLeft);
-                    states.add(moveUp);
-                    states.add(moveRight);
+                    possibleStates.add(moveLeft);
+                    possibleStates.add(moveUp);
+                    possibleStates.add(moveRight);
                     break;
                 case 2:
-                    states.add(moveUp);
-                    states.add(moveRight);
-                    states.add(moveDown);
+                    possibleStates.add(moveUp);
+                    possibleStates.add(moveRight);
+                    possibleStates.add(moveDown);
                     break;
                 case 3:
-                    states.add(moveRight);
-                    states.add(moveDown);
-                    states.add(moveLeft);
+                    possibleStates.add(moveRight);
+                    possibleStates.add(moveDown);
+                    possibleStates.add(moveLeft);
                     break;
                 case 4:
-                    states.add(moveDown);
-                    states.add(moveLeft);
-                    states.add(moveUp);
+                    possibleStates.add(moveDown);
+                    possibleStates.add(moveLeft);
+                    possibleStates.add(moveUp);
                     break;
                 default:
-                    states.add(moveLeft);
-                    states.add(moveUp);
-                    states.add(moveRight);
-                    states.add(moveDown);
+                    possibleStates.add(moveLeft);
+                    possibleStates.add(moveUp);
+                    possibleStates.add(moveRight);
+                    possibleStates.add(moveDown);
             }
         }
 
         List<SearchNode> nodes = new ArrayList<>();
-        for (State state: states) {
-            if (checkMovingBoxCollision(state, movingBoxIndex)) {
-                double cost = calculateCost(currentState, state, countObstacle(state, movingBoxIndex));
-                double heuristic = calculateHeuristic(state);
-                nodes.add(new SearchNode(state, cost, heuristic));
+        for (State nextState: possibleStates) {
+            if (checkMovingBoxCollision(nextState, movingBoxIndex)) {
+                double movingCost = calculateMovingCost(currentState, nextState);
+                double obstacleCost = calculateObstacleCost(nextState);
+                double heuristic = calculateHeuristic(nextState);
+                nodes.add(new SearchNode(nextState, movingCost + obstacleCost, heuristic));
             }
         }
 
@@ -135,17 +146,6 @@ public class BoxAgent extends SearchAgent {
             }
         }
         return true;
-    }
-
-    public int countObstacle(State state, int movingBoxIndex) {
-        int count = 0;
-        Box movingBox = state.movingBoxes.get(movingBoxIndex);
-        for (Box box : state.movingObstacles) {
-            if (movingBox.getRect().intersects(box.getRect())) {
-                count++;
-            }
-        }
-        return count;
     }
 
 }

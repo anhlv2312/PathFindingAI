@@ -38,7 +38,7 @@ public class ObstacleAgent extends SearchAgent {
     public List<SearchNode> getSuccessors(State currentState) {
 
         Box movingObstacle =  currentState.movingObstacles.get(movingObstacleIndex);
-        List<State> states = new ArrayList<>();
+        List<State> possibleStates = new ArrayList<>();
         int robotPosition = tester.isCoupled(currentState.robotConfig, movingObstacle);
 
         State moveLeft = currentState.moveObstacle(movingObstacleIndex, -stepWidth, 0, 4);
@@ -48,36 +48,36 @@ public class ObstacleAgent extends SearchAgent {
 
         switch (robotPosition) {
             case 1:
-                states.add(moveLeft);
-                states.add(moveUp);
-                states.add(moveRight);
+                possibleStates.add(moveLeft);
+                possibleStates.add(moveUp);
+                possibleStates.add(moveRight);
                 break;
             case 2:
-                states.add(moveUp);
-                states.add(moveRight);
-                states.add(moveDown);
+                possibleStates.add(moveUp);
+                possibleStates.add(moveRight);
+                possibleStates.add(moveDown);
                 break;
             case 3:
-                states.add(moveRight);
-                states.add(moveDown);
-                states.add(moveLeft);
+                possibleStates.add(moveRight);
+                possibleStates.add(moveDown);
+                possibleStates.add(moveLeft);
                 break;
             case 4:
-                states.add(moveDown);
-                states.add(moveLeft);
-                states.add(moveUp);
+                possibleStates.add(moveDown);
+                possibleStates.add(moveLeft);
+                possibleStates.add(moveUp);
                 break;
             default:
-                states.add(moveLeft);
-                states.add(moveUp);
-                states.add(moveRight);
-                states.add(moveDown);
+                possibleStates.add(moveLeft);
+                possibleStates.add(moveUp);
+                possibleStates.add(moveRight);
+                possibleStates.add(moveDown);
         }
 
         List<SearchNode> nodes = new ArrayList<>();
-        for (State state : states) {
-            if (checkMovingObstacleCollision(state, movingObstacleIndex)) {
-                nodes.add(new SearchNode(state));
+        for (State nextState : possibleStates) {
+            if (checkMovingObstacleCollision(nextState, movingObstacleIndex)) {
+                nodes.add(new SearchNode(nextState, 1, 0));
             }
         }
         return nodes;

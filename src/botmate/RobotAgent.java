@@ -21,6 +21,10 @@ public class RobotAgent extends SearchAgent {
         this.targetConfig = initialState.moveRobotToBox(movingBox, targetEdge).robotConfig;
     }
 
+    public double calculateHeuristic(State nextState) {
+        return nextState.robotConfig.getPos().distance(targetConfig.getPos());
+    }
+
     @Override
     public boolean isFound(State currentState) {
         return (tester.isCoupled(currentState.robotConfig, targetBox) == targetEdge);
@@ -29,29 +33,27 @@ public class RobotAgent extends SearchAgent {
     @Override
     public List<SearchNode> getSuccessors(State currentState) {
 
-        double[] orientations = new double[]{0, Math.PI * 0.5, };
+        double[] orientations = new double[]{0, Math.PI * 0.5};
         List<Point2D> positions = new ArrayList<>();
 
-        if (currentState.robotConfig.getPos().distance(targetConfig.getPos()) < 2*robotWidth) {
-            positions.addAll(getPointsAroundRectangle(targetBox.getRect(), Tester.MAX_ERROR));
-        }
+        positions.addAll(getPointsAroundRectangle(targetBox.getRect(), Tester.MAX_ERROR));
         positions.addAll(getPointsAroundObstacles(currentState, robotWidth/2 + Tester.MAX_ERROR));
 
-        List<State> states = new ArrayList<>();
+        List<State> possibleStates = new ArrayList<>();
         State tempState;
         for (Point2D position: positions) {
             for (double orientation: orientations) {
                 tempState = currentState.moveRobotToPosition(position, orientation);
                 if (checkRobotMovingCollision(currentState, tempState.robotConfig)) {
-                    states.add(tempState);
+                    possibleStates.add(tempState);
                 }
             }
         }
 
 //        System.out.println(currentState.toString());
         List<SearchNode> nodes = new ArrayList<>();
-        for (State state: states) {
-            nodes.add(new SearchNode(state, 1, 1));
+        for (State nextState: possibleStates) {
+            nodes.add(new SearchNode(nextState, 1, calculateHeuristic(nextState)));
 //            System.out.println(state.toString());
         }
 
@@ -70,7 +72,7 @@ public class RobotAgent extends SearchAgent {
             tempRobotConfig = new RobotConfig(state.robotConfig.getPos(), state.robotConfig.getOrientation());
         } else {
 
-            // todo: need to think about the smarter colision check while rotating
+            // todo: need to think about the smarter collision check while rotating
             Rectangle2D robotRect;
             double bottomLeftX = state.robotConfig.getPos().getX()-robotWidth/2;
             double bottomLeftY = state.robotConfig.getPos().getY()-robotWidth/2;
