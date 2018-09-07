@@ -15,22 +15,19 @@ public class BoxAgent extends SearchAgent {
     private Point2D target;
     private int movingBoxIndex;
     private double stepWidth;
-    private boolean direct;
 
-    public BoxAgent(ProblemSpec ps, State initialState, int movingBoxIndex, Point2D target, double stepWidth, boolean direct) {
+    public BoxAgent(ProblemSpec ps, State initialState, int movingBoxIndex, Point2D target, double stepWidth) {
         super(ps, initialState);
         this.movingBoxIndex = movingBoxIndex;
         this.target = target;
         this.stepWidth = stepWidth;
-        this.direct = direct;
     }
 
-    public double calculateCost(State currentState, State nextState, int totalMovingBox) {
+    public double calculateCost(State currentState, State nextState, int obstacleCount) {
         Point2D currentPos = currentState.movingBoxes.get(movingBoxIndex).getPos();
         Point2D nextPos = nextState.movingBoxes.get(movingBoxIndex).getPos();
-        //Todo: add cost of collide with moving box
         double distance = Math.abs(nextPos.getX() - currentPos.getX()) + Math.abs(nextPos.getY() - currentPos.getY());
-        distance = distance + totalMovingBox;
+        distance = distance + obstacleCount;
         return distance;
     }
 
@@ -99,11 +96,7 @@ public class BoxAgent extends SearchAgent {
         List<SearchNode> nodes = new ArrayList<>();
         for (State state: states) {
             if (checkMovingBoxCollision(state, movingBoxIndex)) {
-                int totalMovingBox= 0;
-                if(!direct){
-                    totalMovingBox = counterMovingBox(state,movingBoxIndex);
-                }
-                double cost = calculateCost(currentState, state, totalMovingBox);
+                double cost = calculateCost(currentState, state, countObstacle(state, movingBoxIndex));
                 double heuristic = calculateHeuristic(state);
                 nodes.add(new SearchNode(state, cost, heuristic));
             }
@@ -136,14 +129,6 @@ public class BoxAgent extends SearchAgent {
             }
         }
 
-        if (direct) {
-            for (Box box : state.movingObstacles) {
-                if (movingBox.getRect().intersects(box.getRect())) {
-                    return false;
-                }
-            }
-        }
-
         for (StaticObstacle obstacle: staticObstacles) {
             if (movingBox.getRect().intersects(obstacle.getRect())) {
                 return false;
@@ -152,19 +137,15 @@ public class BoxAgent extends SearchAgent {
         return true;
     }
 
-    public int counterMovingBox(State state, int movingBoxIndex){
-        int movingBoxcounter=0;
+    public int countObstacle(State state, int movingBoxIndex) {
+        int count = 0;
         Box movingBox = state.movingBoxes.get(movingBoxIndex);
-        Rectangle2D border = new Rectangle2D.Double(0,0,1,1);
-        Point2D bottomLeft = movingBox.getPos();
-        Point2D topRight = new Point2D.Double(bottomLeft.getX() + movingBox.getWidth(),
-                bottomLeft.getY() + movingBox.getWidth());
         for (Box box : state.movingObstacles) {
             if (movingBox.getRect().intersects(box.getRect())) {
-                movingBoxcounter++;
+                count++;
             }
         }
-        return movingBoxcounter;
+        return count;
     }
 
 }

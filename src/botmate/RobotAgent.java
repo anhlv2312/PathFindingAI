@@ -23,13 +23,14 @@ public class RobotAgent extends SearchAgent {
 
     @Override
     public boolean isFound(State currentState) {
+//        return (currentState.robotConfig.getPos().distance(targetConfig.getPos()) < Tester.MAX_BASE_STEP);
         return (tester.isCoupled(currentState.robotConfig, targetBox) == targetEdge);
     }
 
     public double calculateCost(RobotConfig currentConfig, RobotConfig nextConfig) {
         double distance = currentConfig.getPos().distance(nextConfig.getPos());
         double rotation = (currentConfig.getOrientation() - nextConfig.getOrientation()) * robotWidth / 2;
-        return distance + (2 * rotation);
+        return distance + rotation;
     }
 
     @Override
@@ -38,7 +39,7 @@ public class RobotAgent extends SearchAgent {
         double[] orientations = new double[]{0, Math.PI * 0.5, };
         List<Point2D> positions = new ArrayList<>();
 
-        if (currentState.robotConfig.getPos().distance(targetConfig.getPos()) < robotWidth) {
+        if (currentState.robotConfig.getPos().distance(targetConfig.getPos()) < 2*robotWidth) {
             positions.addAll(getPointsAroundRectangle(targetBox.getRect(), Tester.MAX_ERROR));
         }
         positions.addAll(getPointsAroundObstacles(currentState, robotWidth/2 + Tester.MAX_ERROR));
@@ -60,7 +61,7 @@ public class RobotAgent extends SearchAgent {
             double cost = calculateCost(currentState.robotConfig, state.robotConfig);
             double heuristic = calculateCost(state.robotConfig, targetConfig);
             nodes.add(new SearchNode(state, cost, heuristic));
-//            System.out.println(state.toString());
+            System.out.println(state.toString());
         }
 
         return nodes;

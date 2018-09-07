@@ -49,7 +49,8 @@ public class Solver {
     }
 
     private static void solveProblem() {
-        List<State> solution;
+
+
 
         int goalCount = 0;
         int retry = 5;
@@ -59,29 +60,73 @@ public class Solver {
 
                 System.out.println("Solving MovingBox: " + movingBoxIndex);
                 Point2D movingBoxGoal = ps.getMovingBoxEndPositions().get(movingBoxIndex);
-                solution = findDirectSolution(currentState, movingBoxIndex, movingBoxGoal);
 
-                if (solution != null) {
-                    addStatesToSolution(solution);
-                    goalCount ++;
-                } else {
-                    System.out.println("\tNo direct solution, find alternatives");
-                    List<State> alternativeSolution = findAlternativeSolution(currentState, movingBoxIndex, movingBoxGoal);
+                boxAgent = new BoxAgent(ps, currentState, movingBoxIndex, movingBoxGoal, boxStepWidth);
+                List<State> boxSolution = boxAgent.search();
 
-                    if (alternativeSolution != null) {
-                        addStatesToSolution(alternativeSolution);
-                        System.out.println("\tFind solution again");
-                        solution = findDirectSolution(currentState, movingBoxIndex, movingBoxGoal);
-                        if (solution != null) {
-                            addStatesToSolution(solution);
+                if (boxSolution != null) {
+                    List<Rectangle2D> movingPaths = generateMovingPath(movingBoxIndex, boxSolution);
+                    Set<Integer> movingObstacleIndexes = getObstaclesIndexes(movingPaths, currentState.movingObstacles);
+
+                    if (movingObstacleIndexes.isEmpty()) {
+                        State firstState = boxSolution.get(0);
+                        int targetEdge = tester.isCoupled(firstState.robotConfig, firstState.movingBoxes.get(movingBoxIndex));
+                        List<State> robotSolution = findPathToMovingBox(currentState, movingBoxIndex, targetEdge);
+                        if (robotSolution != null) {
+                            solutionStates.addAll(robotSolution);
+                            solutionStates.addAll(boxSolution);
                             goalCount++;
                         } else {
-                            System.out.println("\t\tStill no Solution!");
+                            System.out.println("\t\tNo solution for robot!");
                         }
+//                        solutionStates.addAll(boxSolution);
+//                        goalCount++;
+                        currentState = solutionStates.get(solutionStates.size() - 1);
                     } else {
-                        System.out.println("\t\tNo alternative solution!");
+                        for (int movingObstacleIndex : movingObstacleIndexes) {
+                            System.out.println("\tMovingObstacle " + movingObstacleIndex);
+                            obstacleAgent = new ObstacleAgent(ps, currentState, movingObstacleIndex, obstacleStepWidth, movingPaths);
+                            List<State> obstacleSolution = obstacleAgent.search();
+                            if (obstacleSolution == null) {
+                                System.out.println("\t\tUnable to move obstacle!");
+                            } else {
+//                                State firstState = solution.get(0);
+//                                int targetEdge = tester.isCoupled(firstState.robotConfig, firstState.movingObstacles.get(movingObstacleIndex));
+//                                List<State> robotSolution = findPathToObstacle(currentState, movingObstacleIndex, targetEdge);
+//                                if (robotSolution != null) {
+//                                    solutionStates.addAll(robotSolution);
+//                                    solutionStates.addAll(obstacleSolution);
+//                                } else {
+//                                    System.out.println("\t\t\tNo solution for robot!");
+//                                }
+
+                                solutionStates.addAll(obstacleSolution);
+                                currentState = solutionStates.get(solutionStates.size() - 1);
+                            }
+                        }
+
+                        boxAgent = new BoxAgent(ps, currentState, movingBoxIndex, movingBoxGoal, boxStepWidth);
+                        boxSolution = boxAgent.search();
+
+//                        State firstState = boxSolution.get(0);
+//                        int targetEdge = tester.isCoupled(firstState.robotConfig, firstState.movingBoxes.get(movingBoxIndex));
+//                        List<State> robotSolution = findPathToMovingBox(currentState, movingBoxIndex, targetEdge);
+//                        if (robotSolution != null) {
+//                            solutionStates.addAll(robotSolution);
+//                            solutionStates.addAll(boxSolution);
+//                            goalCount++;
+//                        } else {
+//                            System.out.println("\t\tNo solution for robot!");
+//                        }
+
+                        solutionStates.addAll(boxSolution);
+                        goalCount++;
+
+                        currentState = solutionStates.get(solutionStates.size() - 1);
                     }
+                    currentState = solutionStates.get(solutionStates.size() - 1);
                 }
+
             }
             retry--;
             boxStepWidth = boxStepWidth/2 - Tester.MAX_BASE_STEP;
@@ -89,84 +134,14 @@ public class Solver {
         }
     }
 
-
-    private static void addStatesToSolution(List<State> solution) {
-        if (solution != null) {
-            solutionStates.addAll(solution);
-        }
-        currentState = solutionStates.get(solutionStates.size() - 1);
-    }
-
-
-    private static List<State> findDirectSolution(State state, int movingBoxIndex, Point2D movingBoxGoal) {
-        List<State> states = new LinkedList<>();
-
-        boxAgent = new BoxAgent(ps, state, movingBoxIndex, movingBoxGoal, boxStepWidth, true);
-        List<State> solution = boxAgent.search();
-
-        if (solution == null) {
-            return null;
-        } else {
-            State firstState = solution.get(0);
-            int targetEdge = tester.isCoupled(firstState.robotConfig, firstState.movingBoxes.get(movingBoxIndex));
-            List<State> robotSolution = findPathToMovingBox(state, movingBoxIndex, targetEdge);
-            if (robotSolution != null) {
-                states.addAll(robotSolution);
-                states.addAll(solution);
-
-
-            } else {
-                System.out.println("\t\t\tNo solution for robot!");
-            }
-        }
-        return states;
-    }
-
-    private static List<State> findAlternativeSolution(State state, int movingBoxIndex, Point2D movingBoxGoal) {
-
-        State tempState = state;
-
-        List<State> states = new LinkedList<>();
-        boxAgent = new BoxAgent(ps, tempState, movingBoxIndex, movingBoxGoal, boxStepWidth, false);
-        List<State> alternativeSolution = boxAgent.search();
-
-        if (alternativeSolution != null) {
-            List<Rectangle2D> movingPaths = generateMovingPath(movingBoxIndex, alternativeSolution);
-            Set<Integer> movingObstacleIndexes = getObstaclesIndexes(movingPaths, tempState.movingObstacles);
-            for (int movingObstacleIndex : movingObstacleIndexes) {
-                System.out.println("\t\tMovingObstacle " + movingObstacleIndex);
-                obstacleAgent = new ObstacleAgent(ps, tempState, movingObstacleIndex, obstacleStepWidth, movingPaths);
-                List<State> solution = obstacleAgent.search();
-                if (solution == null) {
-                    System.out.println("\t\t\tUnable to move!");
-                    return null;
-                } else {
-
-                    State firstState = solution.get(0);
-                    int targetEdge = tester.isCoupled(firstState.robotConfig, firstState.movingObstacles.get(movingObstacleIndex));
-                    List<State> robotSolution = findPathToObstacle(tempState, movingObstacleIndex, targetEdge);
-                    if (robotSolution != null) {
-                        states.addAll(robotSolution);
-                        states.addAll(solution);
-                    } else {
-                        System.out.println("\t\t\tNo solution for robot!");
-                    }
-
-                    tempState = states.get(states.size() - 1);
-                }
-            }
-        }
-        return states;
-    }
-
     private static List<State> findPathToMovingBox(State state, int movingBoxIndex, int targetEdge) {
-        System.out.println("\t\tFind robot path");
+        System.out.println("\tFind robot path to MovingBox");
         Box movingBox = state.movingBoxes.get(movingBoxIndex);
         return findPathToBox(state, movingBox, targetEdge);
     }
 
     private static List<State> findPathToObstacle(State state, int movingObstacleIndex, int targetEdge) {
-        System.out.println("\t\t\tFind robot path");
+        System.out.println("\t\tFind robot path to Obstacle");
         Box movingBox = state.movingObstacles.get(movingObstacleIndex);
         return findPathToBox(state, movingBox, targetEdge);
     }
