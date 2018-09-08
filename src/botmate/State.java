@@ -31,7 +31,7 @@ public class State {
     public String toString() {
         StringBuilder output = new StringBuilder();
 
-        String doubleFormat = "%.6f";
+        String doubleFormat = "%.5f";
         output.append(String.format(doubleFormat + " ", robotConfig.getPos().getX()));
         output.append(String.format(doubleFormat + " ", robotConfig.getPos().getY()));
         output.append(String.format(doubleFormat + " ", robotConfig.getOrientation()));

@@ -273,10 +273,11 @@ public class Solver {
         for (int i = 0; i < numberOfSteps; i++) {
 
             tempState = tempState.moveRobot(deltaX, deltaY, 0);
+
             for (int j = 0; j < tempState.movingBoxes.size(); j++) {
                 int currentPosition = tester.isCoupled(r1, currentState.movingBoxes.get(j));
                 int nextPosition = tester.isCoupled(r2, nextState.movingBoxes.get(j));
-                if (currentPosition > 0 && nextPosition>0) {
+                if (currentPosition > 0 && nextPosition > 0) {
                     tempState = tempState.moveMovingBox(j, deltaX, deltaY, nextPosition);
                 }
             }
@@ -284,7 +285,7 @@ public class Solver {
             for (int j = 0; j < tempState.movingObstacles.size(); j++) {
                 int currentPosition = tester.isCoupled(r1, currentState.movingObstacles.get(j));
                 int nextPosition = tester.isCoupled(r2, nextState.movingObstacles.get(j));
-                if (currentPosition > 0 && nextPosition>0) {
+                if (currentPosition > 0 && nextPosition > 0) {
                     tempState = tempState.moveObstacle(j, deltaX, deltaY, nextPosition);
                 }
             }
@@ -295,43 +296,6 @@ public class Solver {
         result.add(nextState.toString());
         return result;
     }
-//
-//    // Get the next edge that the robot need to get to
-//    public static int getDirection(State state1, State state2) {
-//
-//        Box box1 = state1.getMovingBox();
-//        Box box2 = state2.getMovingBox();
-//
-//        if (box2.getPos().getX() > box1.getPos().getX()) {
-//            return 2;
-//        } else if (box2.getPos().getX() < box1.getPos().getX()) {
-//            return 4;
-//        } else if (box2.getPos().getY() > box1.getPos().getY()) {
-//            return 1;
-//        } else if (box2.getPos().getY() < box1.getPos().getY()) {
-//            return 3;
-//        }
-//        return 1;
-//    }
-
-//
-//    public static int getMovingBoxDirection(int movingBoxIndex, State state1, State state2) {
-//
-//        Box box1 = state1.movingBoxes.get(movingBoxIndex);
-//        Box box2 = state2.movingBoxes.get(movingBoxIndex);
-//
-//        if (box2.getPos().getX() > box1.getPos().getX()) {
-//            return 2;
-//        } else if (box2.getPos().getX() < box1.getPos().getX()) {
-//            return 4;
-//        } else if (box2.getPos().getY() > box1.getPos().getY()) {
-//            return 1;
-//        } else if (box2.getPos().getY() < box1.getPos().getY()) {
-//            return 3;
-//        }
-//        return 1;
-//    }
-
 
     public static List<State> generateSlideToMovingBox(int movingBoxIndex, List<State> solution) {
 
@@ -346,8 +310,8 @@ public class Solver {
                 Box currentBox = currentState.movingBoxes.get(movingBoxIndex);
                 Box nextBox = nextState.movingBoxes.get(movingBoxIndex);
 
-                int currentEdge = tester.isCoupled(currentState.robotConfig, currentState.movingBoxes.get(movingBoxIndex));
-                int nextEdge = tester.isCoupled(nextState.robotConfig, nextState.movingBoxes.get(movingBoxIndex));
+                int currentEdge = tester.isCoupled(currentState.robotConfig, currentBox);
+                int nextEdge = tester.isCoupled(nextState.robotConfig, nextBox);
 
                 steps.add(currentState);
                 steps.addAll(slideRobot(currentState, currentEdge, nextEdge, currentBox));
