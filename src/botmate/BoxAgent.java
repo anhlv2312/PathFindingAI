@@ -17,21 +17,21 @@ public class BoxAgent extends SearchAgent {
     private int movingBoxIndex;
     private double stepWidth;
 
-    public BoxAgent(ProblemSpec ps, State initialState, int movingBoxIndex, Point2D target, double stepWidth) {
+    BoxAgent(ProblemSpec ps, State initialState, int movingBoxIndex, Point2D target, double stepWidth) {
         super(ps, initialState);
         this.movingBoxIndex = movingBoxIndex;
         this.target = target;
         this.stepWidth = stepWidth;
     }
 
-    public double calculateMovingCost(State currentState, State nextState) {
+    private double calculateMovingCost(State currentState, State nextState) {
         Point2D currentPos = currentState.movingBoxes.get(movingBoxIndex).getPos();
         Point2D nextPos = nextState.movingBoxes.get(movingBoxIndex).getPos();
         return Math.abs(nextPos.getX() - currentPos.getX()) + Math.abs(nextPos.getY() - currentPos.getY());
 
     }
 
-    public double calculateRobotCost(State currentState, State nextState) {
+    private double calculateRobotCost(State currentState, State nextState) {
 
         int currentEdge = tester.isCoupled(currentState.robotConfig, currentState.movingBoxes.get(movingBoxIndex));
         int nextEdge = tester.isCoupled(nextState.robotConfig, nextState.movingBoxes.get(movingBoxIndex));
@@ -48,7 +48,7 @@ public class BoxAgent extends SearchAgent {
 
     }
 
-    public double calculateObstacleCost(State nextState) {
+    private double calculateObstacleCost(State nextState) {
         double distance = 0;
         Box movingBox = nextState.movingBoxes.get(movingBoxIndex);
         for (Box box : nextState.movingObstacles) {
@@ -59,7 +59,7 @@ public class BoxAgent extends SearchAgent {
         return distance;
     }
 
-    public double calculateHeuristic(State nextState) {
+    private double calculateHeuristic(State nextState) {
         Point2D nextPos = nextState.movingBoxes.get(movingBoxIndex).getPos();
         return Math.abs(nextPos.getX() - target.getX()) + Math.abs(nextPos.getY() - target.getY());
     }
@@ -135,7 +135,7 @@ public class BoxAgent extends SearchAgent {
     }
 
 
-    public boolean checkMovingBoxCollision(State state, int movingBoxIndex) {
+    private boolean checkMovingBoxCollision(State state, int movingBoxIndex) {
 
         Box movingBox = state.movingBoxes.get(movingBoxIndex);
 

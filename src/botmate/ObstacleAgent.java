@@ -17,7 +17,7 @@ public class ObstacleAgent extends SearchAgent {
     private double stepWidth;
     private List<Rectangle2D> movingPaths;
 
-    public ObstacleAgent(ProblemSpec ps, State initialState, int movingObstacleIndex, double stepWidth, List<Rectangle2D> movingPaths) {
+    ObstacleAgent(ProblemSpec ps, State initialState, int movingObstacleIndex, double stepWidth, List<Rectangle2D> movingPaths) {
 
         super(ps, initialState);
         this.movingObstacleIndex = movingObstacleIndex;

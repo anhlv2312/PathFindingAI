@@ -71,7 +71,7 @@ public class Solver {
                     continue;
                 }
 
-                System.out.println("\tSolving MovingBox: " + movingBoxIndex);
+                System.out.println("    Solving MovingBox: " + movingBoxIndex);
                 Point2D movingBoxGoal = ps.getMovingBoxEndPositions().get(movingBoxIndex);
 
                 boxAgent = new BoxAgent(ps, globalCurrentState, movingBoxIndex, movingBoxGoal, stepSize);
@@ -91,17 +91,17 @@ public class Solver {
                             solutionStates.addAll(generateSlideToMovingBox(movingBoxIndex, boxSolution));
                             solvedMovingBoxes.add(movingBoxIndex);
                         } else {
-                            System.out.println("\tNo solution for Robot!");
+                            System.out.println("    No solution for Robot!");
                         }
                         globalCurrentState = solutionStates.get(solutionStates.size() - 1);
                     } else {
                         int obstacleCount = obstacleIndexes.size();
                         for (int obstacleIndex : obstacleIndexes) {
-                            System.out.println("\t\tSolving Obstacle: " + obstacleIndex);
+                            System.out.println("        Solving Obstacle: " + obstacleIndex);
                             obstacleAgent = new ObstacleAgent(ps, globalCurrentState, obstacleIndex, stepSize, movingPaths);
                             List<State> obstacleSolution = obstacleAgent.search();
                             if (obstacleSolution == null) {
-                                System.out.println("\t\t\tUnable to move Obstacle!");
+                                System.out.println("            Unable to move Obstacle!");
                                 break;
                             } else {
                                 State firstState = obstacleSolution.get(0);
@@ -111,7 +111,7 @@ public class Solver {
                                     solutionStates.addAll(robotSolution);
                                     solutionStates.addAll(generateSlideToObstacle(obstacleIndex, obstacleSolution));
                                 } else {
-                                    System.out.println("\t\t\t\tNo solution for Robot!");
+                                    System.out.println("                No solution for Robot!");
                                     break;
                                 }
                                 globalCurrentState = solutionStates.get(solutionStates.size() - 1);
@@ -131,16 +131,16 @@ public class Solver {
                                 solutionStates.addAll(generateSlideToMovingBox(movingBoxIndex, boxSolution));
                                 solvedMovingBoxes.add(movingBoxIndex);
                             } else {
-                                System.out.println("\t\tNo solution for Robot!");
+                                System.out.println("        No solution for Robot!");
                             }
                         } else {
-                            System.out.println("\t\tSkip MovingBox: " + movingBoxIndex);
+                            System.out.println("        Skip MovingBox: " + movingBoxIndex);
                         }
                         globalCurrentState = solutionStates.get(solutionStates.size() - 1);
                     }
                     globalCurrentState = solutionStates.get(solutionStates.size() - 1);
                 } else {
-                    System.out.println("\t\tNo solution for MovingBox: " + movingBoxIndex);
+                    System.out.println("        No solution for MovingBox: " + movingBoxIndex);
                 }
 
             }
@@ -150,13 +150,13 @@ public class Solver {
     }
 
     private static List<State> findPathToMovingBox(State state, int movingBoxIndex, int targetEdge) {
-        System.out.println("\t\tFind path to MovingBox: " + movingBoxIndex);
+        System.out.println("        Find path to MovingBox: " + movingBoxIndex);
         Box movingBox = state.movingBoxes.get(movingBoxIndex);
         return findPathToBox(state, movingBox, targetEdge);
     }
 
     private static List<State> findPathToObstacle(State state, int obstacleIndex, int targetEdge) {
-        System.out.println("\t\t\tFind path to Obstacle: " + obstacleIndex);
+        System.out.println("            Find path to Obstacle: " + obstacleIndex);
         Box movingBox = state.movingObstacles.get(obstacleIndex);
         return findPathToBox(state, movingBox, targetEdge);
     }

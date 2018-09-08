@@ -14,7 +14,7 @@ public class RobotAgent extends SearchAgent {
     private int targetEdge;
     private RobotConfig targetConfig;
 
-    public RobotAgent(ProblemSpec ps, State initialState, Box movingBox, int targetEdge) {
+    RobotAgent(ProblemSpec ps, State initialState, Box movingBox, int targetEdge) {
         super(ps, initialState);
         this.targetBox = movingBox;
         this.targetEdge = targetEdge;
@@ -46,7 +46,6 @@ public class RobotAgent extends SearchAgent {
             }
         }
 
-
 //        System.out.println(currentState.toString());
         List<SearchNode> nodes = new ArrayList<>();
         for (State nextState: possibleStates) {
@@ -58,7 +57,7 @@ public class RobotAgent extends SearchAgent {
     }
 
 
-    public boolean checkRobotMovingCollision(State state, RobotConfig nextConfig) {
+    private boolean checkRobotMovingCollision(State state, RobotConfig nextConfig) {
 
         Rectangle2D border = new Rectangle2D.Double(tester.MAX_BASE_STEP,tester.MAX_BASE_STEP,1 - tester.MAX_BASE_STEP,1 - tester.MAX_BASE_STEP);
 
@@ -154,7 +153,7 @@ public class RobotAgent extends SearchAgent {
         return true;
     }
 
-    public List<Point2D> getPointsAroundRectangle(Rectangle2D rectangle, double delta) {
+    private List<Point2D> getPointsAroundRectangle(Rectangle2D rectangle, double delta) {
         //sample 8 points(4 vertices and 4 at the middle of vertices) around the object
 
 
@@ -222,7 +221,7 @@ public class RobotAgent extends SearchAgent {
 
     }
 
-    public List<Point2D> getPointsAroundObstacles(List<Box> obstacles, double delta) {
+    private List<Point2D> getPointsAroundObstacles(List<Box> obstacles, double delta) {
         List<Point2D> points = new ArrayList<>();
         for (Box obstacle : obstacles) {
             points.addAll(getPointsAroundRectangle(obstacle.getRect(), delta));
@@ -235,8 +234,7 @@ public class RobotAgent extends SearchAgent {
         return points;
     }
 
-
-    public List<Box> getObstacles(State currentState) {
+    private List<Box> getObstacles(State currentState) {
 
         List<Box> obstacles = new ArrayList<>();
         Line2D connectionLine = new Line2D.Double(currentState.robotConfig.getPos(), targetConfig.getPos());
