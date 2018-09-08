@@ -1,6 +1,5 @@
 package botmate;
 
-import org.w3c.dom.css.Rect;
 import problem.*;
 import tester.Tester;
 
@@ -61,7 +60,7 @@ public class RobotAgent extends SearchAgent {
 
     public boolean checkRobotMovingCollision(State state, RobotConfig nextConfig) {
 
-        Rectangle2D border = new Rectangle2D.Double(0,0,1,1);
+        Rectangle2D border = new Rectangle2D.Double(tester.MAX_BASE_STEP,tester.MAX_BASE_STEP,1 - tester.MAX_BASE_STEP,1 - tester.MAX_BASE_STEP);
 
         double angle = state.robotConfig.getOrientation() - nextConfig.getOrientation();
 
@@ -223,34 +222,34 @@ public class RobotAgent extends SearchAgent {
 
     }
 
-    public List<Point2D> getPointsAroundObstacles(List<Rectangle2D> obstacles, double delta) {
+    public List<Point2D> getPointsAroundObstacles(List<Box> obstacles, double delta) {
         List<Point2D> points = new ArrayList<>();
-        for (Rectangle2D obstacle : obstacles) {
-            points.addAll(getPointsAroundRectangle(obstacle, delta));
+        for (Box obstacle : obstacles) {
+            points.addAll(getPointsAroundRectangle(obstacle.getRect(), delta));
         }
+
+        for (StaticObstacle obstacle : staticObstacles) {
+            points.addAll(getPointsAroundRectangle(obstacle.getRect(), delta));
+        }
+
         return points;
     }
 
 
-    public List<Rectangle2D> getObstacles(State currentState) {
+    public List<Box> getObstacles(State currentState) {
 
-        List<Rectangle2D> obstacles = new ArrayList<>();
+        List<Box> obstacles = new ArrayList<>();
         Line2D connectionLine = new Line2D.Double(currentState.robotConfig.getPos(), targetConfig.getPos());
 
         for (Box box : currentState.movingBoxes) {
             if (connectionLine.intersects(box.getRect())) {
-                obstacles.add(box.getRect());
+                obstacles.add(box);
             }
         }
 
         for (Box box : currentState.movingObstacles) {
             if (connectionLine.intersects(box.getRect())) {
-                obstacles.add(box.getRect());
-            }
-        }
-        for (StaticObstacle box : staticObstacles) {
-            if (connectionLine.intersects(box.getRect())) {
-                obstacles.add(box.getRect());
+                obstacles.add(box);
             }
         }
 

@@ -15,7 +15,7 @@ import java.util.*;
 
 public class Solver {
 
-    private static final double MIN_STEP_SIZE = 0.001;
+    private static final double MIN_STEP_SIZE = 0.01;
 
     private static ProblemSpec ps;
     private static RobotAgent robotAgent;
@@ -60,10 +60,10 @@ public class Solver {
 
         while (solvedMovingBoxes.size() < ps.getMovingBoxes().size() && stepSize >= MIN_STEP_SIZE) {
 
-            stepSize = Math.round(stepSize*1000)/1000.0;
+            stepSize = Math.round(stepSize*100)/100.0;
 
             System.out.println();
-            System.out.println(String.format("Start solving with step size: %.3f", stepSize));
+            System.out.println(String.format("Start solving with step size: %.2f", stepSize));
 
             for (int movingBoxIndex = 0; movingBoxIndex < ps.getMovingBoxes().size(); movingBoxIndex++ ) {
 
@@ -351,7 +351,8 @@ public class Solver {
 
         List<State> steps = new ArrayList<>();
 
-        double s = (box.getWidth() + Tester.MAX_BASE_STEP)/2;
+        double d = (box.getWidth() + Tester.MAX_BASE_STEP)/2;
+        double s = (ps.getRobotWidth() + Tester.MAX_BASE_STEP)/2;
         double x = Math.PI/2;
 
         if (currentEdge != nextEdge) {
@@ -360,12 +361,12 @@ public class Solver {
                 steps.add(currentState.moveRobot(0, -s, 0));
                 steps.add(currentState.moveRobot(0, -s, x));
                 if (nextEdge == 2) {
-                    steps.add(currentState.moveRobot(-s, -s, x));
-                    steps.add(currentState.moveRobot(-s, s, x));
+                    steps.add(currentState.moveRobot(-d, -s, x));
+                    steps.add(currentState.moveRobot(-d, s, x));
                     steps.add(currentState.moveRobotToBox(box, 2));
                 } else if (nextEdge == 4) {
-                    steps.add(currentState.moveRobot(s, -s, x));
-                    steps.add(currentState.moveRobot(s, s, x));
+                    steps.add(currentState.moveRobot(d, -s, x));
+                    steps.add(currentState.moveRobot(d, s, x));
                     steps.add(currentState.moveRobotToBox(box, 4));
                 }
             }
@@ -373,12 +374,12 @@ public class Solver {
                 steps.add(currentState.moveRobot(-s, 0, 0));
                 steps.add(currentState.moveRobot(-s, 0, -x));
                 if (nextEdge == 1) {
-                    steps.add(currentState.moveRobot(-s, -s, -x));
-                    steps.add(currentState.moveRobot(s, -s, -x));
+                    steps.add(currentState.moveRobot(-s, -d, -x));
+                    steps.add(currentState.moveRobot(s, -d, -x));
                     steps.add(currentState.moveRobotToBox(box, 1));
                 } else if (nextEdge == 3) {
-                    steps.add(currentState.moveRobot(-s, s, -x));
-                    steps.add(currentState.moveRobot(s, s, -x));
+                    steps.add(currentState.moveRobot(-s, d, -x));
+                    steps.add(currentState.moveRobot(s, d, -x));
                     steps.add(currentState.moveRobotToBox(box, 3));
                 }
             }
@@ -386,12 +387,12 @@ public class Solver {
                 steps.add(currentState.moveRobot(0, s, 0));
                 steps.add(currentState.moveRobot(0, s, x));
                 if (nextEdge == 2) {
-                    steps.add(currentState.moveRobot(-s, s, x));
-                    steps.add(currentState.moveRobot(-s, -s, x));
+                    steps.add(currentState.moveRobot(-d, s, x));
+                    steps.add(currentState.moveRobot(-d, -s, x));
                     steps.add(currentState.moveRobotToBox(box, 2));
                 } else if (nextEdge == 4) {
-                    steps.add(currentState.moveRobot(s, s, x));
-                    steps.add(currentState.moveRobot(s, -s, x));
+                    steps.add(currentState.moveRobot(d, s, x));
+                    steps.add(currentState.moveRobot(d, -s, x));
                     steps.add(currentState.moveRobotToBox(box, 4));
                 }
             }
@@ -400,12 +401,12 @@ public class Solver {
                 steps.add(currentState.moveRobot(s, 0, 0));
                 steps.add(currentState.moveRobot(s, 0, -x));
                 if (nextEdge == 1) {
-                    steps.add(currentState.moveRobot(s, -s, -x));
-                    steps.add(currentState.moveRobot(-s, -s, -x));
+                    steps.add(currentState.moveRobot(s, -d, -x));
+                    steps.add(currentState.moveRobot(-s, -d, -x));
                     steps.add(currentState.moveRobotToBox(box, 1));
                 } else if (nextEdge == 3) {
-                    steps.add(currentState.moveRobot(s, s, -x));
-                    steps.add(currentState.moveRobot(-s, s, -x));
+                    steps.add(currentState.moveRobot(s, d, -x));
+                    steps.add(currentState.moveRobot(-s, d, -x));
                     steps.add(currentState.moveRobotToBox(box, 3));
                 }
 

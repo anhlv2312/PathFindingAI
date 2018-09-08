@@ -5,6 +5,7 @@ import problem.ProblemSpec;
 import problem.StaticObstacle;
 import tester.Tester;
 
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -88,11 +89,13 @@ public class ObstacleAgent extends SearchAgent {
     public boolean checkMovingObstacleCollision(State state, int movingObstacleIndex) {
 
         Box movingBox = state.movingObstacles.get(movingObstacleIndex);
-        Rectangle2D border = new Rectangle2D.Double(0,0,1,1);
+        Rectangle2D border = new Rectangle2D.Double(tester.MAX_BASE_STEP,tester.MAX_BASE_STEP,1 - tester.MAX_BASE_STEP,1 - tester.MAX_BASE_STEP);
 
         Point2D bottomLeft = movingBox.getPos();
         Point2D topRight = new Point2D.Double(bottomLeft.getX() + movingBox.getWidth(),
                 bottomLeft.getY() + movingBox.getWidth());
+
+        Line2D robotLine = new Line2D.Double(tester.getPoint1(state.robotConfig), tester.getPoint2(state.robotConfig));
 
         if (!border.contains(bottomLeft) || !border.contains(topRight)) {
             return false;
@@ -104,17 +107,27 @@ public class ObstacleAgent extends SearchAgent {
                 if (movingBox.getRect().intersects(tester.grow(box.getRect(), Tester.MAX_BASE_STEP))) {
                     return false;
                 }
+                if (robotLine.intersects(box.getRect())) {
+                    return false;
+                }
             }
+
         }
 
         for (Box box : state.movingBoxes) {
             if (movingBox.getRect().intersects(tester.grow(box.getRect(), Tester.MAX_BASE_STEP))) {
                 return false;
             }
+            if (robotLine.intersects(box.getRect())) {
+                return false;
+            }
         }
 
         for (StaticObstacle box: staticObstacles) {
             if (movingBox.getRect().intersects(tester.grow(box.getRect(), Tester.MAX_BASE_STEP))) {
+                return false;
+            }
+            if (robotLine.intersects(box.getRect())) {
                 return false;
             }
         }
