@@ -77,36 +77,36 @@ public class Solver {
                 if (boxSolution != null) {
 
                     List<Rectangle2D> movingPaths = generateMovingPath(movingBoxIndex, boxSolution);
-                    Set<Integer> movingObstacleIndexes = getObstaclesIndexes(movingPaths, currentState.movingObstacles);
+                    Set<Integer> obstacleIndexes = getObstaclesIndexes(movingPaths, currentState.movingObstacles);
 
-                    if (movingObstacleIndexes.isEmpty()) {
+                    if (obstacleIndexes.isEmpty()) {
                         State firstState = boxSolution.get(0);
                         int targetEdge = tester.isCoupled(firstState.robotConfig, firstState.movingBoxes.get(movingBoxIndex));
                         List<State> robotSolution = findPathToMovingBox(currentState, movingBoxIndex, targetEdge);
                         if (robotSolution != null) {
                             solutionStates.addAll(robotSolution);
-                            solutionStates.addAll(boxSolution);
+                            solutionStates.addAll(generateSlideToMovingBox(movingBoxIndex, boxSolution));
                             solvedMovingBoxes.add(movingBoxIndex);
                         } else {
                             System.out.println("\tNo solution for Robot!");
                         }
                         currentState = solutionStates.get(solutionStates.size() - 1);
                     } else {
-                        int obstacleCount = movingObstacleIndexes.size();
-                        for (int movingObstacleIndex : movingObstacleIndexes) {
-                            System.out.println("\t\tSolving Obstacle: " + movingObstacleIndex);
-                            obstacleAgent = new ObstacleAgent(ps, currentState, movingObstacleIndex, stepSize, movingPaths);
+                        int obstacleCount = obstacleIndexes.size();
+                        for (int obstacleIndex : obstacleIndexes) {
+                            System.out.println("\t\tSolving Obstacle: " + obstacleIndex);
+                            obstacleAgent = new ObstacleAgent(ps, currentState, obstacleIndex, stepSize, movingPaths);
                             List<State> obstacleSolution = obstacleAgent.search();
                             if (obstacleSolution == null) {
                                 System.out.println("\t\t\tUnable to move Obstacle!");
                                 break;
                             } else {
                                 State firstState = obstacleSolution.get(0);
-                                int targetEdge = tester.isCoupled(firstState.robotConfig, firstState.movingObstacles.get(movingObstacleIndex));
-                                List<State> robotSolution = findPathToObstacle(currentState, movingObstacleIndex, targetEdge);
+                                int targetEdge = tester.isCoupled(firstState.robotConfig, firstState.movingObstacles.get(obstacleIndex));
+                                List<State> robotSolution = findPathToObstacle(currentState, obstacleIndex, targetEdge);
                                 if (robotSolution != null) {
                                     solutionStates.addAll(robotSolution);
-                                    solutionStates.addAll(obstacleSolution);
+                                    solutionStates.addAll(generateSlideToObstacle(obstacleIndex, obstacleSolution));
                                 } else {
                                     System.out.println("\t\t\t\tNo solution for Robot!");
                                     break;
@@ -125,7 +125,7 @@ public class Solver {
                             List<State> robotSolution = findPathToMovingBox(currentState, movingBoxIndex, targetEdge);
                             if (robotSolution != null) {
                                 solutionStates.addAll(robotSolution);
-                                solutionStates.addAll(boxSolution);
+                                solutionStates.addAll(generateSlideToMovingBox(movingBoxIndex, boxSolution));
                                 solvedMovingBoxes.add(movingBoxIndex);
                             } else {
                                 System.out.println("\t\tNo solution for Robot!");
@@ -151,9 +151,9 @@ public class Solver {
         return findPathToBox(state, movingBox, targetEdge);
     }
 
-    private static List<State> findPathToObstacle(State state, int movingObstacleIndex, int targetEdge) {
-        System.out.println("\t\t\tFind path to Obstacle: " + movingObstacleIndex);
-        Box movingBox = state.movingObstacles.get(movingObstacleIndex);
+    private static List<State> findPathToObstacle(State state, int obstacleIndex, int targetEdge) {
+        System.out.println("\t\t\tFind path to Obstacle: " + obstacleIndex);
+        Box movingBox = state.movingObstacles.get(obstacleIndex);
         return findPathToBox(state, movingBox, targetEdge);
     }
 
@@ -310,4 +310,113 @@ public class Solver {
 //        }
 //        return 1;
 //    }
+
+
+    public static List<State> generateSlideToMovingBox(int movingBoxIndex, List<State> solution) {
+
+        List<State> steps = new LinkedList<>();
+        Iterator<State> stateIterator = solution.iterator();
+
+        if (stateIterator.hasNext()) {
+            State currentState = stateIterator.next();
+            while (stateIterator.hasNext()) {
+                State nextState = stateIterator.next();
+
+                int currentEdge = tester.isCoupled(currentState.robotConfig, currentState.movingBoxes.get(movingBoxIndex));
+                int nextEdge = tester.isCoupled(nextState.robotConfig, nextState.movingBoxes.get(movingBoxIndex));
+
+                steps.add(currentState);
+                steps.addAll(slideRobot(currentState, currentEdge, nextEdge));
+                currentState = nextState;
+            }
+            steps.add(currentState);
+        }
+        return steps;
+    }
+
+    public static List<State> generateSlideToObstacle(int obstacleIndex, List<State> solution) {
+
+        List<State> steps = new LinkedList<>();
+        Iterator<State> stateIterator = solution.iterator();
+
+        if (stateIterator.hasNext()) {
+            State currentState = stateIterator.next();
+            while (stateIterator.hasNext()) {
+                State nextState = stateIterator.next();
+
+                int currentEdge = tester.isCoupled(currentState.robotConfig, currentState.movingObstacles.get(obstacleIndex));
+                int nextEdge = tester.isCoupled(nextState.robotConfig, nextState.movingObstacles.get(obstacleIndex));
+
+                steps.add(currentState);
+                steps.addAll(slideRobot(currentState, currentEdge, nextEdge));
+                currentState = nextState;
+            }
+            steps.add(currentState);
+        }
+        return steps;
+    }
+
+    public static List<State> slideRobot(State currentState, int currentEdge, int nextEdge) {
+
+        List<State> steps = new ArrayList<>();
+
+        double s = ps.getRobotWidth()/2;
+        double x = Math.PI/2;
+
+        if (currentEdge != nextEdge) {
+
+            if (currentEdge == 1) {
+                steps.add(currentState.moveRobot(0, -s, 0));
+                steps.add(currentState.moveRobot(0, -s, x));
+                if (nextEdge == 2) {
+                    steps.add(currentState.moveRobot(-s, -s, x));
+                    steps.add(currentState.moveRobot(-s, s, x));
+                } else if (nextEdge == 4) {
+                    steps.add(currentState.moveRobot(s, -s, x));
+                    steps.add(currentState.moveRobot(s, s, x));
+
+                }
+            }
+            if (currentEdge == 2) {
+                steps.add(currentState.moveRobot(-s, 0, 0));
+                steps.add(currentState.moveRobot(-s, 0, -x));
+                if (nextEdge == 1) {
+                    steps.add(currentState.moveRobot(-s, -s, -x));
+                    steps.add(currentState.moveRobot(s, -s, -x));
+                } else if (nextEdge == 3) {
+                    steps.add(currentState.moveRobot(-s, s, -x));
+                    steps.add(currentState.moveRobot(s, s, -x));
+                }
+            }
+            if (currentEdge == 3) {
+                steps.add(currentState.moveRobot(0, s, 0));
+                steps.add(currentState.moveRobot(0, s, x));
+                if (nextEdge == 2) {
+                    steps.add(currentState.moveRobot(-s, s, x));
+                    steps.add(currentState.moveRobot(-s, -s, x));
+                } else if (nextEdge == 4) {
+                    steps.add(currentState.moveRobot(s, s, x));
+                    steps.add(currentState.moveRobot(s, -s, x));
+                }
+            }
+
+            if (currentEdge == 4) {
+                steps.add(currentState.moveRobot(s, 0, 0));
+                steps.add(currentState.moveRobot(s, 0, -x));
+                if (nextEdge == 1) {
+                    steps.add(currentState.moveRobot(s, -s, -x));
+                    steps.add(currentState.moveRobot(-s, -s, -x));
+                } else if (nextEdge == 3) {
+                    steps.add(currentState.moveRobot(s, s, -x));
+                    steps.add(currentState.moveRobot(-s, s, -x));
+                }
+
+            }
+        }
+
+
+        return steps;
+    }
+
+
 }
