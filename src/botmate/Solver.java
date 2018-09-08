@@ -22,6 +22,7 @@ public class Solver {
     private static Tester tester;
     private static State initialState, currentState;
     private static List<State> solutionStates = new LinkedList<>();
+    private static Set<Integer> solvedMovingBoxes;
     private static double stepSize;
 
     public static void main(String args[]) {
@@ -38,7 +39,7 @@ public class Solver {
         initialState = new State(ps.getInitialRobotConfig(), ps.getMovingBoxes(), ps.getMovingObstacles());
         currentState = initialState;
         solutionStates.add(initialState);
-
+        solvedMovingBoxes = new HashSet<>();
         stepSize = ps.getRobotWidth();
 
         System.out.println("Number of MovingBox: " + ps.getMovingBoxes().size());
@@ -55,9 +56,7 @@ public class Solver {
 
     private static void solveProblem() {
 
-        Set<Integer> solvedMovingBoxes = new HashSet<>();
-
-        while (solvedMovingBoxes.size() < ps.getMovingBoxes().size() && stepSize > 0) {
+        while (solvedMovingBoxes.size() < ps.getMovingBoxes().size() && stepSize > Tester.MAX_BASE_STEP) {
 
             System.out.println();
             System.out.println(String.format("Start solving with step size: %.2f", stepSize));
@@ -136,6 +135,8 @@ public class Solver {
                         currentState = solutionStates.get(solutionStates.size() - 1);
                     }
                     currentState = solutionStates.get(solutionStates.size() - 1);
+                } else {
+                    System.out.println("\t\tNo solution for MovingBox: " + movingBoxIndex);
                 }
 
             }
