@@ -280,6 +280,15 @@ public class Solver {
                     tempState = tempState.moveMovingBox(j, deltaX, deltaY, nextPosition);
                 }
             }
+
+            for (int j = 0; j < tempState.movingObstacles.size(); j++) {
+                int currentPosition = tester.isCoupled(r1, currentState.movingObstacles.get(j));
+                int nextPosition = tester.isCoupled(r2, nextState.movingObstacles.get(j));
+                if (currentPosition > 0 && nextPosition>0) {
+                    tempState = tempState.moveObstacle(j, deltaX, deltaY, nextPosition);
+                }
+            }
+
             result.add(tempState.toString());
         }
 
@@ -334,11 +343,14 @@ public class Solver {
             while (stateIterator.hasNext()) {
                 State nextState = stateIterator.next();
 
+                Box currentBox = currentState.movingBoxes.get(movingBoxIndex);
+                Box nextBox = nextState.movingBoxes.get(movingBoxIndex);
+
                 int currentEdge = tester.isCoupled(currentState.robotConfig, currentState.movingBoxes.get(movingBoxIndex));
                 int nextEdge = tester.isCoupled(nextState.robotConfig, nextState.movingBoxes.get(movingBoxIndex));
 
                 steps.add(currentState);
-                steps.addAll(slideRobot(currentState, currentEdge, nextEdge));
+                steps.addAll(slideRobot(currentState, currentEdge, nextEdge, currentBox));
                 currentState = nextState;
             }
             steps.add(currentState);
@@ -356,11 +368,14 @@ public class Solver {
             while (stateIterator.hasNext()) {
                 State nextState = stateIterator.next();
 
-                int currentEdge = tester.isCoupled(currentState.robotConfig, currentState.movingObstacles.get(obstacleIndex));
-                int nextEdge = tester.isCoupled(nextState.robotConfig, nextState.movingObstacles.get(obstacleIndex));
+                Box currentBox = currentState.movingObstacles.get(obstacleIndex);
+                Box nextBox = nextState.movingObstacles.get(obstacleIndex);
+
+                int currentEdge = tester.isCoupled(currentState.robotConfig, currentBox);
+                int nextEdge = tester.isCoupled(nextState.robotConfig, nextBox);
 
                 steps.add(currentState);
-                steps.addAll(slideRobot(currentState, currentEdge, nextEdge));
+                steps.addAll(slideRobot(currentState, currentEdge, nextEdge, currentBox));
                 currentState = nextState;
             }
             steps.add(currentState);
@@ -368,11 +383,11 @@ public class Solver {
         return steps;
     }
 
-    public static List<State> slideRobot(State currentState, int currentEdge, int nextEdge) {
+    public static List<State> slideRobot(State currentState, int currentEdge, int nextEdge, Box box) {
 
         List<State> steps = new ArrayList<>();
 
-        double s = ps.getRobotWidth()/2 + Tester.MAX_ERROR;
+        double s = (box.getWidth() + Tester.MAX_BASE_STEP)/2;
         double x = Math.PI/2;
 
         if (currentEdge != nextEdge) {
@@ -383,10 +398,11 @@ public class Solver {
                 if (nextEdge == 2) {
                     steps.add(currentState.moveRobot(-s, -s, x));
                     steps.add(currentState.moveRobot(-s, s, x));
+                    steps.add(currentState.moveRobotToBox(box, 2));
                 } else if (nextEdge == 4) {
                     steps.add(currentState.moveRobot(s, -s, x));
                     steps.add(currentState.moveRobot(s, s, x));
-
+                    steps.add(currentState.moveRobotToBox(box, 4));
                 }
             }
             if (currentEdge == 2) {
@@ -395,9 +411,11 @@ public class Solver {
                 if (nextEdge == 1) {
                     steps.add(currentState.moveRobot(-s, -s, -x));
                     steps.add(currentState.moveRobot(s, -s, -x));
+                    steps.add(currentState.moveRobotToBox(box, 1));
                 } else if (nextEdge == 3) {
                     steps.add(currentState.moveRobot(-s, s, -x));
                     steps.add(currentState.moveRobot(s, s, -x));
+                    steps.add(currentState.moveRobotToBox(box, 3));
                 }
             }
             if (currentEdge == 3) {
@@ -406,9 +424,11 @@ public class Solver {
                 if (nextEdge == 2) {
                     steps.add(currentState.moveRobot(-s, s, x));
                     steps.add(currentState.moveRobot(-s, -s, x));
+                    steps.add(currentState.moveRobotToBox(box, 2));
                 } else if (nextEdge == 4) {
                     steps.add(currentState.moveRobot(s, s, x));
                     steps.add(currentState.moveRobot(s, -s, x));
+                    steps.add(currentState.moveRobotToBox(box, 4));
                 }
             }
 
@@ -418,9 +438,11 @@ public class Solver {
                 if (nextEdge == 1) {
                     steps.add(currentState.moveRobot(s, -s, -x));
                     steps.add(currentState.moveRobot(-s, -s, -x));
+                    steps.add(currentState.moveRobotToBox(box, 1));
                 } else if (nextEdge == 3) {
                     steps.add(currentState.moveRobot(s, s, -x));
                     steps.add(currentState.moveRobot(-s, s, -x));
+                    steps.add(currentState.moveRobotToBox(box, 3));
                 }
 
             }
