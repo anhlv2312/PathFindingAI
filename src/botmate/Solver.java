@@ -15,6 +15,8 @@ import java.util.*;
 
 public class Solver {
 
+    private static final double MIN_STEP_SIZE = 0.01;
+
     private static ProblemSpec ps;
     private static RobotAgent robotAgent;
     private static BoxAgent boxAgent;
@@ -56,8 +58,10 @@ public class Solver {
 
     private static void solveProblem() {
 
-        while (solvedMovingBoxes.size() < ps.getMovingBoxes().size() && stepSize > Tester.MAX_BASE_STEP) {
+        while (solvedMovingBoxes.size() < ps.getMovingBoxes().size() && stepSize >= MIN_STEP_SIZE) {
 
+            stepSize = Math.round(stepSize*100)/100.0;
+            
             System.out.println();
             System.out.println(String.format("Start solving with step size: %.2f", stepSize));
 
@@ -141,8 +145,7 @@ public class Solver {
 
             }
 
-            stepSize = stepSize - ps.getRobotWidth()/10;
-
+            stepSize = stepSize/2;
         }
     }
 
