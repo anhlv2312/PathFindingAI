@@ -43,7 +43,6 @@ public class RobotAgent extends SearchAgent {
                 tempState = currentState.moveRobotToPosition(position, orientation);
                 if (checkRobotMovingCollision(currentState, tempState.robotConfig)) {
                     possibleStates.add(tempState);
-//                    System.out.println(positions.size());
                 }
             }
         }

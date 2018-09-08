@@ -26,8 +26,25 @@ public class BoxAgent extends SearchAgent {
     public double calculateMovingCost(State currentState, State nextState) {
         Point2D currentPos = currentState.movingBoxes.get(movingBoxIndex).getPos();
         Point2D nextPos = nextState.movingBoxes.get(movingBoxIndex).getPos();
-        double distance = Math.abs(nextPos.getX() - currentPos.getX()) + Math.abs(nextPos.getY() - currentPos.getY());
-        return distance;
+        return Math.abs(nextPos.getX() - currentPos.getX()) + Math.abs(nextPos.getY() - currentPos.getY());
+
+    }
+
+    public double calculateRobotCost(State currentState, State nextState) {
+
+        int currentEdge = tester.isCoupled(currentState.robotConfig, currentState.movingObstacles.get(movingBoxIndex));
+        int nextEdge = tester.isCoupled(nextState.robotConfig, nextState.movingObstacles.get(movingBoxIndex));
+
+        Box movingBox = nextState.movingBoxes.get(movingBoxIndex);
+
+        if (currentEdge == nextEdge) {
+            return 0;
+        } else if (Math.abs(currentEdge - nextEdge) == 2) {
+            return 2 * movingBox.getWidth();
+        } else {
+            return movingBox.getWidth();
+        }
+
     }
 
     public double calculateObstacleCost(State nextState) {
@@ -43,8 +60,7 @@ public class BoxAgent extends SearchAgent {
 
     public double calculateHeuristic(State nextState) {
         Point2D nextPos = nextState.movingBoxes.get(movingBoxIndex).getPos();
-        double distance = Math.abs(nextPos.getX() - target.getX()) + Math.abs(nextPos.getY() - target.getY());
-        return distance;
+        return Math.abs(nextPos.getX() - target.getX()) + Math.abs(nextPos.getY() - target.getY());
     }
 
     @Override
@@ -107,9 +123,10 @@ public class BoxAgent extends SearchAgent {
         for (State nextState: possibleStates) {
             if (checkMovingBoxCollision(nextState, movingBoxIndex)) {
                 double movingCost = calculateMovingCost(currentState, nextState);
+                double robotCost = calculateRobotCost(currentState, nextState);
                 double obstacleCost = calculateObstacleCost(nextState);
                 double heuristic = calculateHeuristic(nextState);
-                nodes.add(new SearchNode(nextState, movingCost + obstacleCost, heuristic));
+                nodes.add(new SearchNode(nextState, movingCost + robotCost + obstacleCost, heuristic));
             }
         }
 
