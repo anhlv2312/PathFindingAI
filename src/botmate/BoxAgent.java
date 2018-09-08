@@ -65,7 +65,7 @@ public class BoxAgent extends SearchAgent {
 
     @Override
     public boolean isFound(State currentState) {
-        return currentState.movingBoxes.get(movingBoxIndex).getPos().distance(target) < Tester.MAX_BASE_STEP;
+        return currentState.movingBoxes.get(movingBoxIndex).getPos().distance(target) < Tester.MAX_ERROR;
     }
 
     @Override
