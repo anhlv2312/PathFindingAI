@@ -59,7 +59,7 @@ public class RobotAgent extends SearchAgent {
 
     private boolean checkRobotMovingCollision(State state, RobotConfig nextConfig) {
 
-        Rectangle2D border = new Rectangle2D.Double(tester.MAX_BASE_STEP,tester.MAX_BASE_STEP,1 - tester.MAX_BASE_STEP,1 - tester.MAX_BASE_STEP);
+        Rectangle2D border = new Rectangle2D.Double(0,0,1,1);
 
         double angle = state.robotConfig.getOrientation() - nextConfig.getOrientation();
 
@@ -145,6 +145,8 @@ public class RobotAgent extends SearchAgent {
 
             for (StaticObstacle obstacle: staticObstacles) {
                 if (line.intersects(obstacle.getRect())) {
+                    return false;
+                } else if (line.intersects(obstacle.getRect())) {
                     return false;
                 }
             }
