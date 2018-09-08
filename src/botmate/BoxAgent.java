@@ -32,8 +32,8 @@ public class BoxAgent extends SearchAgent {
 
     public double calculateRobotCost(State currentState, State nextState) {
 
-        int currentEdge = tester.isCoupled(currentState.robotConfig, currentState.movingObstacles.get(movingBoxIndex));
-        int nextEdge = tester.isCoupled(nextState.robotConfig, nextState.movingObstacles.get(movingBoxIndex));
+        int currentEdge = tester.isCoupled(currentState.robotConfig, currentState.movingBoxes.get(movingBoxIndex));
+        int nextEdge = tester.isCoupled(nextState.robotConfig, nextState.movingBoxes.get(movingBoxIndex));
 
         Box movingBox = nextState.movingBoxes.get(movingBoxIndex);
 

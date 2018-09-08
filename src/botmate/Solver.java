@@ -39,7 +39,7 @@ public class Solver {
         currentState = initialState;
         solutionStates.add(initialState);
 
-        stepSize = ps.getRobotWidth() - Tester.MAX_BASE_STEP;
+        stepSize = ps.getRobotWidth();
 
         System.out.println("Number of MovingBox: " + ps.getMovingBoxes().size());
         System.out.println("Number of Obstacle: " + ps.getMovingObstacles().size());
