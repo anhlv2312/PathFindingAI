@@ -3,6 +3,7 @@ package botmate;
 import problem.Box;
 import problem.ProblemSpec;
 import problem.StaticObstacle;
+import tester.Tester;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -100,20 +101,20 @@ public class ObstacleAgent extends SearchAgent {
         for (int i=0; i < state.movingObstacles.size(); i++) {
             if (i != movingObstacleIndex) {
                 Box box = state.movingObstacles.get(i);
-                if (movingBox.getRect().intersects(box.getRect())) {
+                if (movingBox.getRect().intersects(tester.grow(box.getRect(), Tester.MAX_BASE_STEP))) {
                     return false;
                 }
             }
         }
 
         for (Box box : state.movingBoxes) {
-            if (movingBox.getRect().intersects(box.getRect())) {
+            if (movingBox.getRect().intersects(tester.grow(box.getRect(), Tester.MAX_BASE_STEP))) {
                 return false;
             }
         }
 
-        for (StaticObstacle obstacle: staticObstacles) {
-            if (movingBox.getRect().intersects(obstacle.getRect())) {
+        for (StaticObstacle box: staticObstacles) {
+            if (movingBox.getRect().intersects(tester.grow(box.getRect(), Tester.MAX_BASE_STEP))) {
                 return false;
             }
         }
