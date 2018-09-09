@@ -124,21 +124,13 @@ public class RobotAgent extends SearchAgent {
 
         for (Line2D line: movingLines) {
             for (Box box: state.movingBoxes) {
-                if (tester.isCoupled(state.robotConfig, box) > 0) {
-                    if (line.intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR))) {
-                        return false;
-                    }
-                } else if (line.intersects(box.getRect())) {
+                if (line.intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR))) {
                     return false;
                 }
             }
 
             for (Box box: state.movingObstacles) {
-                if (tester.isCoupled(state.robotConfig, box) > 0) {
-                    if (line.intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR))) {
-                        return false;
-                    }
-                } else if (line.intersects(box.getRect())) {
+                if (line.intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR))) {
                     return false;
                 }
             }
