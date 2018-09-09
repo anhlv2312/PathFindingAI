@@ -24,6 +24,7 @@ public class Solver {
     private static Tester tester;
     private static State initialState, globalCurrentState;
     private static List<State> solutionStates = new LinkedList<>();
+
     private static Set<Integer> solvedMovingBoxes;
     private static double stepSize;
 
@@ -41,6 +42,7 @@ public class Solver {
         initialState = new State(ps.getInitialRobotConfig(), ps.getMovingBoxes(), ps.getMovingObstacles());
         globalCurrentState = initialState;
         solutionStates.add(initialState);
+
         solvedMovingBoxes = new HashSet<>();
         stepSize = ps.getRobotWidth();
 
@@ -351,8 +353,8 @@ public class Solver {
 
         List<State> steps = new ArrayList<>();
 
-        double d = (box.getWidth() + Tester.MAX_BASE_STEP)/2;
-        double s = (ps.getRobotWidth() + Tester.MAX_BASE_STEP)/2;
+        double d = box.getWidth()/2 + Tester.MAX_ERROR;
+        double s = ps.getRobotWidth()/2 + Tester.MAX_ERROR;
         double x = Math.PI/2;
 
         if (currentEdge != nextEdge) {

@@ -207,8 +207,8 @@ public class RobotAgent extends SearchAgent {
         rightDown.setLocation(rectangle.getMinX() + error, boundary.getMinY());
         upLeft.setLocation(boundary.getMinX(), rectangle.getMaxY() + error);
         downLeft.setLocation(boundary.getMinX(), rectangle.getMinY() - error);
-        upRight.setLocation(boundary.getMinX(), rectangle.getMaxY() + error);
-        downRight.setLocation(boundary.getMinX(), rectangle.getMaxY() - error);
+        upRight.setLocation(boundary.getMaxX(), rectangle.getMaxY() + error);
+        downRight.setLocation(boundary.getMaxX(), rectangle.getMaxY() - error);
 
         pointList.add(leftUp);
         pointList.add(rightUp);

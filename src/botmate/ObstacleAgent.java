@@ -89,7 +89,7 @@ public class ObstacleAgent extends SearchAgent {
     public boolean checkMovingObstacleCollision(State state, int movingObstacleIndex) {
 
         Box movingBox = state.movingObstacles.get(movingObstacleIndex);
-        Rectangle2D border = new Rectangle2D.Double(tester.MAX_BASE_STEP,tester.MAX_BASE_STEP,1 - tester.MAX_BASE_STEP,1 - tester.MAX_BASE_STEP);
+        Rectangle2D border = new Rectangle2D.Double(tester.MAX_ERROR,tester.MAX_ERROR,1 - tester.MAX_ERROR,1 - tester.MAX_ERROR);
 
         Point2D bottomLeft = movingBox.getPos();
         Point2D topRight = new Point2D.Double(bottomLeft.getX() + movingBox.getWidth(),
@@ -104,7 +104,7 @@ public class ObstacleAgent extends SearchAgent {
         for (int i=0; i < state.movingObstacles.size(); i++) {
             if (i != movingObstacleIndex) {
                 Box box = state.movingObstacles.get(i);
-                if (movingBox.getRect().intersects(tester.grow(box.getRect(), Tester.MAX_BASE_STEP))) {
+                if (movingBox.getRect().intersects(box.getRect())) {
                     return false;
                 }
                 if (robotLine.intersects(box.getRect())) {
@@ -115,7 +115,7 @@ public class ObstacleAgent extends SearchAgent {
         }
 
         for (Box box : state.movingBoxes) {
-            if (movingBox.getRect().intersects(tester.grow(box.getRect(), Tester.MAX_BASE_STEP))) {
+            if (movingBox.getRect().intersects(box.getRect())) {
                 return false;
             }
             if (robotLine.intersects(box.getRect())) {
@@ -124,7 +124,7 @@ public class ObstacleAgent extends SearchAgent {
         }
 
         for (StaticObstacle box: staticObstacles) {
-            if (movingBox.getRect().intersects(tester.grow(box.getRect(), Tester.MAX_BASE_STEP))) {
+            if (movingBox.getRect().intersects(box.getRect())) {
                 return false;
             }
             if (robotLine.intersects(box.getRect())) {
