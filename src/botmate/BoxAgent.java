@@ -135,6 +135,7 @@ public class BoxAgent extends SearchAgent {
     }
 
 
+
     private boolean checkMovingBoxCollision(State state) {
 
         Box movingBox = state.movingBoxes.get(movingBoxIndex);
@@ -142,14 +143,17 @@ public class BoxAgent extends SearchAgent {
         Rectangle2D border = new Rectangle2D.Double(Tester.MAX_ERROR,Tester.MAX_ERROR,1 - Tester.MAX_ERROR,1 - Tester.MAX_ERROR);
 
         Point2D bottomLeft = movingBox.getPos();
-        Point2D topRight = new Point2D.Double(bottomLeft.getX() + movingBox.getWidth(),
-                bottomLeft.getY() + movingBox.getWidth());
+        Point2D bottomLeftCorner = new Point2D.Double(bottomLeft.getX() - Tester.MAX_ERROR,
+                bottomLeft.getY() - Tester.MAX_ERROR);
+        Point2D topRightCorner = new Point2D.Double(bottomLeft.getX() + movingBox.getWidth() + Tester.MAX_ERROR,
+                bottomLeft.getY() + movingBox.getWidth() + Tester.MAX_ERROR);
 
         Line2D robotLine = new Line2D.Double(tester.getPoint1(state.robotConfig), tester.getPoint2(state.robotConfig));
 
-        if (!border.contains(bottomLeft) || !border.contains(topRight)) {
+        if (!border.contains(bottomLeftCorner) || !border.contains(topRightCorner)) {
             return false;
         }
+
 
         for (int i=0; i < state.movingBoxes.size(); i++) {
             if (i != movingBoxIndex) {
@@ -157,7 +161,7 @@ public class BoxAgent extends SearchAgent {
                 if (movingBox.getRect().intersects(box.getRect())) {
                     return false;
                 }
-                if (robotLine.intersects(box.getRect())) {
+                if (robotLine.intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR))) {
                     return false;
                 }
             }
