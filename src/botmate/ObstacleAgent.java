@@ -78,7 +78,7 @@ public class ObstacleAgent extends SearchAgent {
 
         List<SearchNode> nodes = new ArrayList<>();
         for (State nextState : possibleStates) {
-            if (checkMovingObstacleCollision(nextState, movingObstacleIndex)) {
+            if (checkMovingObstacleCollision(nextState)) {
                 nodes.add(new SearchNode(nextState));
             }
         }
@@ -86,10 +86,10 @@ public class ObstacleAgent extends SearchAgent {
     }
 
 
-    public boolean checkMovingObstacleCollision(State state, int movingObstacleIndex) {
+    private boolean checkMovingObstacleCollision(State state) {
 
         Box movingBox = state.movingObstacles.get(movingObstacleIndex);
-        Rectangle2D border = new Rectangle2D.Double(tester.MAX_ERROR,tester.MAX_ERROR,1 - tester.MAX_ERROR,1 - tester.MAX_ERROR);
+        Rectangle2D border = new Rectangle2D.Double(Tester.MAX_ERROR,Tester.MAX_ERROR,1 - Tester.MAX_ERROR,1 - Tester.MAX_ERROR);
 
         Point2D bottomLeft = movingBox.getPos();
         Point2D topRight = new Point2D.Double(bottomLeft.getX() + movingBox.getWidth(),

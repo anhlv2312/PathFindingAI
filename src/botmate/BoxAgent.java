@@ -122,7 +122,7 @@ public class BoxAgent extends SearchAgent {
 
         List<SearchNode> nodes = new ArrayList<>();
         for (State nextState: possibleStates) {
-            if (checkMovingBoxCollision(nextState, movingBoxIndex)) {
+            if (checkMovingBoxCollision(nextState)) {
                 double movingCost = calculateMovingCost(currentState, nextState);
                 double robotCost = calculateRobotCost(currentState, nextState);
                 double obstacleCost = calculateObstacleCost(nextState);
@@ -135,11 +135,11 @@ public class BoxAgent extends SearchAgent {
     }
 
 
-    private boolean checkMovingBoxCollision(State state, int movingBoxIndex) {
+    private boolean checkMovingBoxCollision(State state) {
 
         Box movingBox = state.movingBoxes.get(movingBoxIndex);
 
-        Rectangle2D border = new Rectangle2D.Double(tester.MAX_ERROR,tester.MAX_ERROR,1 - tester.MAX_ERROR,1 - tester.MAX_ERROR);
+        Rectangle2D border = new Rectangle2D.Double(Tester.MAX_ERROR,Tester.MAX_ERROR,1 - Tester.MAX_ERROR,1 - Tester.MAX_ERROR);
 
         Point2D bottomLeft = movingBox.getPos();
         Point2D topRight = new Point2D.Double(bottomLeft.getX() + movingBox.getWidth(),
