@@ -248,7 +248,7 @@ public class Solver {
     private static List<String> generateMoves(State currentState, State nextState) {
 
         List<String> result = new LinkedList<>();
-        result.add(currentState.toString());
+
         State tempState = currentState;
 
         RobotConfig r1 = currentState.robotConfig;
@@ -279,16 +279,22 @@ public class Solver {
             for (int j = 0; j < tempState.movingBoxes.size(); j++) {
                 int currentPosition = tester.isCoupled(r1, currentState.movingBoxes.get(j));
                 int nextPosition = tester.isCoupled(r2, nextState.movingBoxes.get(j));
-                if (currentPosition > 0 && nextPosition > 0) {
-                    tempState = tempState.moveMovingBox(j, deltaX, deltaY, nextPosition);
+                if ((currentPosition == 1 || currentPosition == 3 ) && (nextPosition == 1 || nextPosition == 3 )) {
+                    tempState = tempState.moveMovingBox(j, 0, deltaY, nextPosition);
+                }
+                if ((currentPosition == 2 || currentPosition == 4 ) && (nextPosition == 2 || nextPosition == 4 )) {
+                    tempState = tempState.moveMovingBox(j, deltaX, 0, nextPosition);
                 }
             }
 
             for (int j = 0; j < tempState.movingObstacles.size(); j++) {
                 int currentPosition = tester.isCoupled(r1, currentState.movingObstacles.get(j));
                 int nextPosition = tester.isCoupled(r2, nextState.movingObstacles.get(j));
-                if (currentPosition > 0 && nextPosition > 0) {
-                    tempState = tempState.moveObstacle(j, deltaX, deltaY, nextPosition);
+                if ((currentPosition == 1 || currentPosition == 3 ) && (nextPosition == 1 || nextPosition == 3 )) {
+                    tempState = tempState.moveObstacle(j, 0, deltaY, nextPosition);
+                }
+                if ((currentPosition == 2 || currentPosition == 4 ) && (nextPosition == 2 || nextPosition == 4 )) {
+                    tempState = tempState.moveObstacle(j, deltaX, 0, nextPosition);
                 }
             }
 
