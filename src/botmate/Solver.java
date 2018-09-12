@@ -50,7 +50,18 @@ public class Solver {
         System.out.println("Number of Obstacle: " + ps.getMovingObstacles().size());
         double startTime = System.currentTimeMillis();
 
-        solveProblem();
+        while (solvedMovingBoxes.size() < ps.getMovingBoxes().size() && stepSize >= MIN_STEP_SIZE) {
+            stepSize = Math.round(stepSize * 100) / 100.0;
+            System.out.println();
+            System.out.println(String.format("Start solving with step size: %.2f", stepSize));
+            for (int movingBoxIndex = 0; movingBoxIndex < ps.getMovingBoxes().size(); movingBoxIndex++ ) {
+                if (!solvedMovingBoxes.contains(movingBoxIndex)) {
+                    solveMovingBox(movingBoxIndex);
+                }
+
+            }
+            stepSize = stepSize/2;
+        }
 
         System.out.println();
         System.out.println(String.format("Total time: %.2f seconds", (System.currentTimeMillis() - startTime)/1000));
@@ -58,77 +69,58 @@ public class Solver {
         writeOutputFile(args[1]);
     }
 
-    private static void solveProblem() {
+    private static boolean solveMovingBox(int movingBoxIndex) {
 
-        while (solvedMovingBoxes.size() < ps.getMovingBoxes().size() && stepSize >= MIN_STEP_SIZE) {
+        System.out.println("    Solving MovingBox: " + movingBoxIndex);
+        Point2D movingBoxGoal = ps.getMovingBoxEndPositions().get(movingBoxIndex);
 
-            stepSize = Math.round(stepSize*100)/100.0;
+        boxAgent = new BoxAgent(ps, globalCurrentState, movingBoxIndex, movingBoxGoal, stepSize);
+        List<State> boxSolution = boxAgent.search();
 
-            System.out.println();
-            System.out.println(String.format("Start solving with step size: %.2f", stepSize));
+        if (boxSolution != null) {
+            List<Rectangle2D> movingPaths = generateMovingPath(movingBoxIndex, boxSolution);
+            Set<Integer> obstacleIndexes = getObstaclesIndexes(movingPaths, globalCurrentState.movingObstacles);
 
-            for (int movingBoxIndex = 0; movingBoxIndex < ps.getMovingBoxes().size(); movingBoxIndex++ ) {
-
-                if (solvedMovingBoxes.contains(movingBoxIndex)) {
-                    continue;
-                }
-
-                System.out.println("    Solving MovingBox: " + movingBoxIndex);
-                Point2D movingBoxGoal = ps.getMovingBoxEndPositions().get(movingBoxIndex);
-
-                boxAgent = new BoxAgent(ps, globalCurrentState, movingBoxIndex, movingBoxGoal, stepSize);
-                List<State> boxSolution = boxAgent.search();
-
-                if (boxSolution != null) {
-                    List<Rectangle2D> movingPaths = generateMovingPath(movingBoxIndex, boxSolution);
-                    Set<Integer> obstacleIndexes = getObstaclesIndexes(movingPaths, globalCurrentState.movingObstacles);
-
-                    int obstacleCount = obstacleIndexes.size();
-                    for (int obstacleIndex : obstacleIndexes) {
-                        System.out.println("        Solving Obstacle: " + obstacleIndex);
-                        obstacleAgent = new ObstacleAgent(ps, globalCurrentState, obstacleIndex, stepSize, movingPaths);
-                        List<State> obstacleSolution = obstacleAgent.search();
-                        if (obstacleSolution == null) {
-                            System.out.println("            Unable to move Obstacle!");
-                            break;
-                        } else {
-                            List<State> robotSolution = generateRobotToObstacle(globalCurrentState, obstacleIndex, obstacleSolution);
-                            if (robotSolution != null) {
-                                solutionStates.addAll(robotSolution);
-                                solvedMovingBoxes.add(movingBoxIndex);
-                                globalCurrentState = solutionStates.get(solutionStates.size() - 1);
-                            } else {
-                                System.out.println("            No solution for Robot!");
-                                break;
-                            }
-                        }
-                        obstacleCount--;
-                    }
-
-                    if (obstacleCount == 0) {
-                        boxAgent = new BoxAgent(ps, globalCurrentState, movingBoxIndex, movingBoxGoal, stepSize);
-                        boxSolution = boxAgent.search();
-
-                        if (!moveMovingBoxToGoal(globalCurrentState, movingBoxIndex, boxSolution)) {
-                            continue;
-                        }
-
-                    } else {
-                        System.out.println("        Skip MovingBox: " + movingBoxIndex);
-                    }
-
-                    globalCurrentState = solutionStates.get(solutionStates.size() - 1);
+            int obstacleCount = obstacleIndexes.size();
+            for (int obstacleIndex : obstacleIndexes) {
+                System.out.println("        Solving Obstacle: " + obstacleIndex);
+                obstacleAgent = new ObstacleAgent(ps, globalCurrentState, obstacleIndex, stepSize, movingPaths);
+                List<State> obstacleSolution = obstacleAgent.search();
+                if (obstacleSolution == null) {
+                    System.out.println("            Unable to move Obstacle!");
+                    break;
                 } else {
-                    System.out.println("        No solution for MovingBox: " + movingBoxIndex);
+                    List<State> robotSolution = generateRobotToObstacle(globalCurrentState, obstacleIndex, obstacleSolution);
+                    if (robotSolution != null) {
+                        solutionStates.addAll(robotSolution);
+                        solvedMovingBoxes.add(movingBoxIndex);
+                        globalCurrentState = solutionStates.get(solutionStates.size() - 1);
+                    } else {
+                        System.out.println("            No solution for Robot!");
+                        break;
+                    }
                 }
-
+                obstacleCount--;
             }
-            stepSize = stepSize/2;
+
+            if (obstacleCount == 0) {
+                boxAgent = new BoxAgent(ps, globalCurrentState, movingBoxIndex, movingBoxGoal, stepSize);
+                boxSolution = boxAgent.search();
+                if (!moveMovingBoxToGoal(globalCurrentState, movingBoxIndex, boxSolution)) {
+                    return false;
+                }
+            } else {
+                System.out.println("        Skip MovingBox: " + movingBoxIndex);
+            }
+
+            globalCurrentState = solutionStates.get(solutionStates.size() - 1);
+        } else {
+            System.out.println("        No solution for MovingBox: " + movingBoxIndex);
         }
+        return true;
     }
 
-
-    private static boolean moveMovingBoxToGoal (State currentState, int movingBoxIndex, List<State> boxSolution) {
+    private static boolean moveMovingBoxToGoal(State currentState, int movingBoxIndex, List<State> boxSolution) {
         List<State> robotSolution = generateRobotToMovingBox(currentState, movingBoxIndex, boxSolution);
         if (robotSolution != null) {
             solutionStates.addAll(robotSolution);
