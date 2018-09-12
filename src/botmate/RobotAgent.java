@@ -241,6 +241,10 @@ public class RobotAgent extends SearchAgent {
         for (Box box : currentState.movingBoxes) {
             Point2D center = new Point2D.Double(box.getPos().getX() + box.getWidth(), box.getPos().getY() + box.getWidth());
 
+            if (targetConfig.getPos().distance(center) <= box.getWidth()) {
+                obstacles.add(box.getRect());
+            }
+
             if (currentState.robotConfig.getPos().distance(center) <= box.getWidth()) {
                 obstacles.add(box.getRect());
             }
@@ -251,6 +255,10 @@ public class RobotAgent extends SearchAgent {
 
         for (Box box : currentState.movingObstacles) {
             Point2D center = new Point2D.Double(box.getPos().getX() + box.getWidth(), box.getPos().getY() + box.getWidth());
+
+            if (targetConfig.getPos().distance(center) <= box.getWidth()) {
+                obstacles.add(box.getRect());
+            }
 
             if (currentState.robotConfig.getPos().distance(center) <= box.getWidth()) {
                 obstacles.add(box.getRect());
