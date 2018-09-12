@@ -18,7 +18,6 @@ public class Solver {
     private static final double MIN_STEP_SIZE = 0.01;
     private static final double MAX_TIMEOUT = 115;
 
-
     private static ProblemSpec ps;
     private static RobotAgent robotAgent;
     private static BoxAgent boxAgent;
