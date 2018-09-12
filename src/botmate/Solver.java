@@ -50,7 +50,7 @@ public class Solver {
         System.out.println("Number of Obstacle: " + ps.getMovingObstacles().size());
         double startTime = System.currentTimeMillis();
 
-        while (solvedMovingBoxes.size() < ps.getMovingBoxes().size() && stepSize >= MIN_STEP_SIZE) {
+        while (solvedMovingBoxes.size() < ps.getMovingBoxes().size()) {
             stepSize = Math.round(stepSize * 100) / 100.0;
             System.out.println();
             System.out.println(String.format("Start solving with step size: %.2f", stepSize));
