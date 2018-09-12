@@ -17,7 +17,6 @@ public class RobotAgent extends SearchAgent {
         super(ps, initialState);
         this.targetConfig = targetConfig;
         this.movingBox = movingBox;
-
     }
 
     @Override
@@ -70,18 +69,19 @@ public class RobotAgent extends SearchAgent {
             Rectangle2D robotRect;
             double bottomLeftX = state.robotConfig.getPos().getX()-robotWidth/2;
             double bottomLeftY = state.robotConfig.getPos().getY()-robotWidth/2;
+
             robotRect = new Rectangle2D.Double(bottomLeftX, bottomLeftY, robotWidth, robotWidth);
-            List<Point2D> robotPoints = getPointsAroundRectangle(robotRect, 0);
+            Set<Point2D> robotPoints = getPointsAroundRectangle(robotRect, 0);
 
             for (Point2D point: robotPoints) {
-                if (!border.contains(point)) {
+                if (!border.contains(point) ) {
                     return false;
                 }
             }
 
             for (Box box: state.movingBoxes) {
                 if (tester.isCoupled(state.robotConfig, box) > 0) {
-                    if (robotRect.intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR))) {
+                    if (robotRect.intersects(box.getRect())) {
                         return false;
                     }
                 } else if (robotRect.intersects(box.getRect())) {
@@ -91,7 +91,7 @@ public class RobotAgent extends SearchAgent {
 
             for (Box box: state.movingObstacles) {
                 if (tester.isCoupled(state.robotConfig, box) > 0) {
-                    if (robotRect.intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR))) {
+                    if (robotRect.intersects(box.getRect())) {
                         return false;
                     }
                 } else if (robotRect.intersects(box.getRect())) {
@@ -99,10 +99,10 @@ public class RobotAgent extends SearchAgent {
                 }
             }
 
-            for (StaticObstacle obstacle: staticObstacles) {
-                if (robotRect.intersects(obstacle.getRect())) {
+            for (StaticObstacle box: staticObstacles) {
+                if (robotRect.intersects(box.getRect())) {
                     return false;
-                } else if (robotRect.intersects(obstacle.getRect())) {
+                } else if (robotRect.intersects(box.getRect())) {
                     return false;
                 }
             }
@@ -130,13 +130,13 @@ public class RobotAgent extends SearchAgent {
 
         for (Line2D line: movingLines) {
             for (Box box: state.movingBoxes) {
-                if (line.intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR))) {
+                if (line.intersects(box.getRect())) {
                     return false;
                 }
             }
 
             for (Box box: state.movingObstacles) {
-                if (line.intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR))) {
+                if (line.intersects(box.getRect())) {
                     return false;
                 }
             }
@@ -153,12 +153,12 @@ public class RobotAgent extends SearchAgent {
         return true;
     }
 
-    private List<Point2D> getPointsAroundRectangle(Rectangle2D rectangle, double delta) {
+    private Set<Point2D> getPointsAroundRectangle(Rectangle2D rectangle, double delta) {
         //sample 8 points(4 vertices and 4 at the middle of vertices) around the object
 
 
         //Todo: add 8 more point that help the robot to rotate through the corner
-        List<Point2D> pointList = new ArrayList<>();
+        Set<Point2D> pointList = new HashSet<>();
         Rectangle2D boundary = tester.grow(rectangle, delta);
 
         Point2D topLeft = new Point2D.Double();
@@ -184,10 +184,10 @@ public class RobotAgent extends SearchAgent {
         pointList.add(topRight);
         pointList.add(bottomLeft);
         pointList.add(bottomRight);
-        pointList.add(midUp);
-        pointList.add(midDown);
-        pointList.add(midLeft);
-        pointList.add(midRight);
+//        pointList.add(midUp);
+//        pointList.add(midDown);
+//        pointList.add(midLeft);
+//        pointList.add(midRight);
 
         double error = Tester.MAX_ERROR;
         Point2D leftUp = new Point2D.Double();
@@ -202,7 +202,7 @@ public class RobotAgent extends SearchAgent {
         leftUp.setLocation(rectangle.getMinX() - error, boundary.getMaxY());
         rightUp.setLocation(rectangle.getMaxX() + error, boundary.getMaxY());
         leftDown.setLocation(rectangle.getMinX() - error, boundary.getMinY());
-        rightDown.setLocation(rectangle.getMinX() + error, boundary.getMinY());
+        rightDown.setLocation(rectangle.getMaxX() + error, boundary.getMinY());
         upLeft.setLocation(boundary.getMinX(), rectangle.getMaxY() + error);
         downLeft.setLocation(boundary.getMinX(), rectangle.getMinY() - error);
         upRight.setLocation(boundary.getMaxX(), rectangle.getMaxY() + error);
@@ -222,9 +222,9 @@ public class RobotAgent extends SearchAgent {
     }
 
 
-    private List<Point2D> getPointsAroundObstacles(List<Rectangle2D> rectangles, double delta) {
+    private Set<Point2D> getPointsAroundObstacles(List<Rectangle2D> rectangles, double delta) {
 
-        List<Point2D> points = new ArrayList<>();
+        Set<Point2D> points = new HashSet<>();
         for (Rectangle2D rectangle : rectangles) {
             points.addAll(getPointsAroundRectangle(rectangle, delta));
         }
@@ -240,31 +240,31 @@ public class RobotAgent extends SearchAgent {
         for (Box box : currentState.movingBoxes) {
             Point2D center = new Point2D.Double(box.getPos().getX() + box.getWidth(), box.getPos().getY() + box.getWidth());
 
-            if (connectionLine.ptLineDist(center) < robotWidth/2) {
+            if ((Math.abs(connectionLine.ptLineDist(center))) < robotWidth/2) {
                 obstacles.add(box.getRect());
             }
-
+//
 //            if (connectionLine.intersects(box.getRect())) {
-//                obstacles.add(box);
+//                obstacles.add(box.getRect());
 //            }
         }
 
         for (Box box : currentState.movingObstacles) {
             Point2D center = new Point2D.Double(box.getPos().getX() + box.getWidth(), box.getPos().getY() + box.getWidth());
 
-            if (connectionLine.ptLineDist(center) < robotWidth/2) {
+            if ((Math.abs(connectionLine.ptLineDist(center))) < robotWidth/2) {
                 obstacles.add(box.getRect());
             }
-//
+
 //            if (connectionLine.intersects(box.getRect())) {
-//                obstacles.add(box);
+//                obstacles.add(box.getRect());
 //            }
         }
 
         for (StaticObstacle box : staticObstacles) {
-            if (connectionLine.intersects(box.getRect())) {
+//            if (connectionLine.intersects(box.getRect())) {
                 obstacles.add(box.getRect());
-            }
+//            }
         }
 
         return obstacles;

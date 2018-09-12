@@ -81,6 +81,7 @@ public class Solver {
             Set<Integer> obstacleIndexes = getObstaclesIndexes(movingPaths, globalCurrentState.movingObstacles);
 
             int obstacleCount = obstacleIndexes.size();
+
             for (int obstacleIndex : obstacleIndexes) {
                 System.out.println("        Solving Obstacle: " + obstacleIndex);
                 obstacleAgent = new ObstacleAgent(ps, globalCurrentState, obstacleIndex, stepSize, movingPaths);
@@ -119,6 +120,9 @@ public class Solver {
         }
         return false;
     }
+
+
+//    private static int findNearestMovingBox(State, )
 
     private static boolean moveMovingBoxToGoal(State currentState, int movingBoxIndex, List<State> boxSolution) {
         List<State> robotSolution = generateRobotToMovingBox(currentState, movingBoxIndex, boxSolution);
@@ -199,11 +203,9 @@ public class Solver {
         Iterator<State> stateIterator = solution.iterator();
         List<State> states = new LinkedList<>();
         System.out.println("            Find path for Robot: " + solution.size() + " steps");
-        int count = 0;
         State currentState = firstState;
         while (stateIterator.hasNext()) {
 
-            count ++;
             State nextState = stateIterator.next();
             Box currentBox = currentState.movingObstacles.get(obstacleIndex);
             int nextEdge = tester.isCoupled(nextState.robotConfig, nextState.movingObstacles.get(obstacleIndex));
