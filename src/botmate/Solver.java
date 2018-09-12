@@ -104,14 +104,15 @@ public class Solver {
             if (obstacleCount == 0) {
                 boxAgent = new BoxAgent(ps, globalCurrentState, movingBoxIndex, movingBoxGoal, stepSize);
                 boxSolution = boxAgent.search();
-                if (!moveMovingBoxToGoal(globalCurrentState, movingBoxIndex, boxSolution)) {
-                    solvedMovingBoxes.add(movingBoxIndex);
-                    return true;
+                if (boxSolution != null) {
+                    if (moveMovingBoxToGoal(globalCurrentState, movingBoxIndex, boxSolution)) {
+                        solvedMovingBoxes.add(movingBoxIndex);
+                        return true;
+                    }
                 }
             } else {
                 System.out.println("        Skip MovingBox: " + movingBoxIndex);
             }
-
             globalCurrentState = solutionStates.get(solutionStates.size() - 1);
         } else {
             System.out.println("        No solution for MovingBox: " + movingBoxIndex);
@@ -123,7 +124,6 @@ public class Solver {
         List<State> robotSolution = generateRobotToMovingBox(currentState, movingBoxIndex, boxSolution);
         if (robotSolution != null) {
             solutionStates.addAll(robotSolution);
-            solvedMovingBoxes.add(movingBoxIndex);
             globalCurrentState = solutionStates.get(solutionStates.size() - 1);
             return true;
         } else {
