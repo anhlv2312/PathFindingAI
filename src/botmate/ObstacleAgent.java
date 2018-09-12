@@ -106,7 +106,7 @@ public class ObstacleAgent extends SearchAgent {
         for (int i=0; i < state.movingObstacles.size(); i++) {
             if (i != movingObstacleIndex) {
                 Box box = state.movingObstacles.get(i);
-                if (movingBox.getRect().intersects(box.getRect())) {
+                if (movingBox.getRect().intersects(tester.grow(box.getRect(), Tester.MAX_ERROR))) {
                     return false;
                 }
                 if (robotLine.intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR))) {
@@ -117,7 +117,7 @@ public class ObstacleAgent extends SearchAgent {
         }
 
         for (Box box : state.movingBoxes) {
-            if (movingBox.getRect().intersects(box.getRect())) {
+            if (movingBox.getRect().intersects(tester.grow(box.getRect(), Tester.MAX_ERROR))) {
                 return false;
             }
             if (robotLine.intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR))) {
@@ -126,7 +126,7 @@ public class ObstacleAgent extends SearchAgent {
         }
 
         for (StaticObstacle box: staticObstacles) {
-            if (movingBox.getRect().intersects(box.getRect())) {
+            if (movingBox.getRect().intersects(tester.grow(box.getRect(), Tester.MAX_ERROR))) {
                 return false;
             }
             if (robotLine.intersects(box.getRect())) {

@@ -11,9 +11,12 @@ import java.util.*;
 public class RobotAgent extends SearchAgent {
 
     private RobotConfig targetConfig;
-    RobotAgent(ProblemSpec ps, State initialState, RobotConfig targetConfig) {
+    private Box movingBox;
+
+    RobotAgent(ProblemSpec ps, State initialState, RobotConfig targetConfig, Box movingBox) {
         super(ps, initialState);
         this.targetConfig = targetConfig;
+        this.movingBox = movingBox;
 
     }
 
@@ -30,7 +33,7 @@ public class RobotAgent extends SearchAgent {
         Set<Point2D> positions = new HashSet<>();
 
         positions.add(targetConfig.getPos());
-        positions.addAll(getPointsAroundObstacles(getObstacles(currentState), Tester.MAX_ERROR));
+        positions.addAll(getPointsAroundRectangle(movingBox.getRect(), Tester.MAX_ERROR));
         positions.addAll(getPointsAroundObstacles(getObstacles(currentState), robotWidth/2 + Tester.MAX_ERROR));
 
         List<State> possibleStates = new ArrayList<>();
@@ -39,16 +42,13 @@ public class RobotAgent extends SearchAgent {
             for (double orientation: orientations) {
                 tempState = currentState.moveRobotToPosition(position, orientation);
                 if (checkRobotMovingCollision(currentState, tempState.robotConfig)) {
-
                     possibleStates.add(tempState);
-
                 }
             }
         }
 
         List<SearchNode> nodes = new ArrayList<>();
         for (State nextState: possibleStates) {
-            double cost = currentState.robotConfig.getPos().distance(nextState.robotConfig.getPos());
             nodes.add(new SearchNode(nextState));
         }
 
@@ -222,6 +222,7 @@ public class RobotAgent extends SearchAgent {
     }
 
     private List<Point2D> getPointsAroundObstacles(List<Box> obstacles, double delta) {
+
         List<Point2D> points = new ArrayList<>();
         for (Box obstacle : obstacles) {
             points.addAll(getPointsAroundRectangle(obstacle.getRect(), delta));
@@ -240,15 +241,27 @@ public class RobotAgent extends SearchAgent {
         Line2D connectionLine = new Line2D.Double(currentState.robotConfig.getPos(), targetConfig.getPos());
 
         for (Box box : currentState.movingBoxes) {
-            if (connectionLine.intersects(box.getRect())) {
+            Point2D center = new Point2D.Double(box.getPos().getX() + box.getWidth(), box.getPos().getY() + box.getWidth());
+
+            if (connectionLine.ptLineDist(center) < robotWidth/2) {
                 obstacles.add(box);
             }
+
+//            if (connectionLine.intersects(box.getRect())) {
+//                obstacles.add(box);
+//            }
         }
 
         for (Box box : currentState.movingObstacles) {
-            if (connectionLine.intersects(box.getRect())) {
+            Point2D center = new Point2D.Double(box.getPos().getX() + box.getWidth(), box.getPos().getY() + box.getWidth());
+
+            if (connectionLine.ptLineDist(center) < robotWidth/2) {
                 obstacles.add(box);
             }
+//
+//            if (connectionLine.intersects(box.getRect())) {
+//                obstacles.add(box);
+//            }
         }
 
         return obstacles;

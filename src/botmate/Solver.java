@@ -111,7 +111,7 @@ public class Solver {
                                     globalCurrentState = solutionStates.get(solutionStates.size() - 1);
                                 } else {
                                     System.out.println("            No solution for Robot!");
-                                    continue;
+                                    break;
                                 }
                             }
                             obstacleCount--;
@@ -127,9 +127,10 @@ public class Solver {
                                 solvedMovingBoxes.add(movingBoxIndex);
                                 globalCurrentState = solutionStates.get(solutionStates.size() - 1);
                             } else {
+                                solutionStates.addAll(boxSolution);
                                 System.out.println("    No solution for Robot!");
-                                continue;
                             }
+
                         } else {
                             System.out.println("        Skip MovingBox: " + movingBoxIndex);
                         }
@@ -201,7 +202,7 @@ public class Solver {
             int nextEdge = tester.isCoupled(nextState.robotConfig, nextState.movingBoxes.get(movingBoxIndex));
 
             RobotConfig nextRobotConfig = currentState.moveRobotToBox(currentBox, nextEdge).robotConfig;
-            robotAgent = new RobotAgent(ps, currentState, nextRobotConfig);
+            robotAgent = new RobotAgent(ps, currentState, nextRobotConfig, currentBox);
             List<State> robotSolution = robotAgent.search();
             if (robotSolution == null) {
                 System.out.println("| Failed");
@@ -236,7 +237,7 @@ public class Solver {
             int nextEdge = tester.isCoupled(nextState.robotConfig, nextState.movingObstacles.get(obstacleIndex));
 
             RobotConfig nextRobotConfig = currentState.moveRobotToBox(currentBox, nextEdge).robotConfig;
-            robotAgent = new RobotAgent(ps, currentState, nextRobotConfig);
+            robotAgent = new RobotAgent(ps, currentState, nextRobotConfig, currentBox);
             List<State> robotSolution = robotAgent.search();
             if (robotSolution == null) {
                 System.out.println("| Failed");
