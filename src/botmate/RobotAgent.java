@@ -241,27 +241,15 @@ public class RobotAgent extends SearchAgent {
         Line2D connectionLine = new Line2D.Double(currentState.robotConfig.getPos(), targetConfig.getPos());
 
         for (Box box : currentState.movingBoxes) {
-            Point2D center = new Point2D.Double(box.getPos().getX() + box.getWidth(), box.getPos().getY() + box.getWidth());
-
-            if (connectionLine.ptLineDist(center) < robotWidth/2) {
+            if (connectionLine.intersects(box.getRect())) {
                 obstacles.add(box);
             }
-
-//            if (connectionLine.intersects(box.getRect())) {
-//                obstacles.add(box);
-//            }
         }
 
         for (Box box : currentState.movingObstacles) {
-            Point2D center = new Point2D.Double(box.getPos().getX() + box.getWidth(), box.getPos().getY() + box.getWidth());
-
-            if (connectionLine.ptLineDist(center) < robotWidth/2) {
+            if (connectionLine.intersects(box.getRect())) {
                 obstacles.add(box);
             }
-//
-//            if (connectionLine.intersects(box.getRect())) {
-//                obstacles.add(box);
-//            }
         }
 
         return obstacles;

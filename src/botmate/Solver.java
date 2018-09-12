@@ -58,7 +58,6 @@ public class Solver {
                 if (!solvedMovingBoxes.contains(movingBoxIndex)) {
                     solveMovingBox(movingBoxIndex);
                 }
-
             }
             stepSize = stepSize/2;
         }
@@ -93,7 +92,6 @@ public class Solver {
                     List<State> robotSolution = generateRobotToObstacle(globalCurrentState, obstacleIndex, obstacleSolution);
                     if (robotSolution != null) {
                         solutionStates.addAll(robotSolution);
-                        solvedMovingBoxes.add(movingBoxIndex);
                         globalCurrentState = solutionStates.get(solutionStates.size() - 1);
                     } else {
                         System.out.println("            No solution for Robot!");
@@ -107,7 +105,8 @@ public class Solver {
                 boxAgent = new BoxAgent(ps, globalCurrentState, movingBoxIndex, movingBoxGoal, stepSize);
                 boxSolution = boxAgent.search();
                 if (!moveMovingBoxToGoal(globalCurrentState, movingBoxIndex, boxSolution)) {
-                    return false;
+                    solvedMovingBoxes.add(movingBoxIndex);
+                    return true;
                 }
             } else {
                 System.out.println("        Skip MovingBox: " + movingBoxIndex);
@@ -117,7 +116,7 @@ public class Solver {
         } else {
             System.out.println("        No solution for MovingBox: " + movingBoxIndex);
         }
-        return true;
+        return false;
     }
 
     private static boolean moveMovingBoxToGoal(State currentState, int movingBoxIndex, List<State> boxSolution) {
@@ -200,9 +199,11 @@ public class Solver {
         Iterator<State> stateIterator = solution.iterator();
         List<State> states = new LinkedList<>();
         System.out.println("            Find path for Robot: " + solution.size() + " steps");
-
+        int count = 0;
         State currentState = firstState;
         while (stateIterator.hasNext()) {
+
+            count ++;
             State nextState = stateIterator.next();
             Box currentBox = currentState.movingObstacles.get(obstacleIndex);
             int nextEdge = tester.isCoupled(nextState.robotConfig, nextState.movingObstacles.get(obstacleIndex));
