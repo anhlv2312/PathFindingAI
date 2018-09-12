@@ -16,6 +16,7 @@ import java.util.*;
 public class Solver {
 
     private static final double MIN_STEP_SIZE = 0.01;
+    private static final double MAX_TIMEOUT = 115;
 
     private static ProblemSpec ps;
     private static RobotAgent robotAgent;
@@ -49,8 +50,9 @@ public class Solver {
         System.out.println("Number of MovingBox: " + ps.getMovingBoxes().size());
         System.out.println("Number of Obstacle: " + ps.getMovingObstacles().size());
         double startTime = System.currentTimeMillis();
+        double timer = 0;
 
-        while (solvedMovingBoxes.size() < ps.getMovingBoxes().size()) {
+        while (solvedMovingBoxes.size() < ps.getMovingBoxes().size() && timer < MAX_TIMEOUT) {
             stepSize = Math.round(stepSize * 100) / 100.0;
             System.out.println();
             System.out.println(String.format("Start solving with step size: %.2f", stepSize));
@@ -59,7 +61,12 @@ public class Solver {
                     solveMovingBox(movingBoxIndex);
                 }
             }
-            stepSize = stepSize/2;
+            if (stepSize <= MIN_STEP_SIZE) {
+                stepSize = ps.getRobotWidth();
+            } else {
+                stepSize = stepSize/2;
+            }
+            timer = (System.currentTimeMillis() - startTime)/1000;
         }
 
         System.out.println();
