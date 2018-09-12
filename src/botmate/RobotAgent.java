@@ -30,8 +30,8 @@ public class RobotAgent extends SearchAgent {
         Set<Point2D> positions = new HashSet<>();
 
         positions.add(targetConfig.getPos());
-        positions.addAll(getPointsAroundObstacles(getObstacles(currentState), robotWidth/2 + Tester.MAX_ERROR));
         positions.addAll(getPointsAroundObstacles(getObstacles(currentState), Tester.MAX_ERROR));
+        positions.addAll(getPointsAroundObstacles(getObstacles(currentState), robotWidth/2 + Tester.MAX_ERROR));
 
         List<State> possibleStates = new ArrayList<>();
         State tempState;
@@ -39,6 +39,7 @@ public class RobotAgent extends SearchAgent {
             for (double orientation: orientations) {
                 tempState = currentState.moveRobotToPosition(position, orientation);
                 if (checkRobotMovingCollision(currentState, tempState.robotConfig)) {
+
                     possibleStates.add(tempState);
 
                 }
@@ -47,6 +48,7 @@ public class RobotAgent extends SearchAgent {
 
         List<SearchNode> nodes = new ArrayList<>();
         for (State nextState: possibleStates) {
+            double cost = currentState.robotConfig.getPos().distance(nextState.robotConfig.getPos());
             nodes.add(new SearchNode(nextState));
         }
 
