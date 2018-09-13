@@ -122,7 +122,12 @@ public class BoxAgent extends SearchAgent {
 
         List<SearchNode> nodes = new ArrayList<>();
         for (State nextState: possibleStates) {
-            if (checkMovingBoxCollision(nextState)) {
+            Box nextBox = nextState.movingBoxes.get(movingBoxIndex);
+            double distance = movingBox.getPos().distance(nextBox.getPos());
+            boolean closeToGoal = (distance < movingBox.getWidth()/2) &&
+                    ((movingBox.getPos().getX() - nextBox.getPos().getX() < Tester.MAX_ERROR) ||
+                            (movingBox.getPos().getY() - nextBox.getPos().getY() < Tester.MAX_ERROR));
+            if (checkMovingBoxCollision(nextState) || closeToGoal) {
                 double movingCost = calculateMovingCost(currentState, nextState);
                 double robotCost = calculateRobotCost(currentState, nextState);
                 double obstacleCost = calculateObstacleCost(nextState);
@@ -158,7 +163,7 @@ public class BoxAgent extends SearchAgent {
         for (int i=0; i < state.movingBoxes.size(); i++) {
             if (i != movingBoxIndex) {
                 Box box = state.movingBoxes.get(i);
-                if (movingBox.getRect().intersects(box.getRect())) {
+                if (movingBox.getRect().intersects(tester.grow(box.getRect(), Tester.MAX_ERROR/2))) {
                     return false;
                 }
                 if (robotLine.intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR))) {
