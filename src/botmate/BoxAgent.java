@@ -126,8 +126,8 @@ public class BoxAgent extends SearchAgent {
                     movingBox.getPos().getY() + movingBox.getWidth()/2);
             double deltaX = Math.abs(center.getX() - target.getX());
             double deltaY = Math.abs(center.getX() - target.getY());
-            boolean closeToGoal = (center.distance(target) < movingBox.getWidth()/2) &&
-                    (deltaX < Tester.MAX_ERROR || deltaY < Tester.MAX_ERROR);
+            boolean closeToGoal = (center.distance(target) < movingBox.getWidth()) &&
+                    (deltaX < Tester.MAX_BASE_STEP || deltaY < Tester.MAX_BASE_STEP);
             if (checkMovingBoxCollision(nextState) || closeToGoal) {
                 double movingCost = calculateMovingCost(currentState, nextState);
                 double robotCost = calculateRobotCost(currentState, nextState);
