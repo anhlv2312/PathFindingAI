@@ -122,11 +122,12 @@ public class BoxAgent extends SearchAgent {
 
         List<SearchNode> nodes = new ArrayList<>();
         for (State nextState: possibleStates) {
-            Box nextBox = nextState.movingBoxes.get(movingBoxIndex);
-            double distance = movingBox.getPos().distance(nextBox.getPos());
-            boolean closeToGoal = (distance < movingBox.getWidth()/2) &&
-                    ((movingBox.getPos().getX() - nextBox.getPos().getX() < Tester.MAX_ERROR) ||
-                            (movingBox.getPos().getY() - nextBox.getPos().getY() < Tester.MAX_ERROR));
+            Point2D center = new Point2D.Double(movingBox.getPos().getX() + movingBox.getWidth()/2,
+                    movingBox.getPos().getY() + movingBox.getWidth()/2);
+            double deltaX = Math.abs(center.getX() - target.getX());
+            double deltaY = Math.abs(center.getX() - target.getY());
+            boolean closeToGoal = (center.distance(target) < movingBox.getWidth()/2) &&
+                    (deltaX < Tester.MAX_ERROR || deltaY < Tester.MAX_ERROR);
             if (checkMovingBoxCollision(nextState) || closeToGoal) {
                 double movingCost = calculateMovingCost(currentState, nextState);
                 double robotCost = calculateRobotCost(currentState, nextState);
