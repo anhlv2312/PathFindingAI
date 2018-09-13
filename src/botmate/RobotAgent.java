@@ -103,8 +103,6 @@ public class RobotAgent extends SearchAgent {
             for (StaticObstacle box: staticObstacles) {
                 if (robotRect.intersects(box.getRect())) {
                     return false;
-                } else if (robotRect.intersects(box.getRect())) {
-                    return false;
                 }
             }
 
@@ -144,8 +142,6 @@ public class RobotAgent extends SearchAgent {
 
             for (StaticObstacle obstacle: staticObstacles) {
                 if (line.intersects(obstacle.getRect())) {
-                    return false;
-                } else if (line.intersects(obstacle.getRect())) {
                     return false;
                 }
             }

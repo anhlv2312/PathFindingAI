@@ -164,7 +164,7 @@ public class BoxAgent extends SearchAgent {
         for (int i=0; i < state.movingBoxes.size(); i++) {
             if (i != movingBoxIndex) {
                 Box box = state.movingBoxes.get(i);
-                if (movingBox.getRect().intersects(tester.grow(box.getRect(), Tester.MAX_ERROR/2))) {
+                if (movingBox.getRect().intersects(tester.grow(box.getRect(), Tester.MAX_ERROR))) {
                     return false;
                 }
                 if (robotLine.intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR))) {

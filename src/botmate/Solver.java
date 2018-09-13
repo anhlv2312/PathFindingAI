@@ -16,7 +16,7 @@ import java.util.*;
 public class Solver {
 
     private static final double MIN_STEP_SIZE = 0.01;
-    private static final double MAX_TIMEOUT = 100;
+    private static final double MAX_TIMEOUT = 110;
 
     private static ProblemSpec ps;
     private static RobotAgent robotAgent;
@@ -57,9 +57,11 @@ public class Solver {
             System.out.println();
             System.out.println(String.format("Start solving with step size: %.2f", stepSize));
             for (int movingBoxIndex = 0; movingBoxIndex < ps.getMovingBoxes().size(); movingBoxIndex++ ) {
-                solveMovingBox(movingBoxIndex);
+                boolean boxSolved = solveMovingBox(movingBoxIndex);
+                if (!boxSolved && stepSize == MIN_STEP_SIZE) {
+                    randomMoveObstacle(ps.getRobotWidth());
+                }
             }
-
             stepSize = stepSize/2;
             if (stepSize <= MIN_STEP_SIZE) {
                 stepSize = MIN_STEP_SIZE;
@@ -73,10 +75,10 @@ public class Solver {
         writeOutputFile(args[1]);
     }
 
-    private static void solveMovingBox(int movingBoxIndex) {
+    private static boolean solveMovingBox(int movingBoxIndex) {
 
         if (solvedBoxes.contains(movingBoxIndex)) {
-            return;
+            return true;
         }
 
         System.out.println("    Solving MovingBox: " + movingBoxIndex);
@@ -87,7 +89,7 @@ public class Solver {
 
         if (boxSolution == null) {
             System.out.println("        No solution for MovingBox: " + movingBoxIndex);
-            return;
+            return false;
         }
 
         boolean obstaclesMoved = moveObstaclesOutOfPath(movingBoxIndex, boxSolution);
@@ -97,10 +99,13 @@ public class Solver {
             if (moveMovingBoxToGoal(movingBoxIndex, boxSolution)) {
                 solvedBoxes.add(movingBoxIndex);
                 currentState = problemSolution.get(problemSolution.size() - 1);
+                return true;
             }
         } else {
             System.out.println("        Skip MovingBox: " + movingBoxIndex);
+            return false;
         }
+        return false;
     }
 
     private static boolean moveMovingBoxToGoal(int movingBoxIndex, List<State> boxSolution) {
@@ -144,6 +149,34 @@ public class Solver {
             }
         }
         return obstacleCount == 0;
+    }
+
+    private static void randomMoveObstacle(double randomStepSize) {
+        Random random = new Random();
+        Box movingBox = currentState.movingObstacles.get(random.nextInt(currentState.movingObstacles.size()));
+        List<Rectangle2D> movingPaths = new ArrayList<>();
+        movingPaths.add(movingBox.getRect());
+
+        Set<Integer> obstacleIndexes = getObstaclesIndexes(movingPaths, currentState.movingObstacles);
+
+        for (int obstacleIndex : obstacleIndexes) {
+            System.out.println("        Random move Obstacle: " + obstacleIndex);
+            obstacleAgent = new ObstacleAgent(ps, currentState, obstacleIndex, randomStepSize, movingPaths);
+            List<State> obstacleSolution = obstacleAgent.search();
+            if (obstacleSolution == null) {
+                System.out.println("            Unable to move Obstacle!");
+                break;
+            } else {
+                List<State> robotSolution = generateStateForObstacle(currentState, obstacleIndex, obstacleSolution);
+                if (robotSolution != null) {
+                    problemSolution.addAll(robotSolution);
+                    currentState = problemSolution.get(problemSolution.size() - 1);
+                } else {
+                    System.out.println("            No solution for Robot!");
+                    break;
+                }
+            }
+        }
     }
 
     private static List<Rectangle2D> generateMovingPath(int movingBoxIndex, List<State> movingStates) {
