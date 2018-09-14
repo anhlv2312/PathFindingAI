@@ -152,6 +152,11 @@ public class Solver {
     }
 
     private static void randomMoveObstacle(double randomStepSize) {
+
+        if (currentState.movingObstacles.size() == 0) {
+            return;
+        }
+        
         Random random = new Random();
         Box movingBox = currentState.movingObstacles.get(random.nextInt(currentState.movingObstacles.size()));
         List<Rectangle2D> movingPaths = new ArrayList<>();
