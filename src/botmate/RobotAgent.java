@@ -269,7 +269,7 @@ public class RobotAgent extends SearchAgent {
 
             Line2D robotLine = new Line2D.Double(tester.getPoint1(targetConfig), tester.getPoint2(targetConfig));
 
-            if (tester.grow(box.getRect(), robotWidth).intersectsLine(robotLine)) {
+            if (tester.grow(box.getRect(), robotWidth/2).intersectsLine(robotLine)) {
                 obstacles.add(box.getRect());
             }
 
