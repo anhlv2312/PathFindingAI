@@ -266,6 +266,13 @@ public class RobotAgent extends SearchAgent {
         }
 
         for (StaticObstacle box : staticObstacles) {
+
+            Line2D robotLine = new Line2D.Double(tester.getPoint1(targetConfig), tester.getPoint2(targetConfig));
+
+            if (tester.grow(box.getRect(), robotWidth).intersectsLine(robotLine)) {
+                obstacles.add(box.getRect());
+            }
+
             if (connectionLine.intersects(box.getRect())) {
                 obstacles.add(box.getRect());
             }
