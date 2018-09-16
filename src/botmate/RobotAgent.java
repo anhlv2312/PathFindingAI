@@ -33,8 +33,8 @@ public class RobotAgent extends SearchAgent {
 
         positions.add(targetConfig.getPos());
         positions.addAll(getPointsAroundRectangle(movingBox.getRect(), Tester.MAX_ERROR));
-        positions.addAll(getPointsAroundRectangle(movingBox.getRect(), robotWidth/2 + Tester.MAX_ERROR));
-        positions.addAll(getPointsAroundObstacles(getObstacles(currentState), robotWidth/2 + Tester.MAX_ERROR));
+        positions.addAll(getPointsAroundRectangle(movingBox.getRect(), robotWidth/2));
+        positions.addAll(getPointsAroundObstacles(getObstacles(currentState), robotWidth/2));
 
         List<State> possibleStates = new ArrayList<>();
         State tempState;
@@ -129,7 +129,7 @@ public class RobotAgent extends SearchAgent {
 
         for (Line2D line: movingLines) {
             for (Box box: state.movingBoxes) {
-                if (line.intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR))) {
+                if (line.intersects(box.getRect())) {
                     return false;
                 }
             }
