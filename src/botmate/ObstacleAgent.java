@@ -97,8 +97,6 @@ public class ObstacleAgent extends SearchAgent {
         Point2D topRightCorner = new Point2D.Double(bottomLeft.getX() + movingBox.getWidth() + Tester.MAX_ERROR,
                 bottomLeft.getY() + movingBox.getWidth() + Tester.MAX_ERROR);
 
-        Line2D robotLine = new Line2D.Double(tester.getPoint1(state.robotConfig), tester.getPoint2(state.robotConfig));
-
         if (!border.contains(bottomLeftCorner) || !border.contains(topRightCorner)) {
             return false;
         }
@@ -106,10 +104,7 @@ public class ObstacleAgent extends SearchAgent {
         for (int i=0; i < state.movingObstacles.size(); i++) {
             if (i != movingObstacleIndex) {
                 Box box = state.movingObstacles.get(i);
-                if (movingBox.getRect().intersects(tester.grow(box.getRect(), Tester.MAX_ERROR))) {
-                    return false;
-                }
-                if (robotLine.intersects(box.getRect())) {
+                if (movingBox.getRect().intersects(box.getRect())) {
                     return false;
                 }
             }
@@ -117,19 +112,13 @@ public class ObstacleAgent extends SearchAgent {
         }
 
         for (Box box : state.movingBoxes) {
-            if (movingBox.getRect().intersects(tester.grow(box.getRect(), Tester.MAX_ERROR))) {
-                return false;
-            }
-            if (robotLine.intersects(box.getRect())) {
+            if (movingBox.getRect().intersects(box.getRect())) {
                 return false;
             }
         }
 
         for (StaticObstacle box: staticObstacles) {
-            if (movingBox.getRect().intersects(tester.grow(box.getRect(), Tester.MAX_ERROR))) {
-                return false;
-            }
-            if (robotLine.intersects(box.getRect())) {
+            if (movingBox.getRect().intersects(box.getRect())) {
                 return false;
             }
         }

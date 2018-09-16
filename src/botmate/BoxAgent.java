@@ -91,42 +91,18 @@ public class BoxAgent extends SearchAgent {
             State moveRight = currentState.moveMovingBox(movingBoxIndex, stepWidth, 0, 2);
             State moveDown = currentState.moveMovingBox(movingBoxIndex, 0, -stepWidth, 3);
 
-            switch (robotPosition) {
-                case 1:
-                    possibleStates.add(moveLeft);
-                    possibleStates.add(moveUp);
-                    possibleStates.add(moveRight);
-                    break;
-                case 2:
-                    possibleStates.add(moveUp);
-                    possibleStates.add(moveRight);
-                    possibleStates.add(moveDown);
-                    break;
-                case 3:
-                    possibleStates.add(moveRight);
-                    possibleStates.add(moveDown);
-                    possibleStates.add(moveLeft);
-                    break;
-                case 4:
-                    possibleStates.add(moveDown);
-                    possibleStates.add(moveLeft);
-                    possibleStates.add(moveUp);
-                    break;
-                default:
-                    if (canMoveDown(currentState)) {
-                        possibleStates.add(moveDown);
-                    }
-                    if (canMoveUp(currentState)) {
-                        possibleStates.add(moveUp);
-                    }
-                    if (canMoveLeft(currentState)) {
-                        possibleStates.add(moveLeft);
-                    }
-                    if (canMoveRight(currentState)) {
-                        possibleStates.add(moveRight);
-                    }
+            if (canMoveDown(currentState)) {
+                possibleStates.add(moveDown);
             }
-        }
+            if (canMoveUp(currentState)) {
+                possibleStates.add(moveUp);
+            }
+            if (canMoveLeft(currentState)) {
+                possibleStates.add(moveLeft);
+            }
+            if (canMoveRight(currentState)) {
+                possibleStates.add(moveRight);
+            }        }
 
         List<SearchNode> nodes = new ArrayList<>();
         for (State nextState: possibleStates) {
@@ -186,17 +162,14 @@ public class BoxAgent extends SearchAgent {
         for (int i=0; i < state.movingBoxes.size(); i++) {
             if (i != movingBoxIndex) {
                 Box box = state.movingBoxes.get(i);
-                if (movingBox.getRect().intersects(tester.grow(box.getRect(), Tester.MAX_ERROR))) {
-                    return false;
-                }
-                if (robotLine.intersects(box.getRect())) {
+                if (movingBox.getRect().intersects(box.getRect())) {
                     return false;
                 }
             }
         }
 
         for (StaticObstacle box: staticObstacles) {
-            if (movingBox.getRect().intersects(tester.grow(box.getRect(), Tester.MAX_ERROR))) {
+            if (movingBox.getRect().intersects(box.getRect())) {
                 return false;
             }
         }

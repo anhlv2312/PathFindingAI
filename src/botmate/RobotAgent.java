@@ -121,7 +121,7 @@ public class RobotAgent extends SearchAgent {
         for (Line2D line: movingLines) {
 
             for (Box box : state.movingBoxes) {
-                if (line.intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR))) {
+                if (line.intersects(box.getRect())) {
                     return false;
                 }
             }
