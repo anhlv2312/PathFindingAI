@@ -89,7 +89,7 @@ public class ObstacleAgent extends SearchAgent {
     private boolean checkMovingObstacleCollision(State state) {
 
         Box movingBox = state.movingObstacles.get(movingObstacleIndex);
-        Rectangle2D border = new Rectangle2D.Double(Tester.MAX_ERROR,Tester.MAX_ERROR,1 - Tester.MAX_ERROR,1 - Tester.MAX_ERROR);
+        Rectangle2D border = new Rectangle2D.Double(0,0,1,1);
 
         Point2D bottomLeft = movingBox.getPos();
         Point2D bottomLeftCorner = new Point2D.Double(bottomLeft.getX() - Tester.MAX_ERROR,

@@ -396,9 +396,9 @@ public class Tester {
 
     private boolean isCoincided(double m1, double m2, double n1, double n2) {
         if (m1 <= n1) {
-            return (m2 - n1 >= 0.75 * ps.getRobotWidth());
+            return (m2 - n1 >= 0.75 * ps.getRobotWidth() - MAX_ERROR);
         } else {
-            return (n2 - m1 >= 0.85 * ps.getRobotWidth());
+            return (n2 - m1 >= 0.75 * ps.getRobotWidth() - MAX_ERROR);
         }
     }
 
@@ -442,20 +442,20 @@ public class Tester {
         p2 = getPoint2(r);
         boolean horizontal;
         if (angle >= Math.PI * 4 - angleError || angle <= Math.PI * 2 + angleError) {
-            r1 = new Point2D.Double(p1.getX() + 2 * MAX_ERROR, p1.getY());
-            r2 = new Point2D.Double(p2.getX() - 2 * MAX_ERROR, p2.getY());
+            r1 = new Point2D.Double(p1.getX() + MAX_BASE_STEP, p1.getY());
+            r2 = new Point2D.Double(p2.getX() - MAX_BASE_STEP, p2.getY());
             horizontal = true;
         } else if (angle >= Math.PI * 2.5 - angleError && angle <= Math.PI * 2.5 + angleError) {
-            r1 = new Point2D.Double(p1.getX(), p1.getY() + 2 * MAX_ERROR);
-            r2 = new Point2D.Double(p2.getX(), p2.getY() - 2 * MAX_ERROR);
+            r1 = new Point2D.Double(p1.getX(), p1.getY() + MAX_BASE_STEP);
+            r2 = new Point2D.Double(p2.getX(), p2.getY() - MAX_BASE_STEP);
             horizontal = false;
         } else if (angle >= Math.PI * 3 - angleError && angle <= Math.PI * 3 + angleError) {
-            r1 = new Point2D.Double(p2.getX() + 2 * MAX_ERROR, p2.getY());
-            r2 = new Point2D.Double(p1.getX() - 2 * MAX_ERROR, p1.getY());
+            r1 = new Point2D.Double(p2.getX() + MAX_BASE_STEP, p2.getY());
+            r2 = new Point2D.Double(p1.getX() - MAX_BASE_STEP, p1.getY());
             horizontal = true;
         } else if (angle >= Math.PI * 3.5 - angleError && angle <= Math.PI * 3.5 + angleError) {
-            r1 = new Point2D.Double(p2.getX(), p2.getY() + 2 * MAX_ERROR);
-            r2 = new Point2D.Double(p1.getX(), p1.getY() - 2 * MAX_ERROR);
+            r1 = new Point2D.Double(p2.getX(), p2.getY() + MAX_BASE_STEP);
+            r2 = new Point2D.Double(p1.getX(), p1.getY() - MAX_BASE_STEP);
             horizontal = false;
         } else {
             return true;
@@ -502,6 +502,7 @@ public class Tester {
     public boolean hasCollision(RobotConfig r, List<Box> movingObjects) {
         Line2D robotLine = new Line2D.Double(getPoint1(r), getPoint2(r));
         Rectangle2D border = new Rectangle2D.Double(0,0,1,1);
+        border = grow(border,MAX_ERROR);
         for (StaticObstacle o: ps.getStaticObstacles()) {
             if (robotLine.intersects(grow(o.getRect(), -MAX_ERROR))) {
                 return false;
