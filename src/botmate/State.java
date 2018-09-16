@@ -112,19 +112,19 @@ public class State {
 
         switch (edge) {
             case 1:
-                p = new Point2D.Double(x + w/2, y - Tester.MAX_ERROR/2);
+                p = new Point2D.Double(x + w/2, y - Tester.MAX_ERROR * 0.9);
                 o = 0.0;
                 break;
             case 2:
-                p = new Point2D.Double(x - Tester.MAX_ERROR/2, y + w/2);
+                p = new Point2D.Double(x - Tester.MAX_ERROR * 0.9, y + w/2);
                 o = Math.PI/2;
                 break;
             case 3:
-                p = new Point2D.Double(x + w/2, y + w + Tester.MAX_ERROR/2);
+                p = new Point2D.Double(x + w/2, y + w + Tester.MAX_ERROR * 0.9);
                 o = 0.0;
                 break;
             case 4:
-                p = new Point2D.Double(x + w + Tester.MAX_ERROR/2, y + w/2);
+                p = new Point2D.Double(x + w + Tester.MAX_ERROR * 0.9, y + w/2);
                 o = Math.PI/2;
                 break;
             default:
