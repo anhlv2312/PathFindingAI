@@ -180,7 +180,7 @@ public class BoxAgent extends SearchAgent {
         }
 
         for (StaticObstacle box: staticObstacles) {
-            if (movingBox.getRect().intersects(box.getRect())) {
+            if (movingBox.getRect().intersects(tester.grow(box.getRect(), Tester.MAX_ERROR))) {
                 return false;
             }
         }
