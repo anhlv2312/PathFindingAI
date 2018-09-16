@@ -84,25 +84,20 @@ public class BoxAgent extends SearchAgent {
             possibleStates.add(currentState.moveMovingBox(movingBoxIndex, -gapX, 0, 4));
             possibleStates.add(currentState.moveMovingBox(movingBoxIndex, 0, -gapY, 3));
         } else {
-            int robotPosition = tester.isCoupled(currentState.robotConfig, movingBox);
-
-            State moveLeft = currentState.moveMovingBox(movingBoxIndex, -stepWidth, 0, 4);
-            State moveUp = currentState.moveMovingBox(movingBoxIndex, 0, stepWidth, 1);
-            State moveRight = currentState.moveMovingBox(movingBoxIndex, stepWidth, 0, 2);
-            State moveDown = currentState.moveMovingBox(movingBoxIndex, 0, -stepWidth, 3);
 
             if (canMoveDown(currentState)) {
-                possibleStates.add(moveDown);
+                possibleStates.add(currentState.moveMovingBox(movingBoxIndex, 0, -stepWidth, 3));
             }
             if (canMoveUp(currentState)) {
-                possibleStates.add(moveUp);
+                possibleStates.add(currentState.moveMovingBox(movingBoxIndex, 0, stepWidth, 1));
             }
             if (canMoveLeft(currentState)) {
-                possibleStates.add(moveLeft);
+                possibleStates.add(currentState.moveMovingBox(movingBoxIndex, -stepWidth, 0, 4));
             }
             if (canMoveRight(currentState)) {
-                possibleStates.add(moveRight);
-            }        }
+                possibleStates.add(currentState.moveMovingBox(movingBoxIndex, stepWidth, 0, 2));
+            }
+        }
 
         List<SearchNode> nodes = new ArrayList<>();
         for (State nextState: possibleStates) {
@@ -152,8 +147,6 @@ public class BoxAgent extends SearchAgent {
         Point2D topRightCorner = new Point2D.Double(bottomLeft.getX() + movingBox.getWidth() + Tester.MAX_ERROR,
                 bottomLeft.getY() + movingBox.getWidth() + Tester.MAX_ERROR);
 
-        Line2D robotLine = new Line2D.Double(tester.getPoint1(state.robotConfig), tester.getPoint2(state.robotConfig));
-
         if (!border.contains(bottomLeftCorner) || !border.contains(topRightCorner)) {
             return false;
         }
@@ -162,14 +155,14 @@ public class BoxAgent extends SearchAgent {
         for (int i=0; i < state.movingBoxes.size(); i++) {
             if (i != movingBoxIndex) {
                 Box box = state.movingBoxes.get(i);
-                if (movingBox.getRect().intersects(box.getRect())) {
+                if (movingBox.getRect().intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR*0.1))) {
                     return false;
                 }
             }
         }
 
         for (StaticObstacle box: staticObstacles) {
-            if (movingBox.getRect().intersects(box.getRect())) {
+            if (movingBox.getRect().intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR*0.1))) {
                 return false;
             }
         }
