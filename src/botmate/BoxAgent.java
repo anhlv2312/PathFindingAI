@@ -113,10 +113,18 @@ public class BoxAgent extends SearchAgent {
                     possibleStates.add(moveUp);
                     break;
                 default:
-                    possibleStates.add(moveLeft);
-                    possibleStates.add(moveUp);
-                    possibleStates.add(moveRight);
-                    possibleStates.add(moveDown);
+                    if (canMoveDown(currentState)) {
+                        possibleStates.add(moveDown);
+                    }
+                    if (canMoveUp(currentState)) {
+                        possibleStates.add(moveUp);
+                    }
+                    if (canMoveLeft(currentState)) {
+                        possibleStates.add(moveLeft);
+                    }
+                    if (canMoveRight(currentState)) {
+                        possibleStates.add(moveRight);
+                    }
             }
         }
 
@@ -134,6 +142,26 @@ public class BoxAgent extends SearchAgent {
         return nodes;
     }
 
+
+    private boolean canMoveDown(State state) {
+        State newState = state.moveMovingBox(movingBoxIndex, 0, Tester.MAX_BASE_STEP, 3);
+        return checkMovingBoxCollision(newState);
+    }
+
+    private boolean canMoveUp(State state) {
+        State newState = state.moveMovingBox(movingBoxIndex, 0, -Tester.MAX_BASE_STEP, 1);
+        return checkMovingBoxCollision(newState);
+    }
+
+    private boolean canMoveLeft(State state) {
+        State newState = state.moveMovingBox(movingBoxIndex, Tester.MAX_BASE_STEP, 0, 4);
+        return checkMovingBoxCollision(newState);
+    }
+
+    private boolean canMoveRight(State state) {
+        State newState = state.moveMovingBox(movingBoxIndex, -Tester.MAX_BASE_STEP, 0, 2);
+        return checkMovingBoxCollision(newState);
+    }
 
 
     private boolean checkMovingBoxCollision(State state) {
