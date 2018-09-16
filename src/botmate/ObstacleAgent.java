@@ -67,27 +67,6 @@ public class ObstacleAgent extends SearchAgent {
     }
 
 
-    private boolean canMoveDown(State state) {
-        State newState = state.moveObstacle(movingObstacleIndex, 0, Tester.MAX_ERROR, 3);
-        return checkMovingObstacleCollision(newState);
-    }
-
-    private boolean canMoveUp(State state) {
-        State newState = state.moveObstacle(movingObstacleIndex, 0, -Tester.MAX_ERROR, 1);
-        return checkMovingObstacleCollision(newState);
-    }
-
-    private boolean canMoveLeft(State state) {
-        State newState = state.moveObstacle(movingObstacleIndex, Tester.MAX_ERROR, 0, 4);
-        return checkMovingObstacleCollision(newState);
-    }
-
-    private boolean canMoveRight(State state) {
-        State newState = state.moveObstacle(movingObstacleIndex, -Tester.MAX_ERROR, 0, 2);
-        return checkMovingObstacleCollision(newState);
-    }
-
-
     private boolean checkMovingObstacleCollision(State state) {
 
         Box movingBox = state.movingObstacles.get(movingObstacleIndex);
