@@ -39,28 +39,30 @@ public class ObstacleAgent extends SearchAgent {
     @Override
     public List<SearchNode> getSuccessors(State currentState) {
 
-
-        List<State> possibleStates = new ArrayList<>();
-
-        if (canMoveDown(currentState)) {
-            possibleStates.add(currentState.moveObstacle(movingObstacleIndex, 0, -stepWidth, 3));
-        }
-        if (canMoveUp(currentState)) {
-            possibleStates.add(currentState.moveObstacle(movingObstacleIndex, 0, stepWidth, 1));
-        }
-        if (canMoveLeft(currentState)) {
-            possibleStates.add(currentState.moveObstacle(movingObstacleIndex, -stepWidth, 0, 4));
-        }
-        if (canMoveRight(currentState)) {
-            possibleStates.add(currentState.moveObstacle(movingObstacleIndex, stepWidth, 0, 2));
-        }
+        State moveDown = currentState.moveObstacle(movingObstacleIndex, 0, -stepWidth, 3);
+        State moveUp = currentState.moveObstacle(movingObstacleIndex, 0, stepWidth, 1);
+        State moveLeft = currentState.moveObstacle(movingObstacleIndex, -stepWidth, 0, 4);
+        State moveRight = currentState.moveObstacle(movingObstacleIndex, stepWidth, 0, 2);
 
         List<SearchNode> nodes = new ArrayList<>();
-        for (State nextState : possibleStates) {
-            if (checkMovingObstacleCollision(nextState)) {
-                nodes.add(new SearchNode(nextState));
-            }
+
+        if (checkMovingObstacleCollision(moveDown)) {
+            nodes.add(new SearchNode(moveDown));
         }
+
+        if (checkMovingObstacleCollision(moveUp)) {
+            nodes.add(new SearchNode(moveUp));
+        }
+
+        if (checkMovingObstacleCollision(moveLeft)) {
+            nodes.add(new SearchNode(moveLeft));
+        }
+
+        if (checkMovingObstacleCollision(moveRight)) {
+            nodes.add(new SearchNode(moveRight));
+        }
+
+
         return nodes;
     }
 

@@ -74,6 +74,7 @@ public class BoxAgent extends SearchAgent {
 
         Box movingBox =  currentState.movingBoxes.get(movingBoxIndex);
         List<State> possibleStates = new ArrayList<>();
+        List<SearchNode> nodes = new ArrayList<>();
 
         if (movingBox.getPos().distance(target) < stepWidth) {
             double gapX = Math.abs(movingBox.getPos().getX() - target.getX());
@@ -83,53 +84,37 @@ public class BoxAgent extends SearchAgent {
             possibleStates.add(currentState.moveMovingBox(movingBoxIndex, -gapX, 0, 4));
             possibleStates.add(currentState.moveMovingBox(movingBoxIndex, 0, -gapY, 3));
         } else {
-            if (canMoveDown(currentState)) {
-                possibleStates.add(currentState.moveMovingBox(movingBoxIndex, 0, -stepWidth, 3));
+            State moveDown = currentState.moveMovingBox(movingBoxIndex, 0, -stepWidth, 3);
+            State moveUp = currentState.moveMovingBox(movingBoxIndex, 0, stepWidth, 1);
+            State moveLeft = currentState.moveMovingBox(movingBoxIndex, -stepWidth, 0, 4);
+            State moveRight = currentState.moveMovingBox(movingBoxIndex, stepWidth, 0, 2);
+
+            if (checkMovingBoxCollision(moveDown)) {
+                possibleStates.add(moveDown);
             }
-            if (canMoveUp(currentState)) {
-                possibleStates.add(currentState.moveMovingBox(movingBoxIndex, 0, stepWidth, 1));
+
+            if (checkMovingBoxCollision(moveUp)) {
+                possibleStates.add(moveUp);
             }
-            if (canMoveLeft(currentState)) {
-                possibleStates.add(currentState.moveMovingBox(movingBoxIndex, -stepWidth, 0, 4));
+
+            if (checkMovingBoxCollision(moveLeft)) {
+                possibleStates.add(moveLeft);
             }
-            if (canMoveRight(currentState)) {
-                possibleStates.add(currentState.moveMovingBox(movingBoxIndex, stepWidth, 0, 2));
+
+            if (checkMovingBoxCollision(moveRight)) {
+                possibleStates.add(moveRight);
             }
         }
 
-        List<SearchNode> nodes = new ArrayList<>();
         for (State nextState: possibleStates) {
-            if (checkMovingBoxCollision(nextState)) {
-                double movingCost = calculateMovingCost(currentState, nextState);
-                double robotCost = calculateRobotCost(currentState, nextState);
-                double obstacleCost = calculateObstacleCost(nextState);
-                double heuristic = calculateHeuristic(nextState);
-                nodes.add(new SearchNode(nextState, movingCost + robotCost + obstacleCost, heuristic));
-            }
+            double movingCost = calculateMovingCost(currentState, nextState);
+            double robotCost = calculateRobotCost(currentState, nextState);
+            double obstacleCost = calculateObstacleCost(nextState);
+            double heuristic = calculateHeuristic(nextState);
+            nodes.add(new SearchNode(nextState, movingCost + robotCost + obstacleCost, heuristic));
         }
 
         return nodes;
-    }
-
-
-    private boolean canMoveDown(State state) {
-        State newState = state.moveMovingBox(movingBoxIndex, 0, Tester.MAX_ERROR, 3);
-        return checkMovingBoxCollision(newState);
-    }
-
-    private boolean canMoveUp(State state) {
-        State newState = state.moveMovingBox(movingBoxIndex, 0, -Tester.MAX_ERROR, 1);
-        return checkMovingBoxCollision(newState);
-    }
-
-    private boolean canMoveLeft(State state) {
-        State newState = state.moveMovingBox(movingBoxIndex, Tester.MAX_ERROR, 0, 4);
-        return checkMovingBoxCollision(newState);
-    }
-
-    private boolean canMoveRight(State state) {
-        State newState = state.moveMovingBox(movingBoxIndex, -Tester.MAX_ERROR, 0, 2);
-        return checkMovingBoxCollision(newState);
     }
 
 
