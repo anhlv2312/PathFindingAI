@@ -73,7 +73,7 @@ public class Solver {
                 pendingMovingBox.remove(movingBoxIndex);
             }
 
-            stepSize = stepSize/2;
+            stepSize = stepSize - MIN_STEP_SIZE;
             if (stepSize <= MIN_STEP_SIZE) {
                 stepSize = MIN_STEP_SIZE;
             }
@@ -88,7 +88,7 @@ public class Solver {
 
     private static int findNearestMovingBox(Set<Integer> pending) {
         int nearestBoxIndex = -1;
-        double minDistance = 1;
+        double minDistance = 2;
         for (int index : pending) {
             Box box = currentState.movingBoxes.get(index);
             Point2D center = new Point2D.Double(box.getPos().getX() + box.getWidth(), box.getPos().getY() + box.getWidth());
@@ -103,7 +103,7 @@ public class Solver {
 
     private static int findNearestObstacle(Set<Integer> pending) {
         int nearestObstacleIndex = -1;
-        double minDistance = 1;
+        double minDistance = 2;
         for (int index : pending) {
             Box box = currentState.movingObstacles.get(index);
             Point2D center = new Point2D.Double(box.getPos().getX() + box.getWidth(), box.getPos().getY() + box.getWidth());
