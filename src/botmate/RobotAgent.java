@@ -82,7 +82,7 @@ public class RobotAgent extends SearchAgent {
 
             for (Box box: state.movingBoxes) {
                 if (tester.isCoupled(state.robotConfig, box) > 0) {
-                    if (robotRect.intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR))) {
+                    if (robotRect.intersects(box.getRect())) {
                         return false;
                     }
                 } else if (robotRect.intersects(box.getRect())) {
