@@ -39,41 +39,20 @@ public class ObstacleAgent extends SearchAgent {
     @Override
     public List<SearchNode> getSuccessors(State currentState) {
 
-        Box movingObstacle =  currentState.movingObstacles.get(movingObstacleIndex);
+
         List<State> possibleStates = new ArrayList<>();
-        int robotPosition = tester.isCoupled(currentState.robotConfig, movingObstacle);
 
-        State moveLeft = currentState.moveObstacle(movingObstacleIndex, -stepWidth, 0, 4);
-        State moveUp = currentState.moveObstacle(movingObstacleIndex, 0, stepWidth, 1);
-        State moveRight = currentState.moveObstacle(movingObstacleIndex, stepWidth, 0, 2);
-        State moveDown = currentState.moveObstacle(movingObstacleIndex, 0, -stepWidth, 3);
-
-        switch (robotPosition) {
-            case 1:
-                possibleStates.add(moveLeft);
-                possibleStates.add(moveUp);
-                possibleStates.add(moveRight);
-                break;
-            case 2:
-                possibleStates.add(moveUp);
-                possibleStates.add(moveRight);
-                possibleStates.add(moveDown);
-                break;
-            case 3:
-                possibleStates.add(moveRight);
-                possibleStates.add(moveDown);
-                possibleStates.add(moveLeft);
-                break;
-            case 4:
-                possibleStates.add(moveDown);
-                possibleStates.add(moveLeft);
-                possibleStates.add(moveUp);
-                break;
-            default:
-                possibleStates.add(moveLeft);
-                possibleStates.add(moveUp);
-                possibleStates.add(moveRight);
-                possibleStates.add(moveDown);
+        if (canMoveDown(currentState)) {
+            possibleStates.add(currentState.moveObstacle(movingObstacleIndex, 0, -stepWidth, 3));
+        }
+        if (canMoveUp(currentState)) {
+            possibleStates.add(currentState.moveObstacle(movingObstacleIndex, 0, stepWidth, 1));
+        }
+        if (canMoveLeft(currentState)) {
+            possibleStates.add(currentState.moveObstacle(movingObstacleIndex, -stepWidth, 0, 4));
+        }
+        if (canMoveRight(currentState)) {
+            possibleStates.add(currentState.moveObstacle(movingObstacleIndex, stepWidth, 0, 2));
         }
 
         List<SearchNode> nodes = new ArrayList<>();
@@ -83,6 +62,27 @@ public class ObstacleAgent extends SearchAgent {
             }
         }
         return nodes;
+    }
+
+
+    private boolean canMoveDown(State state) {
+        State newState = state.moveObstacle(movingObstacleIndex, 0, Tester.MAX_ERROR, 3);
+        return checkMovingObstacleCollision(newState);
+    }
+
+    private boolean canMoveUp(State state) {
+        State newState = state.moveObstacle(movingObstacleIndex, 0, -Tester.MAX_ERROR, 1);
+        return checkMovingObstacleCollision(newState);
+    }
+
+    private boolean canMoveLeft(State state) {
+        State newState = state.moveObstacle(movingObstacleIndex, Tester.MAX_ERROR, 0, 4);
+        return checkMovingObstacleCollision(newState);
+    }
+
+    private boolean canMoveRight(State state) {
+        State newState = state.moveObstacle(movingObstacleIndex, -Tester.MAX_ERROR, 0, 2);
+        return checkMovingObstacleCollision(newState);
     }
 
 
