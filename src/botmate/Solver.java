@@ -26,7 +26,7 @@ public class Solver {
     private static State initialState, currentState;
     private static List<State> problemSolution = new LinkedList<>();
 
-    private static Set<Integer> solvedBoxes;
+    private static Set<Integer> unsolvedBoxes;
     private static double stepSize;
 
     public static void main(String args[]) {
@@ -44,7 +44,12 @@ public class Solver {
         currentState = initialState;
         problemSolution.add(initialState);
 
-        solvedBoxes = new HashSet<>();
+        unsolvedBoxes = new HashSet<>();
+
+        for (int i = 0; i< ps.getMovingBoxes().size(); i++) {
+            unsolvedBoxes.add(i);
+        }
+
         stepSize = ps.getRobotWidth();
 
         System.out.println("Number of MovingBox: " + ps.getMovingBoxes().size());
@@ -52,16 +57,22 @@ public class Solver {
         double startTime = System.currentTimeMillis();
         double timer = 0;
 
-        while (solvedBoxes.size() < ps.getMovingBoxes().size() && timer < MAX_TIMEOUT) {
+        while (unsolvedBoxes.size() > 0 && timer < MAX_TIMEOUT) {
             stepSize = Math.round(stepSize * 100) / 100.0;
             System.out.println();
             System.out.println(String.format("Start solving with step size: %.2f", stepSize));
-            for (int movingBoxIndex = 0; movingBoxIndex < ps.getMovingBoxes().size(); movingBoxIndex++ ) {
+
+
+            Set<Integer> pendingMovingBox = new HashSet<>(unsolvedBoxes);
+            while (pendingMovingBox.size() > 0) {
+                int movingBoxIndex = findNearestMovingBox(pendingMovingBox);
                 boolean boxSolved = solveMovingBox(movingBoxIndex);
                 if (!boxSolved && stepSize == MIN_STEP_SIZE) {
                     randomMoveObstacle(ps.getRobotWidth());
                 }
+                pendingMovingBox.remove(movingBoxIndex);
             }
+
             stepSize = stepSize/2;
             if (stepSize <= MIN_STEP_SIZE) {
                 stepSize = MIN_STEP_SIZE;
@@ -75,11 +86,37 @@ public class Solver {
         writeOutputFile(args[1]);
     }
 
-    private static boolean solveMovingBox(int movingBoxIndex) {
-
-        if (solvedBoxes.contains(movingBoxIndex)) {
-            return true;
+    private static int findNearestMovingBox(Set<Integer> pending) {
+        int nearestBoxIndex = -1;
+        double minDistance = 1;
+        for (int index : pending) {
+            Box box = currentState.movingBoxes.get(index);
+            Point2D center = new Point2D.Double(box.getPos().getX() + box.getWidth(), box.getPos().getY() + box.getWidth());
+            double distance = currentState.robotConfig.getPos().distance(center);
+            if (distance < minDistance) {
+                nearestBoxIndex = index;
+                minDistance = distance;
+            }
         }
+        return nearestBoxIndex;
+    }
+
+    private static int findNearestObstacle(Set<Integer> pending) {
+        int nearestObstacleIndex = -1;
+        double minDistance = 1;
+        for (int index : pending) {
+            Box box = currentState.movingObstacles.get(index);
+            Point2D center = new Point2D.Double(box.getPos().getX() + box.getWidth(), box.getPos().getY() + box.getWidth());
+            double distance = currentState.robotConfig.getPos().distance(center);
+            if (distance < minDistance) {
+                nearestObstacleIndex = index;
+                minDistance = distance;
+            }
+        }
+        return nearestObstacleIndex;
+    }
+
+    private static boolean solveMovingBox(int movingBoxIndex) {
 
         System.out.println("    Solving MovingBox: " + movingBoxIndex);
         Point2D movingBoxGoal = ps.getMovingBoxEndPositions().get(movingBoxIndex);
@@ -97,7 +134,7 @@ public class Solver {
             boxAgent = new BoxAgent(ps, currentState, movingBoxIndex, movingBoxGoal, stepSize);
             boxSolution = boxAgent.search();
             if (moveMovingBoxToGoal(movingBoxIndex, boxSolution)) {
-                solvedBoxes.add(movingBoxIndex);
+                unsolvedBoxes.remove(movingBoxIndex);
                 currentState = problemSolution.get(problemSolution.size() - 1);
                 return true;
             }
@@ -129,7 +166,10 @@ public class Solver {
 
         int obstacleCount = obstacleIndexes.size();
 
-        for (int obstacleIndex : obstacleIndexes) {
+        Set<Integer> pending = new HashSet<>(obstacleIndexes);
+
+        while (pending.size() > 0) {
+            int obstacleIndex = findNearestObstacle(pending);
             System.out.println("        Solving Obstacle: " + obstacleIndex);
             obstacleAgent = new ObstacleAgent(ps, currentState, obstacleIndex, stepSize, movingPaths);
             List<State> obstacleSolution = obstacleAgent.search();
@@ -147,7 +187,9 @@ public class Solver {
                     break;
                 }
             }
+            pending.remove(obstacleIndex);
         }
+
         return obstacleCount == 0;
     }
 
