@@ -22,7 +22,6 @@ public class RobotAgent extends SearchAgent {
     @Override
     public boolean isFound(State currentState) {
         return currentState.robotConfig.getPos().distance(targetConfig.getPos()) < Tester.MAX_ERROR;
-
     }
 
     @Override
@@ -81,21 +80,13 @@ public class RobotAgent extends SearchAgent {
             }
 
             for (Box box: state.movingBoxes) {
-                if (tester.isCoupled(state.robotConfig, box) > 0) {
-                    if (robotRect.intersects(box.getRect())) {
-                        return false;
-                    }
-                } else if (robotRect.intersects(box.getRect())) {
+                if (robotRect.intersects(box.getRect())) {
                     return false;
                 }
             }
 
             for (Box box: state.movingObstacles) {
-                if (tester.isCoupled(state.robotConfig, box) > 0) {
-                    if (robotRect.intersects(box.getRect())) {
-                        return false;
-                    }
-                } else if (robotRect.intersects(box.getRect())) {
+                if (robotRect.intersects(box.getRect())) {
                     return false;
                 }
             }
@@ -128,8 +119,9 @@ public class RobotAgent extends SearchAgent {
         }
 
         for (Line2D line: movingLines) {
-            for (Box box: state.movingBoxes) {
-                if (line.intersects(box.getRect())) {
+
+            for (Box box : state.movingBoxes) {
+                if (line.intersects(tester.grow(box.getRect(), -Tester.MAX_ERROR))) {
                     return false;
                 }
             }
